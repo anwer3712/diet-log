@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>奶奶照護日誌 / Catatan Perawatan Nenek</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-gold {
+            0%, 100% { transform: scale(1); border-color: #f59e0b; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            50% { transform: scale(1.02); border-color: #fbbf24; box-shadow: 0 0 15px 5px rgba(245, 158, 11, 0.4); }
+        }
+        .celebrate-active { animation: pulse-gold 2s infinite ease-in-out; background: linear-gradient(to bottom right, #fffdf5, #fffbeb); }
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+            50% { box-shadow: 0 0 14px 4px rgba(239, 68, 68, 0.35); }
+        }
+        .danger-active { animation: pulse-red 1.6s infinite ease-in-out; border-color: #ef4444 !important; }
+        .animate-spin-slow { animation: spin 3s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        body { background: linear-gradient(180deg, #fff1f2 0%, #ffffff 45%, #eff6ff 100%); }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen pb-12 font-sans selection:bg-rose-100">
+
+    <div class="max-w-md mx-auto px-4 pt-5">
+
+        <div class="text-center mb-4">
+            <h1 class="text-xl font-black text-rose-400 tracking-wide flex items-center justify-center gap-1.5">👵💗 奶奶照護日誌</h1>
+            <p class="text-[11px] text-gray-400 font-bold mt-0.5">Buku Harian Perawatan Nenek</p>
+        </div>
+
+        <div class="mb-4">
+            <a id="view-sheet-btn" href="#" target="_blank" class="w-full bg-rose-400 text-white text-center py-3.5 px-4 rounded-3xl font-bold shadow-md flex items-center justify-center gap-2 transition-all hover:bg-rose-500 active:scale-[0.98]">
+                <span>📊 審視每日總合月總表 / Tinjau Ringkasan</span>
+            </a>
+        </div>
+
+        <div id="target-dashboard" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-rose-100 mb-4 transition-all">
+            <div class="flex items-center justify-between mb-3">
+                <h3 id="dashboard-title" class="font-bold text-gray-700 flex items-center gap-1.5 text-base">🎯 今日目標追蹤</h3>
+                <span id="progress-percent" class="text-xs font-black bg-rose-50 text-rose-500 px-2.5 py-0.5 rounded-full">0%</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 bg-rose-50/50 rounded-2xl p-3 mb-3 text-center">
+                <div>
+                    <p class="text-[11px] text-gray-400 font-medium">今日目標 / Target</p>
+                    <div class="flex items-center justify-center gap-1 mt-0.5">
+                        <input id="input-target-val" type="number" class="w-20 text-center font-bold text-lg bg-transparent border-b border-gray-300 focus:border-rose-400 focus:outline-none p-0 text-gray-700" value="1200" min="0">
+                        <span class="target-unit text-xs font-bold text-gray-500">c.c.</span>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] text-gray-400 font-medium">目前已達 / Capai</p>
+                    <p class="text-lg font-black text-gray-800 mt-1"><span id="current-achieved-val">0</span> <span class="target-unit text-xs font-bold text-gray-500">c.c.</span></p>
+                </div>
+            </div>
+
+            <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden mb-2">
+                <div id="progress-bar" class="bg-rose-400 h-full w-0 transition-all duration-500 rounded-full"></div>
+            </div>
+
+            <div id="fluid-warning" class="hidden bg-red-100 text-red-700 p-2.5 rounded-2xl text-xs font-black mt-2 mb-2 animate-pulse text-center border border-red-200">
+                🚨 總液體量已超過目標值 (1200 c.c.)！<br><span class="text-[10px] font-medium">Volume cairan melebihi target (1200 c.c.)!</span>
+            </div>
+            <div id="urine-range-info" class="hidden bg-blue-50 text-blue-700 p-2.5 rounded-2xl text-xs font-bold mt-2 mb-1 border border-blue-100">
+                <span id="urine-range-text"></span>
+            </div>
+
+            <div class="mt-3 pt-3 border-t border-gray-100">
+                <label class="block text-[11px] font-bold text-gray-500 mb-2">💊 服用藥物 / Obat：</label>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-1.5 text-xs font-bold text-gray-600"><input type="checkbox" id="med-diuretic" class="w-4 h-4 text-rose-500 rounded"> 利尿藥物 / Diuretik</label>
+                    <label class="flex items-center gap-1.5 text-xs font-bold text-gray-600"><input type="checkbox" id="med-laxative" class="w-4 h-4 text-rose-500 rounded"> 利便藥物 / Pencahar</label>
+                </div>
+            </div>
+        </div>
+
+        <form id="log-form" class="space-y-4" novalidate>
+            <div id="bp-guide-card" class="hidden bg-red-50 border border-red-100 rounded-2xl p-3 text-red-600 font-bold text-xs space-y-1">
+                <p class="text-[13px] border-b border-red-200 pb-1 font-black">💡 量血壓規範 / Panduan Tensi</p>
+                <p>1. 早上起床後一小時內及晚上睡前一小時內。</p>
+                <p class="text-[11px] text-red-500 font-medium pl-3">Waktu: Dalam satu jam setelah bangun tidur dan sebelum tidur.</p>
+                <p>2. 測量前15分鐘應保持靜止。</p>
+                <p class="text-[11px] text-red-500 font-medium pl-3">Pasien diam selama 15 menit sebelum pengukuran.</p>
+                <p>3. 高血壓患者收縮壓/舒張壓 &lt; 130/80 mmHg。</p>
+            </div>
+
+            <div class="bg-white rounded-3xl p-2.5 shadow-sm border-2 border-sky-100 grid grid-cols-4 gap-1">
+                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-sky-50 text-sky-600 font-black transition-all"><input type="radio" name="type" value="攝入" class="sr-only" checked onchange="updateView()"><span class="text-lg">📥</span><span class="text-[10px] mt-0.5">攝入/Asupan</span></label>
+                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="排出" class="sr-only" onchange="updateView()"><span class="text-lg">📤</span><span class="text-[10px] mt-0.5">排出/Haluaran</span></label>
+                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="運動" class="sr-only" onchange="updateView()"><span class="text-lg">💪</span><span class="text-[10px] mt-0.5">運動/Latihan</span></label>
+                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="血壓" class="sr-only" onchange="updateView()"><span class="text-lg">🩸</span><span class="text-[10px] mt-0.5">血壓/Tensi</span></label>
+            </div>
+
+            <div class="bg-white rounded-3xl p-4 shadow-sm border-2 border-sky-100 grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">日期 / Tanggal</label>
+                    <input id="input-date" type="date" class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-bold text-gray-700">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">時間 / Jam</label>
+                    <div class="flex gap-1">
+                        <input id="input-time" type="time" class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-bold text-gray-700">
+                        <button type="button" onclick="setNow(); fetchCloudData();" class="bg-gray-100 text-gray-600 px-2.5 rounded-2xl text-[10px] font-black active:scale-95 transition-all">現在<br>Skg</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="items-category-card" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-sky-100">
+                <label class="block text-xs font-bold text-gray-400 mb-2">選擇項目 / Pilih Item</label>
+
+                <div id="intake-group" class="grid grid-cols-2 gap-2">
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="飲水量" checked> 飲水/Air Minum</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="服藥飲水"> 服藥/Minum Obat</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="營養飲品"> 營養/Susu Nutrisi</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="進食"> 進食/Makan</label>
+                </div>
+
+                <div id="output-group" class="grid grid-cols-2 gap-2 hidden">
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="尿液"> 尿液 / Air Kencing</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="排便"> 排便 / BAB</label>
+                </div>
+
+                <div id="exercise-group" class="grid grid-cols-1 gap-2 hidden">
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="雙手舉水瓶"> 雙手舉水瓶 / Angkat Botol</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="腳底板抬壓"> 腳底板抬壓 / Tekan Kaki</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="膝蓋彎伸"> 膝蓋彎伸 / Tekuk Lutut</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="站立"> 站立 / Berdiri</label>
+
+                    <div id="stand-warning" class="bg-red-50 border border-red-200 rounded-2xl p-3 text-red-800 font-bold text-[11px] space-y-1.5 hidden mt-1">
+                        <p class="text-sm border-b border-red-200 pb-1 font-black">⚠️ 站立安全規範 / Keselamatan</p>
+                        <p>1. 至少 2 人以上。<br><span class="text-[10px] text-red-600 font-medium">Setidaknya dua pengasuh harus hadir.</span></p>
+                        <p>2. 病患身心狀況良好。<br><span class="text-[10px] text-red-600 font-medium">Kondisi fisik & mental pasien baik.</span></p>
+                        <p>3. 照顧者不可同時進行其他動作。<br><span class="text-[10px] text-red-600 font-medium">Tidak boleh melakukan tindakan lain.</span></p>
+                        <p>4. 步驟 / Langkah-langkah:</p>
+                        <ul class="pl-2 space-y-1">
+                            <li>a. 將床降下讓病患雙腳及地。 <span class="text-[10px] text-red-600 font-medium">Turunkan tempat tidur, kaki di lantai.</span></li>
+                            <li>b. 降下扶手並蓋毛巾防挫傷。 <span class="text-[10px] text-red-600 font-medium">Turunkan sandaran, tutupi handuk.</span></li>
+                            <li>c. 坐至床沿須有穩固扶手。 <span class="text-[10px] text-red-600 font-medium">Harus ada sandaran lengan.</span></li>
+                            <li>d. 站穩彎身與病患相擁。 <span class="text-[10px] text-red-600 font-medium">Pengasuh memeluk pasien.</span></li>
+                            <li>e. 輔助病患向上站立力量。 <span class="text-[10px] text-red-600 font-medium">Berikan dukungan ke atas.</span></li>
+                            <li>f. 慢慢習慣腿部出力。 <span class="text-[10px] text-red-600 font-medium">Biasakan kekuatan kaki.</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="bp-inputs-group" class="space-y-3 hidden">
+                    <h4 id="bp-dynamic-title" class="font-black text-gray-700 text-sm">🌞 血壓與心跳 (早) / Tensi (Pagi)</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="block text-[10px] font-bold text-gray-400 mb-0.5">收縮壓/Sistolik</label><input id="input-bp-sys" type="number" placeholder="高壓" class="w-full bg-gray-50 border-0 rounded-2xl py-2 px-2 text-sm font-bold text-center"></div>
+                        <div><label class="block text-[10px] font-bold text-gray-400 mb-0.5">舒張壓/Diastolik</label><input id="input-bp-dia" type="number" placeholder="低壓" class="w-full bg-gray-50 border-0 rounded-2xl py-2 px-2 text-sm font-bold text-center"></div>
+                        <div><label class="block text-[10px] font-bold text-gray-400 mb-0.5">心跳/Detak Jtg</label><input id="input-bp-hr" type="number" placeholder="次/分" class="w-full bg-gray-50 border-0 rounded-2xl py-2 px-2 text-sm font-bold text-center"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="standard-amount-group" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-sky-100 space-y-3">
+                <div>
+                    <label id="amount-title-zh" class="block text-xs font-bold text-gray-400 mb-1">容量 / Kapasitas</label>
+                    <div class="relative rounded-2xl shadow-sm">
+                        <input id="input-amount" type="number" required class="w-full bg-gray-50 border-0 rounded-2xl py-3 pl-4 pr-16 text-base font-black text-gray-700" placeholder="例如: 250">
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-sm font-bold text-gray-400" id="amount-unit">c.c.</div>
+                    </div>
+                </div>
+
+                <div id="stool-shortcut" class="hidden space-y-1.5">
+                    <label class="block text-[11px] font-bold text-gray-400">💩 糞便狀態 (必選 / Wajib):</label>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button type="button" onclick="setStoolStatus('水便 / Diare')" class="bg-orange-50 border border-orange-100 text-orange-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all">水便/Diare</button>
+                        <button type="button" onclick="setStoolStatus('浣腸 / Enema')" class="bg-purple-50 border border-purple-100 text-purple-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all">浣腸/Enema</button>
+                        <button type="button" onclick="setStoolStatus('大便乾硬 / Sembelit')" class="bg-red-50 border border-red-100 text-red-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all">乾硬/Sembelit</button>
+                        <button type="button" onclick="setStoolStatus('正常 / Normal')" class="bg-green-50 border border-green-100 text-green-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all">正常/Normal</button>
+                    </div>
+                </div>
+
+                <div id="urine-color-shortcut" class="hidden space-y-1.5">
+                    <label class="block text-[11px] font-bold text-gray-400">💧 尿液顏色 (必選 / Wajib):</label>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button type="button" onclick="setUrineColor('茶色 / Warna Teh')" class="bg-amber-50 text-amber-700 rounded-2xl py-2 text-xs font-bold">茶色/Warna Teh</button>
+                        <button type="button" onclick="setUrineColor('深黃色 / Kuning Tua')" class="bg-yellow-100 text-yellow-700 rounded-2xl py-2 text-xs font-bold">深黃/Kuning Tua</button>
+                        <button type="button" onclick="setUrineColor('正常淺黃 / Kuning Muda')" class="bg-yellow-50 text-yellow-600 rounded-2xl py-2 text-xs font-bold">淺黃/Kuning Muda</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">手寫備註 / Catatan <span id="note-required-hint" class="text-rose-400">(進食必填 / Wajib untuk Makan)</span></label>
+                    <input id="input-note" type="text" placeholder="輸入額外說明內容... / Masukkan catatan tambahan..." class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-medium text-gray-700">
+                </div>
+            </div>
+
+            <button id="submit-btn" type="submit" class="w-full bg-rose-500 text-white text-center py-4 px-4 rounded-3xl font-black shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:bg-gray-400">
+                <span>💾 儲存紀錄 / Simpan Catatan</span>
+            </button>
+        </form>
+
+        <div class="mt-6 space-y-3">
+            <div class="flex items-center justify-between px-1">
+                <h3 id="cloud-list-title" class="font-black text-gray-700 text-sm">📋 今日紀錄</h3>
+                <button type="button" onclick="fetchCloudData()" class="text-xs bg-white border border-gray-200 rounded-2xl py-1.5 px-2.5 font-bold shadow-sm flex items-center gap-1"><span id="sync-icon">🔄</span> 同步/Sync</button>
+            </div>
+            <div id="today-logs-container" class="space-y-2.5">
+                <div class="text-center py-8 text-gray-400 text-xs font-medium bg-white rounded-3xl border border-dashed">正在串聯雲端資料庫... / Menghubungkan ke database cloud...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reminder-modal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-2 border-rose-100 text-center space-y-4">
+            <div class="w-16 h-16 bg-rose-50 text-rose-400 rounded-full flex items-center justify-center mx-auto text-3xl font-bold animate-bounce">🔔</div>
+            <div>
+                <h4 class="font-black text-gray-800 text-lg">照護提醒 / Pengingat</h4>
+                <div id="reminder-content" class="mt-4 space-y-3 text-sm font-bold text-gray-600 text-left bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    </div>
+            </div>
+            <button type="button" onclick="document.getElementById('reminder-modal').classList.add('hidden')" class="w-full bg-rose-400 hover:bg-rose-500 text-white font-black rounded-2xl py-3 text-sm shadow-md transition-all">我已了解 / Saya Mengerti</button>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-xl border border-gray-100 text-center space-y-4">
+            <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚠️</div>
+            <div>
+                <h4 class="font-black text-gray-800 text-base">確定此筆紀錄輸入錯誤？</h4>
+                <p class="text-xs font-medium text-gray-400 mt-1">Apakah catatan ini salah input?</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button type="button" onclick="closeModal()" class="bg-gray-100 text-gray-600 font-bold rounded-2xl py-2.5 text-xs">取消/Batal</button>
+                <button id="modal-confirm-btn" type="button" class="bg-red-500 text-white font-black rounded-2xl py-2.5 text-xs">確定錯誤/Benar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-black py-3 px-5 rounded-full transition-all duration-300 opacity-0 z-50 pointer-events-none">通知</div>
+
+    <script>
+        // ==================== 核心網址配置區 ====================
+        const GAS_URL = "https://script.google.com/macros/s/AKfycby-3Q--z4t03yOtgtMpkbhYccmxD9dqvmrqQdX4sg4vZNBfjgyuKYuL6HZuHkro7p0o/exec";
+        const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1K2kmt5iqhaZ6zIl6sAXny-vjx8JnJCL2D-t5W3Ab9Wk/edit";
+        // ========================================================
+
+        let cloudRecords = [];
+        let cloudGoals = {};
+        let currentActiveId = null;
+        const stoolStatuses = ['水便 / Diare', '浣腸 / Enema', '大便乾硬 / Sembelit', '正常 / Normal'];
+        const urineColors = ['茶色 / Warna Teh', '深黃色 / Kuning Tua', '正常淺黃 / Kuning Muda'];
+        const defaultTargets = { '總攝入水量': 1125, '雙手舉水瓶': 60, '腳底板抬壓': 60, '膝蓋彎伸': 60, '排便': 1, '站立': 5 };
+
+        function updateView() {
+            const selectedType = document.querySelector('input[name="type"]:checked').value;
+            const intakeGroup = document.getElementById('intake-group');
+            const outputGroup = document.getElementById('output-group');
+            const exerciseGroup = document.getElementById('exercise-group');
+            const bpGroup = document.getElementById('bp-inputs-group');
+            const bpGuideCard = document.getElementById('bp-guide-card');
+            const standardGroup = document.getElementById('standard-amount-group');
+            const targetDashboard = document.getElementById('target-dashboard');
+
+            intakeGroup.classList.add('hidden'); outputGroup.classList.add('hidden');
+            exerciseGroup.classList.add('hidden'); bpGroup.classList.add('hidden');
+            if (bpGuideCard) bpGuideCard.classList.add('hidden');
+            standardGroup.classList.remove('hidden'); targetDashboard.classList.remove('hidden');
+
+            if (selectedType === '攝入') {
+                intakeGroup.classList.remove('hidden');
+                if(!document.querySelector('#intake-group input[name="category"]:checked'))
+                    document.querySelector('#intake-group input[name="category"]').checked = true;
+            } else if (selectedType === '排出') {
+                outputGroup.classList.remove('hidden');
+                document.querySelector('#output-group input[name="category"]').checked = true;
+            } else if (selectedType === '運動') {
+                exerciseGroup.classList.remove('hidden');
+                document.querySelector('#exercise-group input[name="category"]').checked = true;
+            } else if (selectedType === '血壓') {
+                bpGroup.classList.remove('hidden');
+                if (bpGuideCard) bpGuideCard.classList.remove('hidden');
+                standardGroup.classList.add('hidden');
+                targetDashboard.classList.add('hidden');
+            }
+            checkSubCategory(); checkBpTime();
+        }
+
+        function checkBpTime() {
+            const timeVal = document.getElementById('input-time').value;
+            const bpTitle = document.getElementById('bp-dynamic-title');
+            if(timeVal >= '05:00' && timeVal <= '15:00') bpTitle.innerHTML = "🌞 血壓與心跳 (早) / Tensi (Pagi)";
+            else bpTitle.innerHTML = "🌙 血壓與心跳 (晚) / Tensi (Malam)";
+            renderRecords();
+        }
+
+        function checkSubCategory() {
+            const selectedType = document.querySelector('input[name="type"]:checked').value;
+            const checkedCategory = document.querySelector('input[name="category"]:checked');
+            const stoolShortcut = document.getElementById('stool-shortcut');
+            const urineColorShortcut = document.getElementById('urine-color-shortcut');
+            const titleZh = document.getElementById('amount-title-zh');
+            const amountUnit = document.getElementById('amount-unit');
+            const amountInput = document.getElementById('input-amount');
+            const noteInput = document.getElementById('input-note');
+            const standWarning = document.getElementById('stand-warning');
+
+            if (selectedType === '血壓') amountInput.required = false;
+            else amountInput.required = true;
+
+            stoolShortcut.classList.add('hidden');
+            if (urineColorShortcut) urineColorShortcut.classList.add('hidden');
+            if (standWarning) standWarning.classList.add('hidden');
+
+            if (stoolStatuses.includes(noteInput.value) || urineColors.includes(noteInput.value)) noteInput.value = '';
+
+            const noteHint = document.getElementById('note-required-hint');
+            if (noteHint) {
+                const cat = checkedCategory ? checkedCategory.value : '';
+                if (cat === '進食') {
+                    noteHint.textContent = '(進食必填 / Wajib untuk Makan)';
+                    noteHint.className = 'text-rose-400';
+                } else {
+                    noteHint.textContent = '(選填 / Opsional)';
+                    noteHint.className = 'text-gray-400';
+                }
+            }
+
+            if (selectedType === '運動') {
+                if (checkedCategory && checkedCategory.value === '站立') {
+                    if (standWarning) standWarning.classList.remove('hidden');
+                    titleZh.innerText = "次數 / Frekuensi"; amountUnit.innerText = '次/Kali';
+                } else {
+                    titleZh.innerText = "組數 / Jumlah Set"; amountUnit.innerText = '組/Set';
+                }
+                amountInput.placeholder = '可輸入 0'; amountInput.min = '0';
+            } else if (checkedCategory && checkedCategory.value === '排便') {
+                stoolShortcut.classList.remove('hidden');
+                titleZh.innerText = "次數 / Frekuensi"; amountUnit.innerText = '次/Kali';
+                amountInput.placeholder = '可輸入 0 及狀態'; amountInput.min = '0';
+            } else if (checkedCategory && checkedCategory.value === '尿液') {
+                if (urineColorShortcut) urineColorShortcut.classList.remove('hidden');
+                titleZh.innerText = "容量 / Kapasitas"; amountUnit.innerText = 'c.c.';
+                amountInput.placeholder = '例如: 250'; amountInput.min = '1';
+            } else {
+                titleZh.innerText = "容量 / Kapasitas"; amountUnit.innerText = 'c.c.';
+                amountInput.placeholder = '例如: 250'; amountInput.min = '1';
+            }
+            updateTargetPanel(); renderRecords();
+        }
+
+        function updateTargetPanel() {
+            const selectedType = document.querySelector('input[name="type"]:checked').value;
+            const checkedCategory = document.querySelector('input[name="category"]:checked')?.value;
+            const targetDashboard = document.getElementById('target-dashboard');
+            const urineRangeInfoEl = document.getElementById('urine-range-info');
+
+            if (selectedType === '血壓') return;
+            let currentItem = checkedCategory;
+            if (['飲水量', '服藥飲水', '營養飲品', '進食'].includes(checkedCategory)) currentItem = '總攝入水量';
+
+            document.getElementById('dashboard-title').innerText = `🎯 【${currentItem}】今日目標 / Target`;
+
+            const unitEls = document.querySelectorAll('.target-unit');
+            let unitText = 'c.c.';
+            if (['排便', '站立'].includes(currentItem)) unitText = '次/Kali';
+            if (['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸'].includes(currentItem)) unitText = '組/Set';
+            unitEls.forEach(el => el.innerText = unitText);
+
+            let savedTarget = cloudGoals['goal_' + currentItem] || defaultTargets[currentItem] || '';
+            const targetInput = document.getElementById('input-target-val');
+
+            // === 尿液目標特殊算法 ===
+            let urineRangeMin = 0, urineRangeMax = 0;
+            if (currentItem === '尿液') {
+                const intakeTarget = parseFloat(cloudGoals['goal_總攝入水量'] || defaultTargets['總攝入水量'] || 1125);
+                const hasDiuretic = document.getElementById('med-diuretic').checked;
+                if (hasDiuretic) {
+                    urineRangeMin = Math.round(intakeTarget * 1.1);
+                    urineRangeMax = Math.round(intakeTarget * 1.5);
+                } else {
+                    urineRangeMin = Math.round(intakeTarget * 0.4);
+                    urineRangeMax = Math.round(intakeTarget * 0.6);
+                }
+                savedTarget = urineRangeMin;
+                targetInput.value = urineRangeMin;
+                targetInput.readOnly = true;
+                targetInput.style.color = '#6b7280';
+                const medLabel = hasDiuretic ? '（有利尿藥）' : '（無利尿藥）';
+                urineRangeInfoEl.classList.remove('hidden');
+                document.getElementById('urine-range-text').innerHTML =
+                    `💧 正常範圍${medLabel}：${urineRangeMin} ~ ${urineRangeMax} c.c.<br><span class="text-[10px]">Rentang normal: ${urineRangeMin} ~ ${urineRangeMax} c.c.</span>`;
+            } else {
+                targetInput.value = savedTarget;
+                targetInput.readOnly = false;
+                targetInput.style.color = '';
+                urineRangeInfoEl.classList.add('hidden');
+            }
+
+            let achieved = 0;
+            if (currentItem === '總攝入水量') {
+                achieved = cloudRecords.filter(item => ['飲水量', '服藥飲水', '營養飲品', '進食'].includes(item.category)).reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+            } else {
+                achieved = cloudRecords.filter(item => item.category === currentItem).reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+            }
+            document.getElementById('current-achieved-val').innerText = achieved;
+
+            let finalTarget = parseFloat(savedTarget);
+            let percent = finalTarget > 0 ? Math.round((achieved / finalTarget) * 100) : 0;
+            document.getElementById('progress-percent').innerText = percent + '%';
+            document.getElementById('progress-bar').style.width = Math.min(percent, 100) + '%';
+
+            const warningEl = document.getElementById('fluid-warning');
+            const bar = document.getElementById('progress-bar');
+            const overFluid = (currentItem === '總攝入水量' && achieved > 1200);
+
+            // 尿液超出正常範圍警告
+            if (currentItem === '尿液' && achieved > 0 && urineRangeMax > 0 && achieved > urineRangeMax) {
+                const hasDiuretic = document.getElementById('med-diuretic').checked;
+                const medLabel = hasDiuretic ? '有利尿藥物' : '無藥物';
+                alert(`⚠️ 【尿液超出正常範圍警告】\n\n今日尿液量：${achieved} c.c.\n正常上限（${medLabel}）：${urineRangeMax} c.c.\n\n請注意並告知護理人員。\n\nPeringatan: Volume urine hari ini (${achieved} c.c.) melebihi batas normal (${urineRangeMax} c.c.). Harap laporkan ke perawat.`);
+            }
+
+            if (overFluid) {
+                warningEl.classList.remove('hidden');
+                warningEl.innerHTML = `🚨 總液體量已超過目標值 (1200 c.c.)！<br><span class="text-[10px] font-medium">Volume cairan melebihi target (1200 c.c.)!</span>`;
+                targetDashboard.classList.add('danger-active');
+                bar.classList.remove('bg-rose-400'); bar.classList.add('bg-red-500');
+            } else {
+                warningEl.classList.add('hidden');
+                targetDashboard.classList.remove('danger-active');
+                bar.classList.add('bg-rose-400'); bar.classList.remove('bg-red-500');
+            }
+
+            targetDashboard.classList.remove('celebrate-active');
+            if (!overFluid && percent >= 90) targetDashboard.classList.add('celebrate-active');
+        }
+
+        function checkReminders() {
+            const now = new Date();
+            const hourMin = now.toTimeString().substring(0, 5);
+            const todayStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            const records = cloudRecords || [];
+
+            const bpCount = records.filter(r => r.category && r.category.includes('血壓/心跳')).length;
+            const exCount = records.filter(r => r.type === '運動').length;
+            const exTypes = ['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸', '站立'];
+            const missingEx = exTypes.filter(ex => !records.some(r => r.category === ex));
+
+            const stillNote = `<p class="text-xs text-orange-500 mt-1">※ 測量血壓前，請奶奶保持靜止15分鐘，確保讀數準確。<br>Sebelum mengukur tekanan darah, mintalah Nenek untuk diam selama 15 menit untuk memastikan pembacaan yang akurat.</p>`;
+
+            const redMissed = (zh, id) => `<div class="bg-red-50 border border-red-200 rounded-2xl p-2.5 mb-2"><p class="text-red-700 font-black text-sm">🚨 ${zh}<br><span class="text-[11px] font-medium text-red-500">${id}</span></p></div>`;
+            const blueGuide = (html) => `<div class="border-l-4 border-sky-400 pl-3 py-1.5 bg-sky-50/50 rounded-r-xl">${html}</div>`;
+
+            let reminders = [];
+            let missedSet = new Set();
+            try { missedSet = new Set(JSON.parse(localStorage.getItem('missed_items_' + todayStr) || '[]')); } catch(e) {}
+
+            // === Slot (1): 07:00-10:30 起床後血壓 + 早餐前運動 ===
+            if (hourMin >= '07:00' && hourMin < '10:30') {
+                if (bpCount < 1) reminders.push(blueGuide(`<p class="font-black text-sm">🩺 起床後測量血壓<br><span class="text-xs text-gray-500">Ukur tekanan darah setelah bangun tidur</span></p>${stillNote}`));
+                if (exCount < 1) reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 早餐前運動<br><span class="text-xs text-gray-500">Olahraga sebelum sarapan</span></p>`));
+            }
+            if (hourMin >= '10:30' && bpCount < 1) missedSet.add('morning_bp'); else missedSet.delete('morning_bp');
+            if (hourMin >= '10:30' && exCount < 1) missedSet.add('morning_ex'); else missedSet.delete('morning_ex');
+
+            // === Slot (2): 10:30-16:30 午餐前運動 ===
+            if (hourMin >= '10:30' && hourMin < '16:30') {
+                if (exCount < 2) reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 午餐前運動<br><span class="text-xs text-gray-500">Olahraga sebelum makan siang</span></p>`));
+            }
+            if (hourMin >= '16:30' && exCount < 2) missedSet.add('lunch_ex'); else missedSet.delete('lunch_ex');
+
+            // === Slot (3): 16:30-19:00 晚餐前運動 ===
+            if (hourMin >= '16:30' && hourMin < '19:00') {
+                if (exCount < 3) reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 晚餐前運動<br><span class="text-xs text-gray-500">Olahraga sebelum makan malam</span></p>`));
+            }
+            if (hourMin >= '19:00' && exCount < 3) missedSet.add('dinner_ex'); else missedSet.delete('dinner_ex');
+
+            // === Slot (4): 19:00-22:00 睡前血壓 + 睡前運動 + 盤點 ===
+            if (hourMin >= '19:00' && hourMin < '22:00') {
+                if (bpCount < 2) reminders.push(blueGuide(`<p class="font-black text-sm">🩺 睡前測量血壓<br><span class="text-xs text-gray-500">Ukur tekanan darah sebelum tidur</span></p>${stillNote}`));
+                reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 睡前運動<br><span class="text-xs text-gray-500">Olahraga sebelum tidur</span></p>`));
+                if (missingEx.length > 0) {
+                    reminders.push(`<div class="bg-purple-50 p-3 rounded-2xl border border-purple-200 text-sm"><p class="font-black text-purple-800">📋 睡前盤點：</p><p class="text-purple-700 mt-1">今天還沒有【${missingEx.join('、')}】，不要忘了<br><span class="text-xs text-purple-500">Jangan lupa, aku belum ${missingEx.join(', ')} hari ini.</span></p></div>`);
+                }
+            }
+            if (hourMin >= '22:00' && bpCount < 2) missedSet.add('evening_bp'); else missedSet.delete('evening_bp');
+            exTypes.forEach(ex => {
+                const hasEx = records.some(r => r.category === ex);
+                if (hourMin >= '22:00' && !hasEx) missedSet.add('ex_' + ex); else missedSet.delete('ex_' + ex);
+            });
+
+            // === Slot (5): 22:00-24:00 睡前最後一次尿液量 ===
+            if (hourMin >= '22:00') {
+                reminders.push(blueGuide(`<p class="font-black text-sm">🚽 睡前量測今日最後一次尿液量<br><span class="text-xs text-gray-500">Ukur volume urine terakhir Anda sebelum tidur.</span></p>`));
+            }
+
+            // === 極致提醒：紅色警示（以次數判斷補完成，非時段）===
+            const missedLabel = {
+                'morning_bp': ['尚未測量早上血壓', 'Belum ukur tekanan darah pagi'],
+                'morning_ex': ['尚未完成早餐前運動', 'Belum olahraga sebelum sarapan'],
+                'lunch_ex': ['尚未完成午餐前運動', 'Belum olahraga sebelum makan siang'],
+                'dinner_ex': ['尚未完成晚餐前運動', 'Belum olahraga sebelum makan malam'],
+                'evening_bp': ['尚未測量睡前血壓', 'Belum ukur tekanan darah sebelum tidur'],
+            };
+            exTypes.forEach(ex => { missedLabel['ex_'+ex] = [`尚未完成：${ex}`, `Belum: ${ex}`]; });
+
+            let redItems = [];
+            missedSet.forEach(key => {
+                const lbl = missedLabel[key];
+                if (lbl) redItems.push(redMissed(lbl[0], lbl[1]));
+            });
+
+            // === 每週清潔提醒（13:30-16:30，當天只彈一次）===
+            let cleanReminders = [];
+            if (hourMin >= '13:30' && hourMin < '16:30') {
+                const dow = now.getDay();
+                const cleanKey = 'clean_notified_' + todayStr;
+                if (!localStorage.getItem(cleanKey)) {
+                    if (dow === 3 || dow === 6) {
+                        cleanReminders.push(`<div class="bg-green-50 p-3 rounded-2xl border border-green-200 text-green-800 text-sm"><p class="font-black">🧹 每週三和週六清潔整個一樓地板。</p><p class="text-xs font-medium mt-0.5">Bersihkan seluruh area lantai pertama setiap hari Rabu dan Sabtu.</p></div>`);
+                        localStorage.setItem(cleanKey, '1');
+                    } else if (dow === 1 || dow === 5) {
+                        cleanReminders.push(`<div class="bg-green-50 p-3 rounded-2xl border border-green-200 text-green-800 text-sm"><p class="font-black">🛋️ 每週一和週五清潔一樓的沙發和餐桌。</p><p class="text-xs font-medium mt-0.5">Bersihkan sofa dan meja makan di lantai pertama setiap hari Senin dan Jumat.</p></div>`);
+                        localStorage.setItem(cleanKey, '1');
+                    }
+                }
+            }
+
+            // === 組合：紅色警示優先 → 當前時段引導 → 清潔提醒 ===
+            reminders = [...redItems, ...reminders, ...cleanReminders];
+
+            // === 持久化：錯過項存入 localStorage，直到完成次數達標才清除 ===
+            localStorage.setItem('missed_items_' + todayStr, JSON.stringify([...missedSet]));
+
+            // === 清理 7 天前的舊 localStorage ===
+            const sevenAgo = new Date(now.getTime() - 7*24*60*60*1000).toISOString().split('T')[0];
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('missed_items_')) {
+                    const d = key.replace('missed_items_', '');
+                    if (d < sevenAgo) localStorage.removeItem(key);
+                }
+            }
+
+            if (reminders.length > 0) {
+                document.getElementById('reminder-content').innerHTML = reminders.join('');
+                document.getElementById('reminder-modal').classList.remove('hidden');
+            }
+        }
+
+        function setStoolStatus(status) { document.getElementById('input-note').value = status; }
+        function setUrineColor(color) { document.getElementById('input-note').value = color; }
+        function setNow() {
+            const now = new Date();
+            const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            const localTime = now.toTimeString().substring(0, 5);
+            document.getElementById('input-date').value = localDate;
+            document.getElementById('input-time').value = localTime;
+            checkBpTime(); return localDate;
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            if(isError) toast.classList.add('bg-red-600');
+            else toast.classList.remove('bg-red-600');
+            toast.classList.remove('opacity-0');
+            setTimeout(() => toast.classList.add('opacity-0'), 3500);
+        }
+
+        function fetchCloudData() {
+            const targetDate = document.getElementById('input-date').value || setNow();
+            const icon = document.getElementById('sync-icon');
+            icon.classList.add('animate-spin-slow');
+            const fetchUrl = `${GAS_URL}?date=${targetDate}&t=${new Date().getTime()}`;
+            fetch(fetchUrl, { cache: "no-store" })
+                .then(res => res.json())
+                .then(data => {
+                    cloudRecords = data.records || [];
+                    cloudGoals = data.goals || {};
+                    if (cloudGoals['last_med']) {
+                        try {
+                            const meds = JSON.parse(cloudGoals['last_med']);
+                            document.getElementById('med-diuretic').checked = !!meds.diuretic;
+                            document.getElementById('med-laxative').checked = !!meds.laxative;
+                        } catch(e) {}
+                    }
+                    updateTargetPanel();
+                    renderRecords();
+                    checkReminders();
+                    checkBowelMovementAlert();
+                })
+                .catch(err => showToast("同步失敗，請檢查網路連線", true))
+                .finally(() => icon.classList.remove('animate-spin-slow'));
+        }
+
+        function renderRecords() {
+            const container = document.getElementById('today-logs-container');
+            const selectedType = document.querySelector('input[name="type"]:checked').value;
+            let filterKeyword = "", displayTitle = "";
+            if (selectedType === '血壓') { filterKeyword = '血壓/心跳'; displayTitle = '🩸 血壓與心跳'; }
+            else {
+                const checkedCategory = document.querySelector('input[name="category"]:checked');
+                if (checkedCategory) { filterKeyword = checkedCategory.value; displayTitle = checkedCategory.value; }
+            }
+            document.getElementById('cloud-list-title').innerText = `📋 今日【${displayTitle}】紀錄 / Catatan Hari Ini`;
+            const filteredData = cloudRecords.filter(item => {
+                if (!item.category) return false;
+                if (filterKeyword === '血壓/心跳') return item.category.includes('血壓/心跳');
+                return item.category === filterKeyword;
+            });
+            if (filteredData.length === 0) { container.innerHTML = `<div class="text-center py-8 text-gray-400 text-xs font-medium bg-white rounded-3xl border border-dashed">📭 此項目今日尚無紀錄 / Tidak ada catatan hari ini</div>`; return; }
+            const sorted = filteredData.sort((a, b) => b.time.localeCompare(a.time));
+            container.innerHTML = '';
+            sorted.forEach(item => {
+                const isBP = item.category && item.category.includes('血壓');
+                const displayAmount = isBP ? item.amount : `${item.amount} ${item.unit || ''}`;
+
+                // 決定文字顏色：依類型或附加藥物備註
+                let amountColor = '#1f2937'; // 預設深灰
+                if (item.category === '尿液' && item.note && item.note.includes('利尿藥物')) amountColor = '#CD5C5C';
+                else if (item.category === '排便' && item.note && item.note.includes('利便藥物')) amountColor = '#8B4513';
+
+                // 列整體字色依類型
+                let rowColor = '';
+                if (item.type === '運動') rowColor = '#008B8B';
+                else if (item.type === '排出') rowColor = '#8B4513';
+                else if (item.type === '血壓' || (item.category && item.category.includes('血壓'))) rowColor = '#CC00FF';
+
+                const card = document.createElement('div');
+                card.id = `record-${item.recordId}`;
+                card.className = "bg-white border border-gray-100 rounded-3xl p-4 flex items-center justify-between shadow-sm relative overflow-hidden";
+                if (rowColor) card.style.color = rowColor;
+                card.innerHTML = `
+                    <div class="space-y-1"><div class="flex items-center gap-2"><span class="text-xs font-black bg-gray-100 px-2 py-0.5 rounded-md" style="color:${rowColor || '#374151'}">${item.time}</span><span class="text-sm font-black" style="color:${amountColor !== '#1f2937' ? amountColor : (rowColor || '#1f2937')}">${displayAmount}</span></div>${item.note ? `<p class="text-xs font-medium flex items-center gap-0.5" style="color:${rowColor ? rowColor + 'aa' : '#9ca3af'}">📝 ${item.note}</p>` : ''}</div>
+                    <button type="button" onclick="openConfirmModal('${item.recordId}')" class="ml-3 shrink-0 w-12 h-12 flex flex-col items-center justify-center rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 border border-red-100 shadow-sm transition-all active:scale-95"><span class="text-lg leading-none">✖</span><span class="text-[9px] font-black mt-0.5">錯誤/Salah</span></button>`;
+                container.appendChild(card);
+            });
+        }
+
+        document.getElementById('log-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const type = document.querySelector('input[name="type"]:checked').value;
+            let category = "", amount;
+
+            if (type === '血壓') {
+                const timeVal = document.getElementById('input-time').value;
+                category = (timeVal >= '05:00' && timeVal <= '15:00') ? '血壓/心跳(早)' : '血壓/心跳(晚)';
+                const sys = document.getElementById('input-bp-sys').value;
+                const dia = document.getElementById('input-bp-dia').value;
+                const hr = document.getElementById('input-bp-hr').value;
+                if (!sys || !dia || !hr) return showToast("請完整填寫血壓與心跳數值！", true);
+                amount = `${sys}/${dia} (心跳:${hr})`;
+            } else {
+                category = document.querySelector('input[name="category"]:checked').value;
+                amount = parseInt(document.getElementById('input-amount').value, 10);
+                if (isNaN(amount) || amount < 0) return showToast("請輸入正確的數值！", true);
+                if (amount === 0 && category !== '排便' && type !== '運動') return showToast("此項目的容量不能為 0！", true);
+            }
+
+            let noteValue = document.getElementById('input-note').value.trim();
+
+            // 必填驗證
+            if (category === '進食' && !noteValue) return showToast("⚠️ 進食必須填寫備註（吃了什麼）！\nCatatan wajib diisi untuk Makan!", true);
+            if (category === '尿液' && !noteValue) return showToast("⚠️ 請先選擇尿液顏色！\nPilih warna urine terlebih dahulu!", true);
+            if (category === '排便' && !noteValue) return showToast("⚠️ 請先選擇糞便狀態！\nPilih status BAB terlebih dahulu!", true);
+
+            if (category === '尿液' && document.getElementById('med-diuretic').checked) {
+                noteValue += (noteValue ? ' ' : '') + '[當日附加: 利尿藥物]';
+            }
+            if (category === '排便' && document.getElementById('med-laxative').checked) {
+                noteValue += (noteValue ? ' ' : '') + '[當日附加: 利便藥物]';
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span>⏳ 儲存中... / Menyimpan...</span>`;
+
+            const currentUnit = document.getElementById('amount-unit').innerText;
+            const recordId = "REC_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+            const payload = {
+                action: "insert", type: type, category: category,
+                date: document.getElementById('input-date').value,
+                time: document.getElementById('input-time').value,
+                amount: amount, note: noteValue,
+                recordId: recordId
+            };
+
+            // 樂觀更新：立即加入本地紀錄並重繪，不等待伺服器回應
+            const optimisticRecord = {
+                recordId: recordId, type: type, category: category,
+                date: payload.date, time: payload.time,
+                amount: String(amount), note: noteValue, unit: currentUnit
+            };
+            cloudRecords.unshift(optimisticRecord);
+            updateTargetPanel();
+            renderRecords();
+
+            fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) })
+            .then(res => res.json())
+            .then(() => {
+                showToast("儲存成功！ / Berhasil disimpan!");
+                document.getElementById('input-amount').value = ''; document.getElementById('input-bp-sys').value = ''; document.getElementById('input-bp-dia').value = ''; document.getElementById('input-bp-hr').value = ''; document.getElementById('input-note').value = '';
+                setNow(); updateView();
+                // 背景同步，延遲 1.5 秒不阻塞 UI
+                setTimeout(() => fetchCloudData(), 1500);
+            })
+            .catch(err => {
+                // 同步失敗時移除樂觀記錄
+                cloudRecords = cloudRecords.filter(r => r.recordId !== recordId);
+                updateTargetPanel(); renderRecords();
+                showToast("連線失敗 / Koneksi gagal", true);
+            })
+            .finally(() => { btn.disabled = false; btn.innerHTML = `<span>💾 儲存紀錄 / Simpan Catatan</span>`; });
+        });
+
+        function saveMedState() {
+            const medState = { diuretic: document.getElementById('med-diuretic').checked, laxative: document.getElementById('med-laxative').checked };
+            fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "setMed", val: JSON.stringify(medState) }) });
+        }
+        document.getElementById('med-diuretic').addEventListener('change', saveMedState);
+        document.getElementById('med-laxative').addEventListener('change', saveMedState);
+
+        document.querySelectorAll('input[name="category"]').forEach(radio => radio.addEventListener('change', checkSubCategory));
+        document.getElementById('input-time').addEventListener('input', checkBpTime);
+
+        // 選擇日期後自動同步
+        document.getElementById('input-date').addEventListener('change', fetchCloudData);
+
+        document.getElementById('input-target-val').addEventListener('change', function() {
+            const checkedCategory = document.querySelector('input[name="category"]:checked')?.value;
+            let currentItem = checkedCategory;
+            if (['飲水量', '服藥飲水', '營養飲品', '進食'].includes(checkedCategory)) currentItem = '總攝入水量';
+            if (currentItem) {
+                updateTargetPanel(); showToast("今日目標已更新同步！", false);
+                fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "setGoal", category: currentItem, amount: this.value }) });
+            }
+        });
+
+        window.openConfirmModal = function(id) { currentActiveId = id; document.getElementById('confirm-modal').classList.remove('hidden'); };
+        window.closeModal = function() { currentActiveId = null; document.getElementById('confirm-modal').classList.add('hidden'); };
+
+        document.getElementById('modal-confirm-btn').onclick = function() {
+            if (!currentActiveId) return;
+            const targetId = currentActiveId; closeModal(); showToast("正在變更雲端狀態...");
+            const cardEl = document.getElementById('record-' + targetId); if (cardEl) cardEl.classList.add('hidden');
+            if (typeof cloudRecords !== 'undefined') cloudRecords = cloudRecords.filter(item => item.recordId !== targetId);
+            updateTargetPanel();
+            fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "markError", recordId: targetId }) })
+            .then(res => res.json()).then(() => { showToast("已成功標記無效！"); fetchCloudData(); })
+            .catch(err => { showToast("連線失敗", true); if (cardEl) cardEl.classList.remove('hidden'); fetchCloudData(); });
+        };
+
+        window.onload = function() { setNow(); updateView(); fetchCloudData(); document.getElementById('view-sheet-btn').href = SPREADSHEET_URL; };
+
+        function checkBowelMovementAlert() {
+            if (typeof cloudRecords === 'undefined' || cloudRecords.length === 0) return;
+            const bowelRecords = cloudRecords.filter(r => r.category && r.category.includes('排便') && !r.isDeleted);
+            if (bowelRecords.length === 0) return;
+            bowelRecords.sort((a, b) => new Date(`${b.date}T${b.time}`) - new Date(`${a.date}T${a.time}`));
+            const lastBowelTime = new Date(`${bowelRecords[0].date}T${bowelRecords[0].time}`).getTime();
+            const now = new Date().getTime();
+            const diffHours = (now - lastBowelTime) / (1000 * 60 * 60);
+            if (diffHours >= 60 && diffHours <= 72) {
+                const lastAlertTime = localStorage.getItem('lastBowelAlertTime') || 0;
+                const hoursSinceLastAlert = (now - lastAlertTime) / (1000 * 60 * 60);
+                if (hoursSinceLastAlert >= 2) {
+                    alert(`🚨 【嚴重警告 / Peringatan Darurat】 🚨\n\n自前次解便至今已達 ${Math.floor(diffHours)} 小時！\n\n將「連續 3 天未解便」或「伴隨嚴重腹脹、食慾急遽下降」視為「必須立即回報醫師」的紅燈警訊，嚴禁照顧者在未經醫師許可下，自行購買並對病患使用任何液體浣腸劑。\n\n"Tidak buang air besar selama 3 hari berturut-turut" atau "disertai dengan perut kembung parah dan penurunan nafsu makan yang tajam" dianggap sebagai tanda bahaya yang memerlukan perhatian medis segera. Pengasuh dilarang keras membeli dan memberikan enema cair kepada pasien tanpa izin dokter.`);
+                    localStorage.setItem('lastBowelAlertTime', now);
+                }
+            } else if (diffHours < 60) {
+                localStorage.removeItem('lastBowelAlertTime');
+            }
+        }
+    </script>
+</body>
+</html>
+
+
