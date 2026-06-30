@@ -30,7 +30,7 @@
             <p class="text-[11px] text-gray-400 font-bold mt-0.5">Buku Harian Perawatan Nenek</p>
         </div>
 
-        <div class="mb-4">
+        <div id="view-sheet-wrap" class="mb-4 hidden">
             <a id="view-sheet-btn" href="#" target="_blank" class="w-full bg-rose-400 text-white text-center py-3.5 px-4 rounded-3xl font-bold shadow-md flex items-center justify-center gap-2 transition-all hover:bg-rose-500 active:scale-[0.98]">
                 <span>📊 審視每日總合月總表 / Tinjau Ringkasan</span>
             </a>
@@ -44,14 +44,14 @@
 
             <div class="grid grid-cols-2 gap-3 bg-rose-50/50 rounded-2xl p-3 mb-3 text-center">
                 <div>
-                    <p class="text-[11px] text-gray-400 font-medium">今日目標 / Target</p>
+                    <p class="text-[11px] text-gray-400 font-medium">今日目標 / Tujuan hari ini</p>
                     <div class="flex items-center justify-center gap-1 mt-0.5">
-                        <input id="input-target-val" type="number" class="w-20 text-center font-bold text-lg bg-transparent border-b border-gray-300 focus:border-rose-400 focus:outline-none p-0 text-gray-700" value="1200" min="0">
+                        <input id="input-target-val" type="number" class="w-20 text-center font-bold text-lg bg-transparent border-b border-gray-300 focus:border-rose-400 focus:outline-none p-0 text-gray-700" value="1125" min="0">
                         <span class="target-unit text-xs font-bold text-gray-500">c.c.</span>
                     </div>
                 </div>
                 <div>
-                    <p class="text-[11px] text-gray-400 font-medium">目前已達 / Capai</p>
+                    <p class="text-[11px] text-gray-400 font-medium">目前已達 / Kemajuan terkini dari target tersebut</p>
                     <p class="text-lg font-black text-gray-800 mt-1"><span id="current-achieved-val">0</span> <span class="target-unit text-xs font-bold text-gray-500">c.c.</span></p>
                 </div>
             </div>
@@ -67,30 +67,36 @@
                 <span id="urine-range-text"></span>
             </div>
 
-            <div class="mt-3 pt-3 border-t border-gray-100">
-                <label class="block text-[11px] font-bold text-gray-500 mb-2">💊 服用藥物 / Obat：</label>
+            <div id="med-section" class="mt-3 pt-3 border-t border-gray-100 hidden">
+                <label class="block text-[11px] font-bold text-gray-500 mb-2">💊 服用藥物 / Mengonsumsi obat：</label>
                 <div class="flex gap-4">
                     <label class="flex items-center gap-1.5 text-xs font-bold text-gray-600"><input type="checkbox" id="med-diuretic" class="w-4 h-4 text-rose-500 rounded"> 利尿藥物 / Diuretik</label>
-                    <label class="flex items-center gap-1.5 text-xs font-bold text-gray-600"><input type="checkbox" id="med-laxative" class="w-4 h-4 text-rose-500 rounded"> 利便藥物 / Pencahar</label>
+                    <label class="flex items-center gap-1.5 text-xs font-bold text-gray-600"><input type="checkbox" id="med-laxative" class="w-4 h-4 text-rose-500 rounded"> 利便藥物 / Obat pencahar</label>
                 </div>
             </div>
         </div>
 
         <form id="log-form" class="space-y-4" novalidate>
             <div id="bp-guide-card" class="hidden bg-red-50 border border-red-100 rounded-2xl p-3 text-red-600 font-bold text-xs space-y-1">
-                <p class="text-[13px] border-b border-red-200 pb-1 font-black">💡 量血壓規範 / Panduan Tensi</p>
-                <p>1. 早上起床後一小時內及晚上睡前一小時內。</p>
-                <p class="text-[11px] text-red-500 font-medium pl-3">Waktu: Dalam satu jam setelah bangun tidur dan sebelum tidur.</p>
-                <p>2. 測量前15分鐘應保持靜止。</p>
-                <p class="text-[11px] text-red-500 font-medium pl-3">Pasien diam selama 15 menit sebelum pengukuran.</p>
-                <p>3. 高血壓患者收縮壓/舒張壓 &lt; 130/80 mmHg。</p>
+                <p class="text-[13px] border-b border-red-200 pb-1 font-black">💡 血壓測量指南 / Pedoman Pengukuran Tekanan Darah</p>
+                <p>1. 早上起床後一小時內和晚上睡覺前一小時內測量。</p>
+                <p class="text-[11px] text-red-500 font-medium pl-3">1. Dalam waktu satu jam setelah bangun tidur di pagi hari dan satu jam sebelum tidur di malam hari.</p>
+                <p>2. 測量前保持靜止15分鐘。</p>
+                <p class="text-[11px] text-red-500 font-medium pl-3">2. Tetap diam selama 15 menit sebelum pengukuran.</p>
+                <p>3. 高血壓患者的收縮壓/舒張壓應低於 130/80 mmHg。</p>
+                <p class="text-[11px] text-red-500 font-medium pl-3">3. Untuk pasien hipertensi, tekanan darah sistolik/diastolik &lt; 130/80 mmHg.</p>
             </div>
 
             <div class="bg-white rounded-3xl p-2.5 shadow-sm border-2 border-sky-100 grid grid-cols-4 gap-1">
                 <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-sky-50 text-sky-600 font-black transition-all"><input type="radio" name="type" value="攝入" class="sr-only" checked onchange="updateView()"><span class="text-lg">📥</span><span class="text-[10px] mt-0.5">攝入/Asupan</span></label>
-                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="排出" class="sr-only" onchange="updateView()"><span class="text-lg">📤</span><span class="text-[10px] mt-0.5">排出/Haluaran</span></label>
-                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="運動" class="sr-only" onchange="updateView()"><span class="text-lg">💪</span><span class="text-[10px] mt-0.5">運動/Latihan</span></label>
-                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="血壓" class="sr-only" onchange="updateView()"><span class="text-lg">🩸</span><span class="text-[10px] mt-0.5">血壓/Tensi</span></label>
+                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="排出" class="sr-only" onchange="updateView()"><span class="text-lg">📤</span><span class="text-[10px] mt-0.5">排出/ekskresi</span></label>
+                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="運動" class="sr-only" onchange="updateView()"><span class="text-lg">💪</span><span class="text-[10px] mt-0.5 leading-tight">復健練習/Latihan rehabilitasi</span></label>
+                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="血壓" class="sr-only" onchange="updateView()"><span class="text-lg">🩸</span><span class="text-[10px] mt-0.5 leading-tight">血壓/Mengukur tekanan darah</span></label>
+            </div>
+
+            <div id="catheter-note" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-3 text-amber-800 font-bold text-xs space-y-1">
+                <p>🚽 白天關閉導尿管，訓練感受尿液；晚上打開導尿管，防止膀胱超過負荷。</p>
+                <p class="text-[11px] text-amber-600 font-medium">Kateter ditutup pada siang hari untuk melatih kandung kemih agar merasakan urine, dan dibuka pada malam hari untuk mencegah kandung kemih kelebihan beban.</p>
             </div>
 
             <div class="bg-white rounded-3xl p-4 shadow-sm border-2 border-sky-100 grid grid-cols-2 gap-3">
@@ -99,10 +105,10 @@
                     <input id="input-date" type="date" class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-bold text-gray-700">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">時間 / Jam</label>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">時間 / waktu</label>
                     <div class="flex gap-1">
                         <input id="input-time" type="time" class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-bold text-gray-700">
-                        <button type="button" onclick="setNow(); fetchCloudData();" class="bg-gray-100 text-gray-600 px-2.5 rounded-2xl text-[10px] font-black active:scale-95 transition-all">現在<br>Skg</button>
+                        <button type="button" onclick="setNow(); fetchCloudData();" class="bg-gray-100 text-gray-600 px-2.5 rounded-2xl text-[9px] font-black active:scale-95 transition-all leading-tight">現在<br>Waktu saat ini</button>
                     </div>
                 </div>
             </div>
@@ -129,28 +135,28 @@
                     <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="站立"> 站立 / Berdiri</label>
 
                     <div id="stand-warning" class="bg-red-50 border border-red-200 rounded-2xl p-3 text-red-800 font-bold text-[11px] space-y-1.5 hidden mt-1">
-                        <p class="text-sm border-b border-red-200 pb-1 font-black">⚠️ 站立安全規範 / Keselamatan</p>
-                        <p>1. 至少 2 人以上。<br><span class="text-[10px] text-red-600 font-medium">Setidaknya dua pengasuh harus hadir.</span></p>
-                        <p>2. 病患身心狀況良好。<br><span class="text-[10px] text-red-600 font-medium">Kondisi fisik & mental pasien baik.</span></p>
-                        <p>3. 照顧者不可同時進行其他動作。<br><span class="text-[10px] text-red-600 font-medium">Tidak boleh melakukan tindakan lain.</span></p>
-                        <p>4. 步驟 / Langkah-langkah:</p>
+                        <p class="text-sm border-b border-red-200 pb-1 font-black">⚠️ 站立式安全指南 / Pedoman Keselamatan Berdiri</p>
+                        <p>1. 至少需要兩名照顧者在同一樓層互相支援。<br><span class="text-[10px] text-red-600 font-medium">Setidaknya dua pengasuh diperlukan untuk saling membantu di lantai yang sama.</span></p>
+                        <p>2. 患者身心狀況皆須在良好的狀態。<br><span class="text-[10px] text-red-600 font-medium">Pasien harus dalam kondisi fisik dan mental yang baik.</span></p>
+                        <p>3. 照顧者不得同時進行其他操作。<br><span class="text-[10px] text-red-600 font-medium">Staf keperawatan tidak boleh melakukan prosedur lain pada saat yang bersamaan.</span></p>
+                        <p>4. 操作步驟 / Prosedur:</p>
                         <ul class="pl-2 space-y-1">
-                            <li>a. 將床降下讓病患雙腳及地。 <span class="text-[10px] text-red-600 font-medium">Turunkan tempat tidur, kaki di lantai.</span></li>
-                            <li>b. 降下扶手並蓋毛巾防挫傷。 <span class="text-[10px] text-red-600 font-medium">Turunkan sandaran, tutupi handuk.</span></li>
-                            <li>c. 坐至床沿須有穩固扶手。 <span class="text-[10px] text-red-600 font-medium">Harus ada sandaran lengan.</span></li>
-                            <li>d. 站穩彎身與病患相擁。 <span class="text-[10px] text-red-600 font-medium">Pengasuh memeluk pasien.</span></li>
-                            <li>e. 輔助病患向上站立力量。 <span class="text-[10px] text-red-600 font-medium">Berikan dukungan ke atas.</span></li>
-                            <li>f. 慢慢習慣腿部出力。 <span class="text-[10px] text-red-600 font-medium">Biasakan kekuatan kaki.</span></li>
+                            <li>a. 降低床位，使患者雙腳著地。 <span class="text-[10px] text-red-600 font-medium">Turunkan tempat tidur sehingga kaki pasien berada di lantai.</span></li>
+                            <li>b. 降低床欄，並在床欄頂部鋪上毛巾，以防止受傷。 <span class="text-[10px] text-red-600 font-medium">Turunkan pagar tempat tidur dan letakkan handuk di atasnya untuk mencegah cedera.</span></li>
+                            <li>c. 當患者坐在床邊時，應有堅固的扶手提供支撐。 <span class="text-[10px] text-red-600 font-medium">Saat pasien duduk di tepi tempat tidur, harus ada pegangan tangan yang kokoh untuk memberikan dukungan.</span></li>
+                            <li>d. 照顧者站穩後，彎腰擁抱患者。 <span class="text-[10px] text-red-600 font-medium">Setelah perawat stabil, bungkuk dan peluk pasien.</span></li>
+                            <li>e. 照顧者協助患者站立，提供向上支撐的力量。 <span class="text-[10px] text-red-600 font-medium">Perawat membantu pasien untuk berdiri, memberikan dukungan ke atas.</span></li>
+                            <li>f. 患者感知雙腿該使力的部位，並逐漸習慣腿部用力的感覺。 <span class="text-[10px] text-red-600 font-medium">Pasien menjadi sadar di mana harus mengerahkan kekuatan pada kakinya dan secara bertahap terbiasa dengan sensasi menggunakan kakinya.</span></li>
                         </ul>
                     </div>
                 </div>
 
                 <div id="bp-inputs-group" class="space-y-3 hidden">
-                    <h4 id="bp-dynamic-title" class="font-black text-gray-700 text-sm">🌞 血壓與心跳 (早) / Tensi (Pagi)</h4>
+                    <h4 id="bp-dynamic-title" class="font-black text-gray-700 text-sm">🌞 血壓與心跳 (早) / Tekanan darah dan detak jantung (Pagi)</h4>
                     <div class="grid grid-cols-3 gap-2">
-                        <div><label class="block text-[10px] font-bold text-gray-400 mb-0.5">收縮壓/Sistolik</label><input id="input-bp-sys" type="number" placeholder="高壓" class="w-full bg-gray-50 border-0 rounded-2xl py-2 px-2 text-sm font-bold text-center"></div>
-                        <div><label class="block text-[10px] font-bold text-gray-400 mb-0.5">舒張壓/Diastolik</label><input id="input-bp-dia" type="number" placeholder="低壓" class="w-full bg-gray-50 border-0 rounded-2xl py-2 px-2 text-sm font-bold text-center"></div>
-                        <div><label class="block text-[10px] font-bold text-gray-400 mb-0.5">心跳/Detak Jtg</label><input id="input-bp-hr" type="number" placeholder="次/分" class="w-full bg-gray-50 border-0 rounded-2xl py-2 px-2 text-sm font-bold text-center"></div>
+                        <div><label class="block text-[10px] font-bold text-gray-400 mb-0.5 leading-tight">收縮壓/Tekanan darah sistolik</label><input id="input-bp-sys" type="number" placeholder="高壓" class="w-full bg-gray-50 border-0 rounded-2xl py-2 px-2 text-sm font-bold text-center"></div>
+                        <div><label class="block text-[10px] font-bold text-gray-400 mb-0.5 leading-tight">舒張壓/tekanan darah diastolik</label><input id="input-bp-dia" type="number" placeholder="低壓" class="w-full bg-gray-50 border-0 rounded-2xl py-2 px-2 text-sm font-bold text-center"></div>
+                        <div><label class="block text-[10px] font-bold text-gray-400 mb-0.5 leading-tight">心跳/Detak jantung</label><input id="input-bp-hr" type="number" placeholder="次/分" class="w-full bg-gray-50 border-0 rounded-2xl py-2 px-2 text-sm font-bold text-center"></div>
                     </div>
                 </div>
             </div>
@@ -165,39 +171,39 @@
                 </div>
 
                 <div id="stool-shortcut" class="hidden space-y-1.5">
-                    <label class="block text-[11px] font-bold text-gray-400">💩 糞便狀態 (必選 / Wajib):</label>
+                    <label class="block text-[11px] font-bold text-gray-400">💩 糞便狀態 / Pilih Item (必選 / Wajib):</label>
                     <div class="grid grid-cols-2 gap-1.5">
-                        <button type="button" onclick="setStoolStatus('水便 / Diare')" class="bg-orange-50 border border-orange-100 text-orange-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all">水便/Diare</button>
-                        <button type="button" onclick="setStoolStatus('浣腸 / Enema')" class="bg-purple-50 border border-purple-100 text-purple-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all">浣腸/Enema</button>
-                        <button type="button" onclick="setStoolStatus('大便乾硬 / Sembelit')" class="bg-red-50 border border-red-100 text-red-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all">乾硬/Sembelit</button>
+                        <button type="button" onclick="setStoolStatus('稀便 / feses encer')" class="bg-orange-50 border border-orange-100 text-orange-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all">稀便/feses encer</button>
+                        <button type="button" onclick="setStoolStatus('浣腸 / Supositoria gliserin')" class="bg-purple-50 border border-purple-100 text-purple-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all">浣腸/Supositoria gliserin</button>
+                        <button type="button" onclick="setStoolStatus('大便乾硬 / Kering dan keras')" class="bg-red-50 border border-red-100 text-red-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all">乾硬/Kering dan keras</button>
                         <button type="button" onclick="setStoolStatus('正常 / Normal')" class="bg-green-50 border border-green-100 text-green-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all">正常/Normal</button>
                     </div>
                 </div>
 
                 <div id="urine-color-shortcut" class="hidden space-y-1.5">
-                    <label class="block text-[11px] font-bold text-gray-400">💧 尿液顏色 (必選 / Wajib):</label>
+                    <label class="block text-[11px] font-bold text-gray-400">💧 尿液顏色 / warna urin (必選 / Wajib):</label>
                     <div class="grid grid-cols-3 gap-1.5">
-                        <button type="button" onclick="setUrineColor('茶色 / Warna Teh')" class="bg-amber-50 text-amber-700 rounded-2xl py-2 text-xs font-bold">茶色/Warna Teh</button>
+                        <button type="button" onclick="setUrineColor('淡紅色 / Merah Muda')" class="bg-rose-50 text-rose-600 rounded-2xl py-2 text-xs font-bold">淡紅色/Merah Muda</button>
                         <button type="button" onclick="setUrineColor('深黃色 / Kuning Tua')" class="bg-yellow-100 text-yellow-700 rounded-2xl py-2 text-xs font-bold">深黃/Kuning Tua</button>
                         <button type="button" onclick="setUrineColor('正常淺黃 / Kuning Muda')" class="bg-yellow-50 text-yellow-600 rounded-2xl py-2 text-xs font-bold">淺黃/Kuning Muda</button>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">手寫備註 / Catatan <span id="note-required-hint" class="text-rose-400">(進食必填 / Wajib untuk Makan)</span></label>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">備註 / Catatan <span id="note-required-hint" class="text-rose-400">(進食必填 / Wajib untuk Makan)</span></label>
                     <input id="input-note" type="text" placeholder="輸入額外說明內容... / Masukkan catatan tambahan..." class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-medium text-gray-700">
                 </div>
             </div>
 
             <button id="submit-btn" type="submit" class="w-full bg-rose-500 text-white text-center py-4 px-4 rounded-3xl font-black shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:bg-gray-400">
-                <span>💾 儲存紀錄 / Simpan Catatan</span>
+                <span>💾 儲存紀錄 / Simpan data ini</span>
             </button>
         </form>
 
         <div class="mt-6 space-y-3">
             <div class="flex items-center justify-between px-1">
                 <h3 id="cloud-list-title" class="font-black text-gray-700 text-sm">📋 今日紀錄</h3>
-                <button type="button" onclick="fetchCloudData()" class="text-xs bg-white border border-gray-200 rounded-2xl py-1.5 px-2.5 font-bold shadow-sm flex items-center gap-1"><span id="sync-icon">🔄</span> 同步/Sync</button>
+                <button type="button" onclick="fetchCloudData()" class="text-xs bg-white border border-gray-200 rounded-2xl py-1.5 px-2.5 font-bold shadow-sm flex items-center gap-1"><span id="sync-icon">🔄</span> 同步/Data yang disinkronkan</button>
             </div>
             <div id="today-logs-container" class="space-y-2.5">
                 <div class="text-center py-8 text-gray-400 text-xs font-medium bg-white rounded-3xl border border-dashed">正在串聯雲端資料庫... / Menghubungkan ke database cloud...</div>
@@ -242,9 +248,10 @@
         let cloudRecords = [];
         let cloudGoals = {};
         let currentActiveId = null;
-        const stoolStatuses = ['水便 / Diare', '浣腸 / Enema', '大便乾硬 / Sembelit', '正常 / Normal'];
-        const urineColors = ['茶色 / Warna Teh', '深黃色 / Kuning Tua', '正常淺黃 / Kuning Muda'];
-        const defaultTargets = { '總攝入水量': 1125, '雙手舉水瓶': 60, '腳底板抬壓': 60, '膝蓋彎伸': 60, '排便': 1, '站立': 5 };
+        const stoolStatuses = ['稀便 / feses encer', '浣腸 / Supositoria gliserin', '大便乾硬 / Kering dan keras', '正常 / Normal'];
+        const urineColors = ['淡紅色 / Merah Muda', '深黃色 / Kuning Tua', '正常淺黃 / Kuning Muda'];
+        const defaultTargets = { '總攝入水量': 1125, '雙手舉水瓶': 30, '腳底板抬壓': 60, '膝蓋彎伸': 60, '排便': 1, '站立': 1 };
+        const targetTitleId = { '總攝入水量': 'Target total asupan air hari ini', '尿液': 'Target volume urin untuk hari ini', '排便': 'Target frekuensi buang air besar hari ini', '雙手舉水瓶': 'Target angkat botol hari ini', '腳底板抬壓': 'Target tekan telapak kaki hari ini', '膝蓋彎伸': 'Target tekuk lutut hari ini', '站立': 'Target berdiri hari ini' };
 
         function updateView() {
             const selectedType = document.querySelector('input[name="type"]:checked').value;
@@ -261,6 +268,13 @@
             if (bpGuideCard) bpGuideCard.classList.add('hidden');
             standardGroup.classList.remove('hidden'); targetDashboard.classList.remove('hidden');
 
+            const viewSheetWrap = document.getElementById('view-sheet-wrap');
+            const medSection = document.getElementById('med-section');
+            const catheterNote = document.getElementById('catheter-note');
+            if (viewSheetWrap) viewSheetWrap.classList.add('hidden');
+            if (medSection) medSection.classList.add('hidden');
+            if (catheterNote) catheterNote.classList.add('hidden');
+
             if (selectedType === '攝入') {
                 intakeGroup.classList.remove('hidden');
                 if(!document.querySelector('#intake-group input[name="category"]:checked'))
@@ -268,6 +282,8 @@
             } else if (selectedType === '排出') {
                 outputGroup.classList.remove('hidden');
                 document.querySelector('#output-group input[name="category"]').checked = true;
+                if (medSection) medSection.classList.remove('hidden');
+                if (catheterNote) catheterNote.classList.remove('hidden');
             } else if (selectedType === '運動') {
                 exerciseGroup.classList.remove('hidden');
                 document.querySelector('#exercise-group input[name="category"]').checked = true;
@@ -276,6 +292,7 @@
                 if (bpGuideCard) bpGuideCard.classList.remove('hidden');
                 standardGroup.classList.add('hidden');
                 targetDashboard.classList.add('hidden');
+                if (viewSheetWrap) viewSheetWrap.classList.remove('hidden');
             }
             checkSubCategory(); checkBpTime();
         }
@@ -283,8 +300,8 @@
         function checkBpTime() {
             const timeVal = document.getElementById('input-time').value;
             const bpTitle = document.getElementById('bp-dynamic-title');
-            if(timeVal >= '05:00' && timeVal <= '15:00') bpTitle.innerHTML = "🌞 血壓與心跳 (早) / Tensi (Pagi)";
-            else bpTitle.innerHTML = "🌙 血壓與心跳 (晚) / Tensi (Malam)";
+            if(timeVal >= '05:00' && timeVal <= '15:00') bpTitle.innerHTML = "🌞 血壓與心跳 (早) / Tekanan darah dan detak jantung (Pagi)";
+            else bpTitle.innerHTML = "🌙 血壓與心跳 (晚) / Tekanan darah dan detak jantung (Malam)";
             renderRecords();
         }
 
@@ -353,7 +370,7 @@
             let currentItem = checkedCategory;
             if (['飲水量', '服藥飲水', '營養飲品', '進食'].includes(checkedCategory)) currentItem = '總攝入水量';
 
-            document.getElementById('dashboard-title').innerText = `🎯 【${currentItem}】今日目標 / Target`;
+            document.getElementById('dashboard-title').innerText = `🎯 【${currentItem}】今日目標 / ${targetTitleId[currentItem] || 'Tujuan hari ini'}`;
 
             const unitEls = document.querySelectorAll('.target-unit');
             let unitText = 'c.c.';
@@ -380,10 +397,11 @@
                 targetInput.value = urineRangeMin;
                 targetInput.readOnly = true;
                 targetInput.style.color = '#6b7280';
-                const medLabel = hasDiuretic ? '（有利尿藥）' : '（無利尿藥）';
+                const medLabel = hasDiuretic ? '（有利尿藥物）' : '（無利尿藥物）';
+                const medLabelId = hasDiuretic ? '(dengan diuretik)' : '(tanpa diuretik)';
                 urineRangeInfoEl.classList.remove('hidden');
                 document.getElementById('urine-range-text').innerHTML =
-                    `💧 正常範圍${medLabel}：${urineRangeMin} ~ ${urineRangeMax} c.c.<br><span class="text-[10px]">Rentang normal: ${urineRangeMin} ~ ${urineRangeMax} c.c.</span>`;
+                    `💧 正常範圍${medLabel}：${urineRangeMin} ~ ${urineRangeMax} c.c.<br><span class="text-[10px]">Kisaran normal ${medLabelId}: ${urineRangeMin} ~ ${urineRangeMax} c.c.</span>`;
             } else {
                 targetInput.value = savedTarget;
                 targetInput.readOnly = false;
@@ -628,7 +646,7 @@
                 if (rowColor) card.style.color = rowColor;
                 card.innerHTML = `
                     <div class="space-y-1"><div class="flex items-center gap-2"><span class="text-xs font-black bg-gray-100 px-2 py-0.5 rounded-md" style="color:${rowColor || '#374151'}">${item.time}</span><span class="text-sm font-black" style="color:${amountColor !== '#1f2937' ? amountColor : (rowColor || '#1f2937')}">${displayAmount}</span></div>${item.note ? `<p class="text-xs font-medium flex items-center gap-0.5" style="color:${rowColor ? rowColor + 'aa' : '#9ca3af'}">📝 ${item.note}</p>` : ''}</div>
-                    <button type="button" onclick="openConfirmModal('${item.recordId}')" class="ml-3 shrink-0 w-12 h-12 flex flex-col items-center justify-center rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 border border-red-100 shadow-sm transition-all active:scale-95"><span class="text-lg leading-none">✖</span><span class="text-[9px] font-black mt-0.5">錯誤/Salah</span></button>`;
+                    <button type="button" onclick="openConfirmModal('${item.recordId}')" class="ml-3 shrink-0 w-20 min-h-12 py-1.5 flex flex-col items-center justify-center rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 border border-red-100 shadow-sm transition-all active:scale-95"><span class="text-lg leading-none">✖</span><span class="text-[9px] font-black mt-0.5 leading-tight text-center">錯誤<br>Batalkan</span></button>`;
                 container.appendChild(card);
             });
         }
@@ -706,7 +724,7 @@
                 updateTargetPanel(); renderRecords();
                 showToast("連線失敗 / Koneksi gagal", true);
             })
-            .finally(() => { btn.disabled = false; btn.innerHTML = `<span>💾 儲存紀錄 / Simpan Catatan</span>`; });
+            .finally(() => { btn.disabled = false; btn.innerHTML = `<span>💾 儲存紀錄 / Simpan data ini</span>`; });
         });
 
         function saveMedState() {
