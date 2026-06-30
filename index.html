@@ -30,6 +30,11 @@
             <p class="text-[11px] text-gray-400 font-bold mt-0.5">Buku Harian Perawatan Nenek</p>
         </div>
 
+        <div class="bg-red-600 text-white rounded-2xl px-4 py-3 mb-4 shadow-lg flex items-start gap-2 border-2 border-red-700">
+            <span class="text-xl leading-none">🚨</span>
+            <p class="text-xs font-black leading-snug">床圍欄放下時，照顧者不得離開病患 1 公尺。<br><span class="text-[11px] font-bold text-red-100">Saat pagar tempat tidur diturunkan, perawat tidak boleh meninggalkan pasien lebih dari 1 meter.</span></p>
+        </div>
+
         <div id="view-sheet-wrap" class="mb-4 hidden">
             <a id="view-sheet-btn" href="#" target="_blank" class="w-full bg-rose-400 text-white text-center py-3.5 px-4 rounded-3xl font-bold shadow-md flex items-center justify-center gap-2 transition-all hover:bg-rose-500 active:scale-[0.98]">
                 <span>📊 審視每日總合月總表 / Tinjau Ringkasan</span>
@@ -130,6 +135,10 @@
                 </div>
 
                 <div id="exercise-group" class="grid grid-cols-1 gap-2 hidden">
+                    <div class="bg-teal-50 border border-teal-200 rounded-2xl p-3 text-teal-800 font-bold text-[11px] space-y-1">
+                        <p>🕒 復健練習 / Latihan rehabilitasi 應於三餐飯前及睡前半小時進行，每日至少四次。若患者因特殊情況無法在規定時間內完成，請另覓時間補做，但勿將四次運動集中於同一時段。</p>
+                        <p class="text-[10px] text-teal-600 font-medium">Latihan rehabilitasi sebaiknya dilakukan setengah jam sebelum masing-masing dari tiga waktu makan dan sebelum tidur, setidaknya empat kali sehari. Jika pasien tidak dapat menyelesaikan latihan dalam waktu yang ditentukan karena keadaan khusus, mohon cari waktu lain untuk menggantinya, tetapi jangan menggabungkan keempat latihan tersebut dalam periode yang sama.</p>
+                    </div>
                     <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="雙手舉水瓶"> 雙手舉水瓶 / Angkat Botol</label>
                     <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="腳底板抬壓"> 腳底板抬壓 / Tekan Kaki</label>
                     <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="膝蓋彎伸"> 膝蓋彎伸 / Tekuk Lutut</label>
@@ -178,9 +187,10 @@
                         <button type="button" onclick="setStoolStatus('大便乾硬 / Kering dan keras')" class="bg-red-50 border border-red-100 text-red-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all leading-tight">乾硬 / Kering dan keras</button>
                         <button type="button" onclick="setStoolStatus('正常 / Normal')" class="bg-green-50 border border-green-100 text-green-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all leading-tight">正常 / Normal</button>
                     </div>
-                    <label class="block text-[11px] font-bold text-gray-400 pt-1">💉 是否使用浣腸 / Penggunaan supositoria (選填 / Opsional):</label>
-                    <div class="grid grid-cols-1 gap-1.5">
-                        <button type="button" onclick="setStoolStatus('浣腸 / Supositoria gliserin')" class="bg-purple-50 border border-purple-100 text-purple-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all">浣腸 / Supositoria gliserin</button>
+                    <label class="flex items-center gap-2 text-xs font-bold text-purple-700 pt-1 cursor-pointer"><input type="checkbox" id="enema-check" class="w-4 h-4 text-purple-500 rounded" onchange="toggleEnemaWarning()"> 💉 使用浣腸 / Memakai Supositoria gliserin <span class="text-[10px] text-gray-400 font-medium">(選填 / Opsional)</span></label>
+                    <div id="enema-warning" class="hidden bg-red-50 border border-red-200 rounded-2xl p-2.5 text-red-700 font-bold text-[11px] space-y-1.5">
+                        <p>🚫 未排便達三日以上，才允許使用浣腸 / Supositoria gliserin。<br><span class="text-[10px] text-red-500 font-medium">Enema / supositoria gliserin hanya diperbolehkan jika tidak terjadi buang air besar pada hari ketiga.</span></p>
+                        <p>💧 使用浣腸 / Supositoria gliserin 後須注意病患飲水，避免脫水。<br><span class="text-[10px] text-red-500 font-medium">Perhatian khusus harus diberikan pada kondisi pasien setelah menggunakan enema / Supositoria gliserin untuk mencegah dehidrasi.</span></p>
                     </div>
                 </div>
 
@@ -241,6 +251,13 @@
         </div>
     </div>
 
+    <div id="sync-modal" class="fixed inset-0 bg-black/40 z-[70] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl px-6 py-5 shadow-2xl border-2 border-sky-100 flex items-center gap-3">
+            <span class="text-2xl animate-spin-slow">🔄</span>
+            <div class="font-black text-gray-700 text-sm">同步中...<br><span class="text-xs text-gray-400 font-bold">Sinkronisasi...</span></div>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-black py-3 px-5 rounded-full transition-all duration-300 opacity-0 z-50 pointer-events-none">通知</div>
 
     <script>
@@ -252,7 +269,7 @@
         let cloudRecords = [];
         let cloudGoals = {};
         let currentActiveId = null;
-        const stoolStatuses = ['稀便 / feses encer', '浣腸 / Supositoria gliserin', '大便乾硬 / Kering dan keras', '正常 / Normal'];
+        const stoolStatuses = ['稀便 / feses encer', '大便乾硬 / Kering dan keras', '正常 / Normal'];
         const urineColors = ['淡紅色 / Merah Muda', '深黃色 / Kuning Tua', '正常淺黃 / Kuning Muda'];
         const defaultTargets = { '總攝入水量': 1125, '雙手舉水瓶': 30, '腳底板抬壓': 60, '膝蓋彎伸': 60, '排便': 1, '站立': 1 };
         // ===== 中央雙語字典：所有衍生顯示（目標框/紀錄標題/提醒）都從這裡抓「繁中 / 印尼文」=====
@@ -344,6 +361,9 @@
 
             if (stoolStatuses.includes(noteInput.value) || urineColors.includes(noteInput.value)) noteInput.value = '';
 
+            const enemaChk = document.getElementById('enema-check');
+            if (enemaChk && (!checkedCategory || checkedCategory.value !== '排便')) { enemaChk.checked = false; toggleEnemaWarning(); }
+
             const noteHint = document.getElementById('note-required-hint');
             if (noteHint) {
                 const cat = checkedCategory ? checkedCategory.value : '';
@@ -406,30 +426,32 @@
             if (currentItem === '尿液') {
                 const intakeTarget = parseFloat(cloudGoals['goal_總攝入水量'] || defaultTargets['總攝入水量'] || 1125);
                 const hasDiuretic = document.getElementById('med-diuretic').checked;
-                if (hasDiuretic) {
-                    urineRangeMin = Math.round(intakeTarget * 1.1);
-                    urineRangeMax = Math.round(intakeTarget * 1.5);
-                } else {
-                    urineRangeMin = Math.round(intakeTarget * 0.4);
-                    urineRangeMax = Math.round(intakeTarget * 0.6);
-                }
+                const mult = hasDiuretic ? 1.5 : 1.1;
+                urineRangeMin = Math.round(intakeTarget * mult);
+                urineRangeMax = urineRangeMin;
                 savedTarget = urineRangeMin;
                 targetInput.value = urineRangeMin;
                 targetInput.readOnly = true;
                 targetInput.style.color = '#6b7280';
                 if (editBtn) editBtn.classList.add('hidden');
-                const medLabel = hasDiuretic ? '（有利尿藥物）' : '（無利尿藥物）';
-                const medLabelId = hasDiuretic ? '(dengan diuretik)' : '(tanpa diuretik)';
+                const medLabel = hasDiuretic ? '（有利尿藥物 ×1.5）' : '（無利尿藥物 ×1.1）';
+                const medLabelId = hasDiuretic ? '(dengan diuretik ×1.5)' : '(tanpa diuretik ×1.1)';
                 urineRangeInfoEl.classList.remove('hidden');
                 document.getElementById('urine-range-text').innerHTML =
-                    `💧 正常範圍${medLabel}：${urineRangeMin} ~ ${urineRangeMax} c.c.<br><span class="text-[10px]">Kisaran normal ${medLabelId}: ${urineRangeMin} ~ ${urineRangeMax} c.c.</span>`;
+                    `💧 今日尿液目標${medLabel}：${urineRangeMin} c.c.<br><span class="text-[10px]">Target urin hari ini ${medLabelId}: ${urineRangeMin} c.c.</span>`;
             } else {
                 targetInput.value = savedTarget;
                 targetInput.readOnly = true;   // 預設鎖定，按鉛筆才能改（防其他照顧者誤觸）
                 targetInput.style.color = '';
                 targetInput.classList.remove('border-rose-400');
                 if (editBtn) { editBtn.classList.remove('hidden'); editBtn.innerText = '✏️'; }
-                urineRangeInfoEl.classList.add('hidden');
+                if (currentItem === '總攝入水量') {
+                    urineRangeInfoEl.classList.remove('hidden');
+                    document.getElementById('urine-range-text').innerHTML =
+                        `💧 正常範圍：1000 c.c. ～ 1200 c.c.<br><span class="text-[10px]">Kisaran normal: 1000 c.c. ~ 1200 c.c.</span>`;
+                } else {
+                    urineRangeInfoEl.classList.add('hidden');
+                }
             }
 
             let achieved = 0;
@@ -586,6 +608,11 @@
 
         function setStoolStatus(status) { document.getElementById('input-note').value = status; }
         function setUrineColor(color) { document.getElementById('input-note').value = color; }
+        function toggleEnemaWarning() {
+            const w = document.getElementById('enema-warning');
+            const c = document.getElementById('enema-check');
+            if (w) w.classList.toggle('hidden', !(c && c.checked));
+        }
         // 今日目標數值：預設鎖定，按鉛筆並二次確認才能修改，避免其他照顧者誤觸或破壞畫面
         function toggleTargetEdit() {
             const inp = document.getElementById('input-target-val');
@@ -624,6 +651,8 @@
             const targetDate = document.getElementById('input-date').value || setNow();
             const icon = document.getElementById('sync-icon');
             icon.classList.add('animate-spin-slow');
+            const syncModal = document.getElementById('sync-modal');
+            if (syncModal) syncModal.classList.remove('hidden');
             const fetchUrl = `${GAS_URL}?date=${targetDate}&t=${new Date().getTime()}`;
             fetch(fetchUrl, { cache: "no-store" })
                 .then(res => res.json())
@@ -643,7 +672,7 @@
                     checkBowelMovementAlert();
                 })
                 .catch(err => showToast("同步失敗，請檢查網路連線", true))
-                .finally(() => icon.classList.remove('animate-spin-slow'));
+                .finally(() => { icon.classList.remove('animate-spin-slow'); if (syncModal) syncModal.classList.add('hidden'); });
         }
 
         function renderRecords() {
@@ -724,6 +753,9 @@
             if (category === '排便' && document.getElementById('med-laxative').checked) {
                 noteValue += (noteValue ? ' ' : '') + '[當日附加: 利便藥物]';
             }
+            if (category === '排便' && document.getElementById('enema-check').checked) {
+                noteValue += (noteValue ? ' ' : '') + '[浣腸 / Supositoria gliserin]';
+            }
 
             btn.disabled = true;
             btn.innerHTML = `<span>⏳ 儲存中... / Menyimpan...</span>`;
@@ -753,6 +785,7 @@
             .then(() => {
                 showToast("儲存成功！ / Berhasil disimpan!");
                 document.getElementById('input-amount').value = ''; document.getElementById('input-bp-sys').value = ''; document.getElementById('input-bp-dia').value = ''; document.getElementById('input-bp-hr').value = ''; document.getElementById('input-note').value = '';
+                document.getElementById('enema-check').checked = false; toggleEnemaWarning();
                 setNow(); updateView();
                 // 背景同步，延遲 1.5 秒不阻塞 UI
                 setTimeout(() => fetchCloudData(), 1500);
