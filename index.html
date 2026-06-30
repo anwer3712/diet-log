@@ -424,18 +424,18 @@
             // === 尿液目標特殊算法 ===
             let urineRangeMin = 0, urineRangeMax = 0;
             if (currentItem === '尿液') {
-                const intakeTarget = parseFloat(cloudGoals['goal_總攝入水量'] || defaultTargets['總攝入水量'] || 1125);
+                const intakeAchieved = cloudRecords.filter(item => ['飲水量', '服藥飲水', '營養飲品', '進食'].includes(item.category)).reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
                 const hasDiuretic = document.getElementById('med-diuretic').checked;
                 const mult = hasDiuretic ? 1.5 : 1.1;
-                urineRangeMin = Math.round(intakeTarget * mult);
+                urineRangeMin = Math.round(intakeAchieved * mult);
                 urineRangeMax = urineRangeMin;
                 savedTarget = urineRangeMin;
                 targetInput.value = urineRangeMin;
                 targetInput.readOnly = true;
                 targetInput.style.color = '#6b7280';
                 if (editBtn) editBtn.classList.add('hidden');
-                const medLabel = hasDiuretic ? '（有利尿藥物 ×1.5）' : '（無利尿藥物 ×1.1）';
-                const medLabelId = hasDiuretic ? '(dengan diuretik ×1.5)' : '(tanpa diuretik ×1.1)';
+                const medLabel = hasDiuretic ? '（有利尿藥物：今日總飲水量 ×1.5）' : '（無利尿藥物：今日總飲水量 ×1.1）';
+                const medLabelId = hasDiuretic ? '(dengan diuretik: total asupan air hari ini ×1.5)' : '(tanpa diuretik: total asupan air hari ini ×1.1)';
                 urineRangeInfoEl.classList.remove('hidden');
                 document.getElementById('urine-range-text').innerHTML =
                     `💧 今日尿液目標${medLabel}：${urineRangeMin} c.c.<br><span class="text-[10px]">Target urin hari ini ${medLabelId}: ${urineRangeMin} c.c.</span>`;
