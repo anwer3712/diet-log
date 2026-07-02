@@ -78,9 +78,24 @@ Built out of necessity. When a family member required 24/7 home care with strict
 
 ---
 
+## Roadmap
+
+Planned improvements (community input welcome):
+
+- [ ] **AI-assisted health analysis** — integrate Claude to detect abnormal trends across fluid intake, urine output, and blood pressure data, and translate raw numbers into plain-language guidance for caregivers
+- [ ] **AI caregiver Q&A** — let caregivers ask questions in their own language ("her urine was dark today, should I worry?") grounded in the patient's actual logged data
+- [ ] **Additional language pairs** — English, Vietnamese, Tagalog, Thai for multicultural caregiving households
+- [ ] **Offline mode** — service worker caching for unstable connections
+- [ ] **Printable weekly reports** — one-page summaries for doctor visits
+- [ ] **Multi-patient support** — for households or small care facilities tracking more than one person
+
+---
+
 ## Contributing
 
-Pull requests welcome. If you care for an elderly family member and need a feature — open an issue.
+Pull requests welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for how to help (translations especially appreciated). This project follows a [Code of Conduct](CODE_OF_CONDUCT.md).
+
+If you care for an elderly family member and need a feature — [open an issue](https://github.com/anwer3712/diet-log/issues).
 
 ---
 
