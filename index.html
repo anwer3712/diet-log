@@ -51,7 +51,7 @@
                 <div>
                     <p class="text-[11px] text-gray-400 font-medium">今日目標 / Gol hari ini</p>
                     <div class="flex items-center justify-center gap-1 mt-0.5">
-                        <input id="input-target-val" type="number" readonly class="w-16 text-center font-bold text-lg bg-transparent border-b border-transparent focus:border-rose-400 focus:outline-none p-0 text-gray-700" value="1125" min="0">
+                        <input id="input-target-val" type="number" readonly class="w-16 text-center font-bold text-lg bg-transparent border-b border-transparent focus:border-rose-400 focus:outline-none p-0 text-gray-700" value="" min="0">
                         <span class="target-unit text-xs font-bold text-gray-500">c.c.</span>
                         <button type="button" id="target-edit-btn" onclick="toggleTargetEdit()" class="ml-0.5 text-gray-300 hover:text-rose-400 text-sm active:scale-90 transition-all" title="修改目標 / Ubah target">✏️</button>
                     </div>
@@ -271,7 +271,13 @@
         let currentActiveId = null;
         const stoolStatuses = ['稀便 / feses encer', '大便乾硬 / Kering dan keras', '正常 / Normal'];
         const urineColors = ['淡紅色 / Merah Muda', '深黃色 / Kuning Tua', '正常淺黃 / Kuning Muda'];
-        const defaultTargets = { '總攝入水量': 1125, '雙手舉水瓶': 30, '腳底板抬壓': 60, '膝蓋彎伸': 60, '排便': 1, '站立': 1 };
+        // 今日目標不使用固定預設值：一律抓取「前一次」設定的數值（雲端 → 本機快取的上次數值）
+        function getLastGoals() { try { return JSON.parse(localStorage.getItem('last_goals') || '{}'); } catch(e) { return {}; } }
+        function saveLastGoal(item, val) {
+            if (val === '' || val === null || typeof val === 'undefined') return;
+            const g = getLastGoals(); g[item] = val;
+            localStorage.setItem('last_goals', JSON.stringify(g));
+        }
         // ===== 中央雙語字典：所有衍生顯示（目標框/紀錄標題/提醒）都從這裡抓「繁中 / 印尼文」=====
         const ITEM_BILINGUAL = {
             '飲水量': '飲水 / Air Minum',
@@ -417,7 +423,9 @@
             if (['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸'].includes(currentItem)) unitText = '組/Set';
             unitEls.forEach(el => el.innerText = unitText);
 
-            let savedTarget = cloudGoals['goal_' + currentItem] || defaultTargets[currentItem] || '';
+            // 今日目標：優先抓雲端最後一次設定值，其次抓本機記住的前一次數值，不使用固定預設數值
+            const lastGoals = getLastGoals();
+            let savedTarget = cloudGoals['goal_' + currentItem] || lastGoals[currentItem] || '';
             const targetInput = document.getElementById('input-target-val');
             const editBtn = document.getElementById('target-edit-btn');
 
@@ -426,19 +434,22 @@
             if (currentItem === '尿液') {
                 const intakeAchieved = cloudRecords.filter(item => ['飲水量', '服藥飲水', '營養飲品', '進食'].includes(item.category)).reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
                 const hasDiuretic = document.getElementById('med-diuretic').checked;
-                const mult = hasDiuretic ? 1.5 : 1.1;
-                urineRangeMin = Math.round(intakeAchieved * mult);
-                urineRangeMax = urineRangeMin;
+                // 有利尿藥物：正常範圍 = 今日總飲水量 ×1.1 ～ ×1.5；無利尿藥物：正常值 = 今日總飲水量 ×1.1
+                urineRangeMin = Math.round(intakeAchieved * 1.1);
+                urineRangeMax = hasDiuretic ? Math.round(intakeAchieved * 1.5) : urineRangeMin;
                 savedTarget = urineRangeMin;
                 targetInput.value = urineRangeMin;
                 targetInput.readOnly = true;
                 targetInput.style.color = '#6b7280';
                 if (editBtn) editBtn.classList.add('hidden');
-                const medLabel = hasDiuretic ? '（有利尿藥物：今日總飲水量 ×1.5）' : '（無利尿藥物：今日總飲水量 ×1.1）';
-                const medLabelId = hasDiuretic ? '(dengan diuretik: total asupan air hari ini ×1.5)' : '(tanpa diuretik: total asupan air hari ini ×1.1)';
                 urineRangeInfoEl.classList.remove('hidden');
-                document.getElementById('urine-range-text').innerHTML =
-                    `💧 今日尿液目標${medLabel}：${urineRangeMin} c.c.<br><span class="text-[10px]">Target urin hari ini ${medLabelId}: ${urineRangeMin} c.c.</span>`;
+                if (hasDiuretic) {
+                    document.getElementById('urine-range-text').innerHTML =
+                        `💧 正常範圍：${urineRangeMin} c.c. ～ ${urineRangeMax} c.c.<br><span class="text-[10px]">Kisaran normal: ${urineRangeMin} c.c. ~ ${urineRangeMax} c.c.</span>`;
+                } else {
+                    document.getElementById('urine-range-text').innerHTML =
+                        `💧 正常範圍：${urineRangeMin} c.c.<br><span class="text-[10px]">Kisaran normal: ${urineRangeMin} c.c.</span>`;
+                }
             } else {
                 targetInput.value = savedTarget;
                 targetInput.readOnly = true;   // 預設鎖定，按鉛筆才能改（防其他照顧者誤觸）
@@ -659,6 +670,10 @@
                 .then(data => {
                     cloudRecords = data.records || [];
                     cloudGoals = data.goals || {};
+                    // 把雲端目標記到本機，作為下次（例如換日後）顯示用的「前一次數值」
+                    Object.keys(cloudGoals).forEach(k => {
+                        if (k.startsWith('goal_')) saveLastGoal(k.replace('goal_', ''), cloudGoals[k]);
+                    });
                     if (cloudGoals['last_med']) {
                         try {
                             const meds = JSON.parse(cloudGoals['last_med']);
@@ -818,6 +833,7 @@
             if (['飲水量', '服藥飲水', '營養飲品', '進食'].includes(checkedCategory)) currentItem = '總攝入水量';
             if (currentItem && currentItem !== '尿液') {
                 cloudGoals['goal_' + currentItem] = this.value;   // 樂觀更新，避免重繪時被舊值蓋回
+                saveLastGoal(currentItem, this.value);            // 記住這次數值，作為之後的「前一次數值」
                 updateTargetPanel(); showToast("今日目標已更新同步！/ Target diperbarui!", false);
                 fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "setGoal", category: currentItem, amount: this.value }) });
             }
