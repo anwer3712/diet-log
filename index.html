@@ -7,9 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="care-tasks.js"></script>
     <style>
-        /* 語言模式：mode-zh 只顯示繁中、mode-id 只顯示印尼文、mode-both 全顯示 */
+        /* 語言模式：mode-zh 只顯示繁中、mode-id 只顯示印尼文 */
         body.mode-zh .lang-id, body.mode-zh .lang-sep, body.mode-zh br.lang-br { display: none; }
         body.mode-id .lang-zh, body.mode-id .lang-sep, body.mode-id br.lang-br { display: none; }
+        /* 今日目標鉛筆：只有管理者身分能修改 */
+        body.role-user #target-edit-btn { display: none !important; }
         @keyframes pulse-gold {
             0%, 100% { transform: scale(1); border-color: #f59e0b; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
             50% { transform: scale(1.02); border-color: #fbbf24; box-shadow: 0 0 15px 5px rgba(245, 158, 11, 0.4); }
@@ -30,7 +32,7 @@
     <div class="max-w-md mx-auto px-4 pt-5">
 
         <div class="text-center mb-4">
-            <h1 class="text-xl font-black text-rose-400 tracking-wide flex items-center justify-center gap-1.5">👵💗 奶奶照護日誌</h1>
+            <a href="admin.html"><h1 class="text-xl font-black text-rose-400 tracking-wide flex items-center justify-center gap-1.5">👵💗 奶奶照護日誌</h1></a>
             <p class="text-[11px] text-gray-400 font-bold mt-0.5">Buku Harian Perawatan Nenek</p>
         </div>
 
@@ -48,12 +50,6 @@
         <div class="bg-red-600 text-white rounded-2xl px-4 py-3 mb-4 shadow-lg flex items-start gap-2 border-2 border-red-700">
             <span class="text-xl leading-none">🚨</span>
             <p class="text-xs font-black leading-snug">床圍欄放下時，照顧者不得離開病患 1 公尺。<br><span class="text-[11px] font-bold text-red-100">Saat pagar tempat tidur diturunkan, perawat tidak boleh meninggalkan pasien lebih dari 1 meter.</span></p>
-        </div>
-
-        <div class="mb-4">
-            <a href="report.html" class="w-full bg-sky-400 text-white text-center py-3.5 px-4 rounded-3xl font-bold shadow-md flex items-center justify-center gap-2 transition-all hover:bg-sky-500 active:scale-[0.98]">
-                <span>📅 每日時段報表 / Laporan Harian per Periode</span>
-            </a>
         </div>
 
         <div id="view-sheet-wrap" class="mb-4 hidden">
@@ -202,13 +198,13 @@
                 </div>
 
                 <div id="stool-shortcut" class="hidden space-y-1.5">
-                    <label class="block text-[11px] font-bold text-gray-400">💩 糞便狀態 / Kondisi feses (必選 / Wajib):</label>
+                    <label class="block text-[11px] font-bold text-gray-400">💩 <span class="lang-zh">糞便狀態 (必選):</span><span class="lang-id">Kondisi feses (Wajib):</span></label>
                     <div class="grid grid-cols-3 gap-1.5">
                         <button type="button" onclick="setStoolStatus('稀便 / feses encer')" class="bg-orange-50 border border-orange-100 text-orange-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all leading-tight">稀便 / feses encer</button>
                         <button type="button" onclick="setStoolStatus('大便乾硬 / Kering dan keras')" class="bg-red-50 border border-red-100 text-red-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all leading-tight">乾硬 / Kering dan keras</button>
                         <button type="button" onclick="setStoolStatus('正常 / Normal')" class="bg-green-50 border border-green-100 text-green-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all leading-tight">正常 / Normal</button>
                     </div>
-                    <label class="flex items-center gap-2 text-xs font-bold text-purple-700 pt-1 cursor-pointer"><input type="checkbox" id="enema-check" class="w-4 h-4 text-purple-500 rounded" onchange="toggleEnemaWarning()"> 💉 使用浣腸 / Memakai Supositoria gliserin <span class="text-[10px] text-gray-400 font-medium">(選填 / Opsional)</span></label>
+                    <label class="flex items-center gap-2 text-xs font-bold text-purple-700 pt-1 cursor-pointer"><input type="checkbox" id="enema-check" class="w-4 h-4 text-purple-500 rounded" onchange="toggleEnemaWarning()"> 💉 <span class="lang-zh">使用浣腸</span><span class="lang-id">Memakai Supositoria gliserin</span> <span class="text-[10px] text-gray-400 font-medium"><span class="lang-zh">(選填)</span><span class="lang-id">(Opsional)</span></span></label>
                     <div id="enema-warning" class="hidden bg-red-50 border border-red-200 rounded-2xl p-2.5 text-red-700 font-bold text-[11px] space-y-1.5">
                         <p>🚫 未排便達三日以上，才允許使用浣腸 / Supositoria gliserin。<br><span class="text-[10px] text-red-500 font-medium">Enema / supositoria gliserin hanya diperbolehkan jika tidak terjadi buang air besar pada hari ketiga.</span></p>
                         <p>💧 使用浣腸 / Supositoria gliserin 後須注意病患飲水，避免脫水。<br><span class="text-[10px] text-red-500 font-medium">Perhatian khusus harus diberikan pada kondisi pasien setelah menggunakan enema / Supositoria gliserin untuk mencegah dehidrasi.</span></p>
@@ -216,7 +212,7 @@
                 </div>
 
                 <div id="urine-color-shortcut" class="hidden space-y-1.5">
-                    <label class="block text-[11px] font-bold text-gray-400">💧 尿液顏色 / warna urin (必選 / Wajib):</label>
+                    <label class="block text-[11px] font-bold text-gray-400">💧 <span class="lang-zh">尿液顏色 (必選):</span><span class="lang-id">warna urin (Wajib):</span></label>
                     <div class="grid grid-cols-3 gap-1.5">
                         <button type="button" onclick="setUrineColor('淡紅色 / Merah Muda')" class="bg-rose-50 text-rose-600 rounded-2xl py-2 text-xs font-bold leading-tight">淡紅色 / Merah Muda</button>
                         <button type="button" onclick="setUrineColor('深黃色 / Kuning Tua')" class="bg-yellow-100 text-yellow-700 rounded-2xl py-2 text-xs font-bold leading-tight">深黃 / Kuning Tua</button>
@@ -226,7 +222,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-gray-400 mb-1">備註 / Catatan <span id="note-required-hint" class="text-rose-400">(進食必填 / Wajib untuk Makan)</span></label>
-                    <input id="input-note" type="text" placeholder="輸入額外說明內容... / Masukkan catatan tambahan..." class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-medium text-gray-700">
+                    <input id="input-note" type="text" class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-medium text-gray-700">
                 </div>
             </div>
 
@@ -243,10 +239,6 @@
             <div id="today-logs-container" class="space-y-2.5">
                 <div class="text-center py-8 text-gray-400 text-xs font-medium bg-white rounded-3xl border border-dashed">正在串聯雲端資料庫... / Menghubungkan ke database cloud...</div>
             </div>
-        </div>
-
-        <div class="mt-6 text-center">
-            <a href="admin.html" class="text-[10px] font-bold text-gray-300 hover:text-sky-500">🗂️ 管理者總表 / Tampilan admin</a>
         </div>
     </div>
 
@@ -322,26 +314,34 @@
         const CARE_USER = careGetUser();
         const LANG_MODE = careGetLang();
         document.body.classList.add('mode-' + LANG_MODE);
-        // 依語言模式回傳單語或雙語
+        document.body.classList.add(CARE_USER === 'A' ? 'role-admin' : 'role-user');
+        // 依語言模式回傳單語
         function bil(k){
             const full = ITEM_BILINGUAL[k] || k;
-            if (LANG_MODE === 'both' || !ITEM_BILINGUAL[k]) return full;
+            if (!ITEM_BILINGUAL[k]) return full;
             const parts = full.split(' / ');
             return LANG_MODE === 'id' ? (parts[1] || parts[0]) : parts[0];
         }
-        function LTXT(zh, id){ return LANG_MODE === 'id' ? id : (LANG_MODE === 'zh' ? zh : zh + ' / ' + id); }
+        function LTXT(zh, id){ return LANG_MODE === 'id' ? id : zh; }
 
         function renderTopBar(){
             const us = document.getElementById('user-switch');
-            us.innerHTML = ['1','2','3'].map(u =>
-                `<button type="button" onclick="switchUser('${u}')" class="px-3 py-1.5 rounded-full text-[11px] font-black border ${CARE_USER===u?'bg-rose-400 text-white border-rose-400':'bg-white text-gray-500 border-gray-200'}">👤U${u}</button>`
+            us.innerHTML = [['1','👤U1'],['2','👤U2'],['3','👤U3'],['A','⚙️' + LTXT('管理','Admin')]].map(([u,lbl]) =>
+                `<button type="button" onclick="switchUser('${u}')" class="px-2.5 py-1.5 rounded-full text-[11px] font-black border ${CARE_USER===u?'bg-rose-400 text-white border-rose-400':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
             ).join('');
             const ls = document.getElementById('lang-switch');
-            ls.innerHTML = [['zh','中'],['id','ID'],['both','中+ID']].map(([m,lbl]) =>
+            ls.innerHTML = [['zh','中文'],['id','ID']].map(([m,lbl]) =>
                 `<button type="button" onclick="switchLang('${m}')" class="px-2.5 py-1.5 rounded-full text-[10px] font-black border ${LANG_MODE===m?'bg-sky-400 text-white border-sky-400':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
             ).join('');
         }
-        window.switchUser = function(u){ careSetUser(u); location.reload(); };
+        // 換身分需管理者密碼（照顧者不能自行切到別人的介面）
+        window.switchUser = function(u){
+            if (u === CARE_USER) return;
+            if (!careAskPin(LTXT('切換身分需要管理者密碼：','Ganti pengguna perlu PIN admin:'))) {
+                showToast(LTXT('密碼錯誤，無法切換', 'PIN salah'), true); return;
+            }
+            careSetUser(u); location.reload();
+        };
         window.switchLang = function(m){ careSetLang(m); location.reload(); };
 
         // 今日完成進度格（時段/項目/方格），每次紀錄變動後重繪
@@ -414,6 +414,19 @@
                     });
                 }
             });
+            // pass 5：lang-id 的「兄弟中文元素」整塊標 lang-zh（如 導尿管/血壓指南/復健說明 的中文段落）
+            root.querySelectorAll('.lang-id').forEach(el => {
+                const parent = el.parentElement;
+                if (!parent) return;
+                Array.from(parent.children).forEach(sib => {
+                    if (sib === el || sib.tagName === 'BR') return;
+                    if (sib.classList.contains('lang-zh') || sib.classList.contains('lang-id') || sib.classList.contains('lang-sep')) return;
+                    if (sib.querySelector('input,button,select,.lang-id,.lang-zh')) return;
+                    const t = sib.textContent;
+                    const cjkN = (t.match(/[一-鿿]/g) || []).length, latN = (t.match(/[A-Za-z]/g) || []).length;
+                    if (cjkN > 0 && cjkN >= latN) sib.classList.add('lang-zh');
+                });
+            });
         }
         // 動態內容（今日紀錄/提醒/標題重繪）後自動再分離一次
         let i18nScheduled = false;
@@ -471,8 +484,8 @@
         function checkBpTime() {
             const timeVal = document.getElementById('input-time').value;
             const bpTitle = document.getElementById('bp-dynamic-title');
-            if(timeVal >= '05:00' && timeVal <= '15:00') bpTitle.innerHTML = "🌞 血壓與心跳 (早) / Tekanan darah dan detak jantung (Pagi)";
-            else bpTitle.innerHTML = "🌙 血壓與心跳 (晚) / Tekanan darah dan detak jantung (Malam)";
+            if(timeVal >= '05:00' && timeVal <= '15:00') bpTitle.innerHTML = LTXT("🌞 血壓與心跳 (早)", "🌞 Tekanan darah dan detak jantung (Pagi)");
+            else bpTitle.innerHTML = LTXT("🌙 血壓與心跳 (晚)", "🌙 Tekanan darah dan detak jantung (Malam)");
             renderRecords();
         }
 
@@ -503,10 +516,10 @@
             if (noteHint) {
                 const cat = checkedCategory ? checkedCategory.value : '';
                 if (cat === '進食') {
-                    noteHint.textContent = '(進食必填 / Wajib untuk Makan)';
+                    noteHint.textContent = LTXT('(進食必填)', '(Wajib untuk Makan)');
                     noteHint.className = 'text-rose-400';
                 } else {
-                    noteHint.textContent = '(選填 / Opsional)';
+                    noteHint.textContent = LTXT('(選填)', '(Opsional)');
                     noteHint.className = 'text-gray-400';
                 }
             }
@@ -514,22 +527,22 @@
             if (selectedType === '運動') {
                 if (checkedCategory && checkedCategory.value === '站立') {
                     if (standWarning) standWarning.classList.remove('hidden');
-                    titleZh.innerText = "次數 / Frekuensi"; amountUnit.innerText = '次/Kali';
+                    titleZh.innerText = LTXT('次數', 'Frekuensi'); amountUnit.innerText = LTXT('次', 'Kali');
                 } else {
-                    titleZh.innerText = "組數 / Jumlah Set"; amountUnit.innerText = '組/Set';
+                    titleZh.innerText = LTXT('組數', 'Jumlah Set'); amountUnit.innerText = LTXT('組', 'Set');
                 }
-                amountInput.placeholder = '可輸入 0'; amountInput.min = '0';
+                amountInput.placeholder = LTXT('獨自完成數量', 'Jumlah item yang diselesaikan secara mandiri'); amountInput.min = '0';
             } else if (checkedCategory && checkedCategory.value === '排便') {
                 stoolShortcut.classList.remove('hidden');
-                titleZh.innerText = "次數 / Frekuensi"; amountUnit.innerText = '次/Kali';
-                amountInput.placeholder = '可輸入 0 及狀態'; amountInput.min = '0';
+                titleZh.innerText = LTXT('次數', ''); amountUnit.innerText = LTXT('次', 'Kali');
+                amountInput.placeholder = ''; amountInput.min = '0';
             } else if (checkedCategory && checkedCategory.value === '尿液') {
                 if (urineColorShortcut) urineColorShortcut.classList.remove('hidden');
-                titleZh.innerText = "容量 / Kapasitas"; amountUnit.innerText = 'c.c.';
-                amountInput.placeholder = '例如: 250'; amountInput.min = '1';
+                titleZh.innerText = LTXT('容量', 'Kapasitas'); amountUnit.innerText = 'c.c.';
+                amountInput.placeholder = LTXT('例如：250 c.c.', 'Misalnya: 250 c.c.'); amountInput.min = '1';
             } else {
-                titleZh.innerText = "容量 / Kapasitas"; amountUnit.innerText = 'c.c.';
-                amountInput.placeholder = '例如: 250'; amountInput.min = '1';
+                titleZh.innerText = LTXT('容量', 'Kapasitas'); amountUnit.innerText = 'c.c.';
+                amountInput.placeholder = LTXT('例如：250 c.c.', 'Misalnya: 250 c.c.'); amountInput.min = '1';
             }
             updateTargetPanel(); renderRecords();
         }
@@ -548,8 +561,8 @@
 
             const unitEls = document.querySelectorAll('.target-unit');
             let unitText = 'c.c.';
-            if (['排便', '站立'].includes(currentItem)) unitText = '次/Kali';
-            if (['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸'].includes(currentItem)) unitText = '組/Set';
+            if (['排便', '站立'].includes(currentItem)) unitText = LTXT('次', 'Kali');
+            if (['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸'].includes(currentItem)) unitText = LTXT('組', 'Set');
             unitEls.forEach(el => el.innerText = unitText);
 
             // 今日目標：優先抓雲端最後一次設定值，其次抓本機記住的前一次數值，不使用固定預設數值
@@ -574,10 +587,10 @@
                 urineRangeInfoEl.classList.remove('hidden');
                 if (hasDiuretic) {
                     document.getElementById('urine-range-text').innerHTML =
-                        `💧 正常範圍：${urineRangeMin} c.c. ～ ${urineRangeMax} c.c.<br><span class="text-[10px]">Kisaran normal: ${urineRangeMin} c.c. ~ ${urineRangeMax} c.c.</span>`;
+                        LTXT(`💧 正常範圍：${urineRangeMin} c.c. ～ ${urineRangeMax} c.c.`, `💧 Kisaran normal: ${urineRangeMin} c.c. ~ ${urineRangeMax} c.c.`);
                 } else {
                     document.getElementById('urine-range-text').innerHTML =
-                        `💧 正常範圍：${urineRangeMin} c.c.<br><span class="text-[10px]">Kisaran normal: ${urineRangeMin} c.c.</span>`;
+                        LTXT(`💧 正常範圍：${urineRangeMin} c.c.`, `💧 Kisaran normal: ${urineRangeMin} c.c.`);
                 }
             } else {
                 targetInput.value = savedTarget;
@@ -588,7 +601,7 @@
                 if (currentItem === '總攝入水量') {
                     urineRangeInfoEl.classList.remove('hidden');
                     document.getElementById('urine-range-text').innerHTML =
-                        `💧 正常範圍：1000 c.c. ～ 1200 c.c.<br><span class="text-[10px]">Kisaran normal: 1000 c.c. ~ 1200 c.c.</span>`;
+                        LTXT(`💧 正常範圍：1000 c.c. ～ 1200 c.c.`, `💧 Kisaran normal: 1000 c.c. ~ 1200 c.c.`);
                 } else {
                     urineRangeInfoEl.classList.add('hidden');
                 }
@@ -857,7 +870,7 @@
                 card.className = "bg-white border border-gray-100 rounded-3xl p-4 flex items-center justify-between shadow-sm relative overflow-hidden";
                 if (rowColor) card.style.color = rowColor;
                 card.innerHTML = `
-                    <div class="space-y-1"><div class="flex items-center gap-2"><span class="text-xs font-black bg-gray-100 px-2 py-0.5 rounded-md" style="color:${rowColor || '#374151'}">${item.time}</span><span class="text-sm font-black" style="color:${amountColor !== '#1f2937' ? amountColor : (rowColor || '#1f2937')}">${displayAmount}</span></div>${item.note ? `<p class="text-xs font-medium flex items-center gap-0.5" style="color:${rowColor ? rowColor + 'aa' : '#9ca3af'}">📝 ${item.note}</p>` : ''}</div>
+                    <div class="space-y-1"><div class="flex items-center gap-2"><span class="text-xs font-black bg-gray-100 px-2 py-0.5 rounded-md" style="color:${rowColor || '#374151'}">${item.time}</span><span class="text-sm font-black" style="color:${amountColor !== '#1f2937' ? amountColor : (rowColor || '#1f2937')}">${displayAmount}</span></div>${item.note ? `<p class="text-xs font-medium flex items-center gap-0.5" style="color:${rowColor ? rowColor + 'aa' : '#9ca3af'}">📝 ${careNoteDisplay(item.note, LANG_MODE)}${careUserOfNote(item.note) ? ` 👤U${careUserOfNote(item.note)}` : ''}</p>` : ''}</div>
                     <button type="button" onclick="openConfirmModal('${item.recordId}')" class="ml-3 shrink-0 w-20 min-h-12 py-1.5 flex flex-col items-center justify-center rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 border border-red-100 shadow-sm transition-all active:scale-95"><span class="text-lg leading-none">✖</span><span class="text-[9px] font-black mt-0.5 leading-tight text-center">錯誤<br>Batalkan</span></button>`;
                 container.appendChild(card);
             });
@@ -944,7 +957,7 @@
                 updateTargetPanel(); renderRecords();
                 showToast("連線失敗 / Koneksi gagal", true);
             })
-            .finally(() => { btn.disabled = false; btn.innerHTML = `<span>💾 儲存紀錄 / Simpan data ini</span>`; });
+            .finally(() => { btn.disabled = false; btn.innerHTML = `<span>💾 ${LTXT('儲存紀錄','Simpan data ini')}</span>`; });
         });
 
         function saveMedState() {
@@ -988,7 +1001,8 @@
 
         window.onload = function() {
             renderTopBar();
-            if (LANG_MODE !== 'both') localizePage();
+            document.getElementById('input-note').placeholder = LTXT('輸入額外說明內容...', 'Masukkan catatan tambahan...');
+            localizePage();
             setNow(); updateView(); fetchCloudData();
             document.getElementById('view-sheet-btn').href = SPREADSHEET_URL;
         };

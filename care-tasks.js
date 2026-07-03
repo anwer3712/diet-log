@@ -1,49 +1,62 @@
 /* ============================================================
  * care-tasks.js — index.html / report.html / admin.html 共用
- * 時段定義、任務判定（準時/補齊/XX/未到期）、進度格渲染、使用者/語言
- * 時段與任務規則沿用 index.html checkReminders 的提醒排程
+ * 時段定義、任務判定（準時/補齊/XX/未到期）、進度格渲染、
+ * 使用者身分（U1/U2/U3/管理者）、語言（zh/id）、備註單語化
  * ============================================================ */
+
+/* 管理者密碼：改這裡（僅家庭內部防誤觸用，非高強度保密） */
+const CARE_PIN = '3712';
 
 const CARE_SLOTS = [
     { key:'dawn',    start:'00:00', end:'07:00', zh:'凌晨', id:'Dini hari' },
-    { key:'morning', start:'07:00', end:'10:30', zh:'早晨', id:'Pagi' },
+    { key:'morning', start:'07:00', end:'10:30', zh:'早上', id:'Pagi' },
     { key:'midday',  start:'10:30', end:'16:30', zh:'中午', id:'Siang' },
-    { key:'evening', start:'16:30', end:'19:00', zh:'傍晚', id:'Sore' },
-    { key:'night',   start:'19:00', end:'22:00', zh:'晚間', id:'Malam' },
+    { key:'evening', start:'16:30', end:'19:00', zh:'下午', id:'Sore' },
+    { key:'night',   start:'19:00', end:'22:00', zh:'睡前', id:'Sblm tidur' },
     { key:'late',    start:'22:00', end:'24:00', zh:'深夜', id:'Larut' }
 ];
 
 const CARE_EX_TYPES = ['雙手舉水瓶','腳底板抬壓','膝蓋彎伸','站立'];
+const CARE_EX_SHORT = { '雙手舉水瓶':['舉瓶','Botol'], '腳底板抬壓':['抬壓','Kaki'], '膝蓋彎伸':['膝彎','Lutut'], '站立':['站立','Berdiri'] };
 const careIsBP = r => r.category && r.category.includes('血壓/心跳');
-const careIsEX = r => r.type === '運動';
 
-/* 應完成任務：slot=歸屬時段, deadline=截止, need(records,cutoff)=cutoff 前是否達標,
- * rec(records)=滿足任務的那筆紀錄（逾期補齊時要標色）; rec=null 表示無補齊概念 */
+/* 應完成任務：
+ * - 四項復健（舉瓶/抬壓/膝彎/站立）早上、中午、下午、睡前 各一次
+ *   → 第 k 個運動時段截止前，該項累計次數需 ≥ k（晚做會自動遞補＝補齊）
+ * - 血壓：早上一次、睡前累計兩次
+ * - 尿液：22:00 後量測今日最後一次 */
 function careTaskDefs(){
     const nth = (records, filter, n) => {
         const s = records.filter(filter).sort((a,b)=>a.time.localeCompare(b.time));
         return s.length >= n ? s[n-1] : null;
     };
-    const defs = [
-        { slot:'morning', deadline:'10:30', zh:'早壓', id:'Tensi pagi',   full_zh:'起床後測量血壓', full_id:'Ukur tensi pagi',
-          need:(rs,t)=> rs.filter(r=>careIsBP(r)&&r.time<t).length>=1, rec:rs=>nth(rs,careIsBP,1) },
-        { slot:'morning', deadline:'10:30', zh:'早運', id:'Latihan 1',   full_zh:'早餐前運動', full_id:'Latihan sebelum sarapan',
-          need:(rs,t)=> rs.filter(r=>careIsEX(r)&&r.time<t).length>=1, rec:rs=>nth(rs,careIsEX,1) },
-        { slot:'midday',  deadline:'16:30', zh:'午運', id:'Latihan 2',   full_zh:'午餐前運動（全日第2次）', full_id:'Latihan sebelum makan siang',
-          need:(rs,t)=> rs.filter(r=>careIsEX(r)&&r.time<t).length>=2, rec:rs=>nth(rs,careIsEX,2) },
-        { slot:'evening', deadline:'19:00', zh:'晚運', id:'Latihan 3',   full_zh:'晚餐前運動（全日第3次）', full_id:'Latihan sebelum makan malam',
-          need:(rs,t)=> rs.filter(r=>careIsEX(r)&&r.time<t).length>=3, rec:rs=>nth(rs,careIsEX,3) },
-        { slot:'night',   deadline:'22:00', zh:'晚壓', id:'Tensi malam', full_zh:'睡前測量血壓', full_id:'Ukur tensi sebelum tidur',
-          need:(rs,t)=> rs.filter(r=>careIsBP(r)&&r.time<t).length>=2, rec:rs=>nth(rs,careIsBP,2) }
-    ];
-    const exShort = { '雙手舉水瓶':['舉瓶','Botol'], '腳底板抬壓':['抬壓','Kaki'], '膝蓋彎伸':['膝彎','Lutut'], '站立':['站立','Berdiri'] };
-    CARE_EX_TYPES.forEach(ex => defs.push({
-        slot:'night', deadline:'22:00', zh:exShort[ex][0], id:exShort[ex][1], full_zh:ex+'（今日至少一次）', full_id:'Latihan '+exShort[ex][1],
-        need:(rs,t)=> rs.some(r=>r.category===ex && r.time<t), rec:rs=>nth(rs, r=>r.category===ex, 1)
-    }));
-    defs.push({
-        slot:'late', deadline:'24:00', zh:'尿量', id:'Urine', full_zh:'睡前量測今日最後一次尿液', full_id:'Ukur urine terakhir',
-        need:(rs)=> rs.some(r=>r.category==='尿液' && r.time>='22:00'), rec:()=>null
+    const defs = [];
+    const exSlots = [ ['morning','10:30',1], ['midday','16:30',2], ['evening','19:00',3], ['night','22:00',4] ];
+
+    defs.push({ slot:'morning', deadline:'10:30', order:0, zh:'早壓', id:'Tensi', full_zh:'起床後測量血壓', full_id:'Ukur tensi pagi',
+        need:(rs,t)=> rs.filter(r=>careIsBP(r)&&r.time<t).length>=1, rec:rs=>nth(rs,careIsBP,1) });
+
+    exSlots.forEach(([slot, dl, k], si) => {
+        CARE_EX_TYPES.forEach((ex, ti) => {
+            const sh = CARE_EX_SHORT[ex];
+            const slotDef = CARE_SLOTS.find(s=>s.key===slot);
+            defs.push({ slot:slot, deadline:dl, order:ti+1, zh:sh[0], id:sh[1],
+                full_zh:`${slotDef.zh}${ex}`, full_id:`${sh[1]} (${slotDef.id})`,
+                need:(rs,t)=> rs.filter(r=>r.category===ex && r.time<t).length>=k,
+                rec:rs=>nth(rs, r=>r.category===ex, k) });
+        });
+    });
+
+    defs.push({ slot:'night', deadline:'22:00', order:0, zh:'晚壓', id:'Tensi', full_zh:'睡前測量血壓', full_id:'Ukur tensi sebelum tidur',
+        need:(rs,t)=> rs.filter(r=>careIsBP(r)&&r.time<t).length>=2, rec:rs=>nth(rs,careIsBP,2) });
+
+    defs.push({ slot:'late', deadline:'24:00', order:0, zh:'尿量', id:'Urine', full_zh:'睡前量測今日最後一次尿液', full_id:'Ukur urine terakhir',
+        need:(rs)=> rs.some(r=>r.category==='尿液' && r.time>='22:00'), rec:()=>null });
+
+    // 時段內排序：血壓在前、四項運動照序
+    defs.sort((a,b)=>{
+        const sa = CARE_SLOTS.findIndex(s=>s.key===a.slot), sb = CARE_SLOTS.findIndex(s=>s.key===b.slot);
+        return sa !== sb ? sa - sb : a.order - b.order;
     });
     return defs;
 }
@@ -53,8 +66,7 @@ function careTodayStr(){
     return new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().split('T')[0];
 }
 
-/* 計算任務狀態：done準時 / late補齊 / missed未完成XX / pending未到期
- * 回傳 { tasks:[{...def,state}], lateRecIds:Set } */
+/* 任務狀態：done準時 / late補齊 / missed未完成XX / pending未到期 */
 function careComputeTasks(records, dateStr){
     const valid = records.filter(r => r.status !== '無效');
     const isToday = dateStr === careTodayStr();
@@ -75,24 +87,22 @@ function careComputeTasks(records, dateStr){
     return { tasks, lateRecIds };
 }
 
-/* 三行進度格：第一行時段、第二行項目、第三行方格
- * lang: 'zh' | 'id' | 'both' */
+/* 三行進度格：第一行時段、第二行項目、第三行方格。lang: 'zh' | 'id' */
 function careRenderGrid(el, tasks, lang){
     lang = lang || 'zh';
-    const L = (zh,id) => lang==='id' ? id : (lang==='both' ? zh+'/'+id : zh);
+    const L = (zh,id) => lang==='id' ? id : zh;
     const slotsWithTasks = CARE_SLOTS.filter(s => tasks.some(t=>t.slot===s.key));
     const sq = {
         done:    '<div class="w-6 h-6 rounded-md bg-green-500 flex items-center justify-center text-white text-[11px] font-black">✓</div>',
-        late:    '<div class="w-6 h-6 rounded-md bg-amber-400 flex items-center justify-center text-white text-[11px] font-black">補</div>',
+        late:    `<div class="w-6 h-6 rounded-md bg-amber-400 flex items-center justify-center text-white text-[11px] font-black">${lang==='id'?'+':'補'}</div>`,
         missed:  '<div class="w-6 h-6 rounded-md bg-red-500 flex items-center justify-center text-white text-[11px] font-black">✕</div>',
         pending: '<div class="w-6 h-6 rounded-md border-2 border-gray-200 bg-gray-50"></div>'
     };
-    if (lang==='id') sq.late = sq.late.replace('>補<','>+<');
     let row1='', row2='', row3='';
     slotsWithTasks.forEach((s,i) => {
         const st = tasks.filter(t=>t.slot===s.key);
         const bd = i>0 ? 'border-l border-gray-200' : '';
-        row1 += `<td colspan="${st.length}" class="text-center text-[10px] font-black text-gray-500 pb-1 px-1 ${bd}">${L(s.zh,s.id)}<div class="text-[8px] text-gray-300 font-bold">${s.start}-${s.end==='24:00'?'24:00':s.end}</div></td>`;
+        row1 += `<td colspan="${st.length}" class="text-center text-[10px] font-black text-gray-500 pb-1 px-1 ${bd}">${L(s.zh,s.id)}<div class="text-[8px] text-gray-300 font-bold">${s.start}-${s.end}</div></td>`;
         st.forEach((t,j) => {
             const bd2 = (i>0 && j===0) ? 'border-l border-gray-200' : '';
             row2 += `<td class="text-center text-[9px] font-bold text-gray-400 px-0.5 pb-1 leading-tight ${bd2}" title="${t.full_zh}">${L(t.zh,t.id)}</td>`;
@@ -108,22 +118,41 @@ function careRenderGrid(el, tasks, lang){
     </div>`;
 }
 
-/* ===== 使用者身分（U1/U2/U3）與語言模式（zh/id/both） ===== */
+/* ===== 使用者身分：'1'/'2'/'3'/'A'(管理者)。換身分需管理者密碼 ===== */
 function careGetUser(){
     const p = new URLSearchParams(location.search).get('user');
     if (p && ['1','2','3'].includes(p)) { localStorage.setItem('care_user', p); return p; }
-    return localStorage.getItem('care_user') || '1';
+    const s = localStorage.getItem('care_user');
+    return ['1','2','3','A'].includes(s) ? s : '1';
 }
 function careSetUser(u){ localStorage.setItem('care_user', String(u)); }
+function careAskPin(msg){
+    let v = null;
+    try { v = prompt(msg || '請輸入管理者密碼 / Masukkan PIN admin'); } catch(e) { return false; }
+    return v === CARE_PIN;
+}
+/* ===== 語言：'zh' 全繁中 或 'id' 全印尼文（不再有混合模式） ===== */
 function careGetLang(){
     const p = new URLSearchParams(location.search).get('lang');
-    if (p && ['zh','id','both'].includes(p)) { localStorage.setItem('care_lang', p); return p; }
-    return localStorage.getItem('care_lang') || 'both';
+    if (p && ['zh','id'].includes(p)) { localStorage.setItem('care_lang', p); return p; }
+    const s = localStorage.getItem('care_lang');
+    return s === 'id' ? 'id' : 'zh';
 }
 function careSetLang(m){ localStorage.setItem('care_lang', m); }
-/* 從備註解析記錄者 👤U1 */
+
+/* 記錄者標記 👤U1/U2/U3/UA */
 function careUserOfNote(note){
-    const m = /👤U([123])/.exec(note || '');
+    const m = /👤U([123A])/.exec(note || '');
     return m ? m[1] : null;
 }
-function careStripUserTag(note){ return (note || '').replace(/\s*👤U[123]/g, '').trim(); }
+function careStripUserTag(note){ return (note || '').replace(/\s*👤U[123A]/g, '').trim(); }
+
+/* 備註單語化：把「中文 / 外文」對與已知標籤依語言取單側 */
+function careNoteDisplay(note, lang){
+    let t = careStripUserTag(note);
+    t = t.replace(/\[當日附加:\s*利尿藥物\]/g, lang==='id' ? '[Diuretik]' : '[利尿藥物]');
+    t = t.replace(/\[當日附加:\s*利便藥物\]/g, lang==='id' ? '[Obat pencahar]' : '[利便藥物]');
+    t = t.replace(/\[浣腸\s*\/\s*Supositoria gliserin\]/g, lang==='id' ? '[Supositoria gliserin]' : '[浣腸]');
+    t = t.replace(/([一-鿿][^\/\[\]]*?)\s*\/\s*([A-Za-z][^\/\[\]]*)/g, (m,zh,id)=> (lang==='id' ? id : zh).trim());
+    return t.trim();
+}
