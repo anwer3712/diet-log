@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日時段報表 / Laporan Harian per Periode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: linear-gradient(180deg, #fff1f2 0%, #ffffff 45%, #eff6ff 100%); }
+        .animate-spin-slow { animation: spin 3s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff; }
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen pb-12 font-sans">
+
+    <div class="max-w-2xl mx-auto px-4 pt-5">
+
+        <div class="text-center mb-4">
+            <h1 class="text-xl font-black text-rose-400 tracking-wide">📅 每日時段報表</h1>
+            <p class="text-[11px] text-gray-400 font-bold mt-0.5">Laporan Harian per Periode Waktu</p>
+        </div>
+
+        <div class="no-print mb-3">
+            <a href="index.html" class="text-xs font-bold text-sky-600 hover:underline">← 回照護日誌 / Kembali ke Buku Harian</a>
+        </div>
+
+        <!-- 日期選擇 -->
+        <div class="no-print bg-white rounded-3xl p-4 shadow-sm border-2 border-rose-100 mb-4 flex items-center gap-2">
+            <button type="button" onclick="shiftDate(-1)" class="bg-gray-100 text-gray-600 px-3 py-2.5 rounded-2xl text-sm font-black active:scale-95">◀</button>
+            <div class="flex-1">
+                <label class="block text-[11px] font-bold text-gray-400 mb-1 text-center">選擇日期 / Pilih Tanggal</label>
+                <input id="report-date" type="date" class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-bold text-gray-700 text-center" onchange="loadReport()">
+            </div>
+            <button type="button" onclick="shiftDate(1)" class="bg-gray-100 text-gray-600 px-3 py-2.5 rounded-2xl text-sm font-black active:scale-95">▶</button>
+        </div>
+
+        <!-- 圖例 -->
+        <div class="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 mb-4 text-[11px] font-bold flex flex-wrap gap-x-4 gap-y-1 justify-center">
+            <span class="text-gray-700">⬛ 準時完成 / Selesai tepat waktu</span>
+            <span class="text-amber-600">🟧 補齊（逾時完成）/ Dilengkapi terlambat</span>
+            <span class="text-red-600">❌ XX＝未完成 / Belum selesai</span>
+            <span class="text-gray-400">⏳ 時段未到 / Belum waktunya</span>
+        </div>
+
+        <div id="loading" class="text-center py-8 text-gray-400 text-sm font-bold hidden">
+            <span class="inline-block animate-spin-slow">🔄</span> 讀取中… / Memuat…
+        </div>
+
+        <div id="report-container" class="space-y-4"></div>
+
+        <div class="no-print mt-6 text-center">
+            <button type="button" onclick="window.print()" class="bg-rose-400 hover:bg-rose-500 text-white font-black rounded-2xl py-3 px-6 text-sm shadow-md transition-all active:scale-95">🖨️ 列印報表 / Cetak Laporan</button>
+        </div>
+    </div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycby-3Q--z4t03yOtgtMpkbhYccmxD9dqvmrqQdX4sg4vZNBfjgyuKYuL6HZuHkro7p0o/exec";
+
+// 與 index.html 同一份中央雙語字典
+const ITEM_BILINGUAL = {
+    '飲水量': '飲水 / Air Minum',
+    '服藥飲水': '服藥飲水 / Minum Obat',
+    '營養飲品': '營養飲品 / Susu Nutrisi',
+    '進食': '進食 / Makan',
+    '尿液': '尿液 / Air Kencing',
+    '排便': '排便 / Buang Air Besar',
+    '雙手舉水瓶': '雙手舉水瓶 / Angkat Botol',
+    '腳底板抬壓': '腳底板抬壓 / Tekan Telapak Kaki',
+    '膝蓋彎伸': '膝蓋彎伸 / Tekuk Lutut',
+    '站立': '站立 / Berdiri',
+    '血壓/心跳': '血壓與心跳 / Tekanan darah dan detak jantung'
+};
+function bil(k){
+    if (ITEM_BILINGUAL[k]) return ITEM_BILINGUAL[k];
+    if (k && k.indexOf('血壓/心跳') === 0) {
+        const suffix = k.includes('(早)') ? '（早 / Pagi）' : (k.includes('(晚)') ? '（晚 / Malam）' : '');
+        return '血壓與心跳 / Tensi' + suffix;
+    }
+    return k;
+}
+function unitOf(cat){
+    if (['排便','站立'].includes(cat)) return '次/Kali';
+    if (['雙手舉水瓶','腳底板抬壓','膝蓋彎伸'].includes(cat)) return '組/Set';
+    if (cat && cat.indexOf('血壓') === 0) return '';
+    return 'c.c.';
+}
+
+// 時段定義（與 index.html checkReminders 的提醒時段一致）
+const SLOTS = [
+    { key:'dawn',    start:'00:00', end:'07:00', zh:'凌晨',                 id:'Dini hari' },
+    { key:'morning', start:'07:00', end:'10:30', zh:'早晨（起床～早餐）',   id:'Pagi (bangun–sarapan)' },
+    { key:'midday',  start:'10:30', end:'16:30', zh:'中午～下午',           id:'Siang–Sore' },
+    { key:'evening', start:'16:30', end:'19:00', zh:'傍晚（晚餐前）',       id:'Menjelang malam' },
+    { key:'night',   start:'19:00', end:'22:00', zh:'晚間（睡前）',         id:'Malam (sebelum tidur)' },
+    { key:'late',    start:'22:00', end:'24:00', zh:'深夜（就寢前）',       id:'Larut malam' }
+];
+
+const EX_TYPES = ['雙手舉水瓶','腳底板抬壓','膝蓋彎伸','站立'];
+const isBP = r => r.category && r.category.includes('血壓/心跳');
+const isEX = r => r.type === '運動';
+
+// 每個時段的「應完成任務」：與 index.html 提醒邏輯一致（以全日累計次數判斷，截止＝時段結束）
+// countDone(records, cutoff)：cutoff 前完成的數量是否達標
+function buildTasks(records){
+    const bpBefore = t => records.filter(r => isBP(r) && r.time < t).length;
+    const exBefore = t => records.filter(r => isEX(r) && r.time < t).length;
+    const nthTime = (filter, n) => {
+        const sorted = records.filter(filter).sort((a,b)=>a.time.localeCompare(b.time));
+        return sorted.length >= n ? sorted[n-1] : null;
+    };
+    const tasks = [
+        { slot:'morning', zh:'🩺 起床後測量血壓', id:'Ukur tekanan darah pagi',
+          deadline:'10:30', onTime:()=> bpBefore('10:30')>=1, rec:()=> nthTime(isBP,1) },
+        { slot:'morning', zh:'🏃‍♀️ 早餐前運動', id:'Latihan sebelum sarapan',
+          deadline:'10:30', onTime:()=> exBefore('10:30')>=1, rec:()=> nthTime(isEX,1) },
+        { slot:'midday', zh:'🏃‍♀️ 午餐前運動（全日第 2 次）', id:'Latihan sebelum makan siang (ke-2)',
+          deadline:'16:30', onTime:()=> exBefore('16:30')>=2, rec:()=> nthTime(isEX,2) },
+        { slot:'evening', zh:'🏃‍♀️ 晚餐前運動（全日第 3 次）', id:'Latihan sebelum makan malam (ke-3)',
+          deadline:'19:00', onTime:()=> exBefore('19:00')>=3, rec:()=> nthTime(isEX,3) },
+        { slot:'night', zh:'🩺 睡前測量血壓', id:'Ukur tekanan darah sebelum tidur',
+          deadline:'22:00', onTime:()=> bpBefore('22:00')>=2, rec:()=> nthTime(isBP,2) }
+    ];
+    EX_TYPES.forEach(ex => {
+        tasks.push({
+            slot:'night', zh:`💪 ${bil(ex).split(' / ')[0]}（今日至少一次）`, id:`Latihan ${bil(ex).split(' / ')[1]||ex}`,
+            deadline:'22:00',
+            onTime:()=> records.some(r => r.category===ex && r.time < '22:00'),
+            rec:()=> nthTime(r => r.category===ex, 1)
+        });
+    });
+    tasks.push({
+        slot:'late', zh:'🚽 睡前量測今日最後一次尿液', id:'Ukur urine terakhir sebelum tidur',
+        deadline:'24:00',
+        onTime:()=> records.some(r => r.category==='尿液' && r.time >= '22:00'),
+        rec:()=> null   // 只能在時段內完成，無「補齊」概念
+    });
+    return tasks;
+}
+
+function todayStr(){
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().split('T')[0];
+}
+function nowHM(){ return new Date().toTimeString().substring(0,5); }
+
+function shiftDate(days){
+    const inp = document.getElementById('report-date');
+    const d = new Date(inp.value + 'T00:00:00');
+    d.setDate(d.getDate() + days);
+    inp.value = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().split('T')[0];
+    loadReport();
+}
+
+function loadReport(){
+    const date = document.getElementById('report-date').value;
+    const url = new URL(window.location);
+    url.searchParams.set('date', date);
+    history.replaceState(null, '', url);
+
+    document.getElementById('loading').classList.remove('hidden');
+    document.getElementById('report-container').innerHTML = '';
+
+    fetch(`${GAS_URL}?date=${date}&t=${Date.now()}`, { cache:'no-store' })
+        .then(r => r.json())
+        .then(data => render(date, (data.records||[]).filter(r => r.status !== '無效')))
+        .catch(() => {
+            document.getElementById('report-container').innerHTML =
+                `<div class="text-center py-8 text-red-500 text-sm font-bold bg-white rounded-3xl border border-red-100">⚠️ 同步失敗，請檢查網路連線<br><span class="text-xs font-medium">Sinkronisasi gagal, periksa koneksi internet</span></div>`;
+        })
+        .finally(() => document.getElementById('loading').classList.add('hidden'));
+}
+
+function render(date, records){
+    const container = document.getElementById('report-container');
+    const isToday = date === todayStr();
+    const isFuture = date > todayStr();
+    const hm = nowHM();
+    const tasks = buildTasks(records);
+
+    // 補齊紀錄：任務逾時後才由某筆紀錄滿足 → 該筆紀錄用不同顏色標記
+    const lateRecIds = new Set();
+    const taskStatus = tasks.map(t => {
+        const deadlinePassed = !isFuture && (!isToday || hm >= t.deadline);
+        const fulfillRec = t.rec ? t.rec() : null;
+        const onTime = t.onTime();
+        let state;
+        if (onTime) state = 'done';
+        else if (fulfillRec) { state = 'late'; lateRecIds.add(fulfillRec.recordId); }
+        else if (deadlinePassed) state = 'missed';
+        else state = 'pending';
+        return { ...t, state };
+    });
+
+    let html = '';
+    SLOTS.forEach(slot => {
+        const slotRecs = records
+            .filter(r => r.time >= slot.start && (slot.end === '24:00' || r.time < slot.end))
+            .sort((a,b) => a.time.localeCompare(b.time));
+        const slotTasks = taskStatus.filter(t => t.slot === slot.key);
+        if (slotRecs.length === 0 && slotTasks.length === 0) return; // 凌晨無資料無任務 → 略過
+
+        // 任務狀態徽章
+        const chips = slotTasks.map(t => {
+            if (t.state === 'done')    return `<span class="inline-block bg-green-50 text-green-700 border border-green-200 rounded-full px-2.5 py-0.5 text-[11px] font-black">✅ ${t.zh}</span>`;
+            if (t.state === 'late')    return `<span class="inline-block bg-amber-50 text-amber-600 border border-amber-300 rounded-full px-2.5 py-0.5 text-[11px] font-black">🟧 補齊 / Dilengkapi：${t.zh}</span>`;
+            if (t.state === 'missed')  return `<span class="inline-block bg-red-50 text-red-600 border border-red-300 rounded-full px-2.5 py-0.5 text-[11px] font-black">❌ XX：${t.zh}</span>`;
+            return `<span class="inline-block bg-gray-50 text-gray-400 border border-gray-200 rounded-full px-2.5 py-0.5 text-[11px] font-bold">⏳ ${t.zh}</span>`;
+        }).join(' ');
+
+        // 表格列：實際紀錄
+        let rows = slotRecs.map(r => {
+            const late = lateRecIds.has(r.recordId);
+            const cls = late ? 'text-amber-600 font-black' : 'text-gray-700';
+            const unit = unitOf(r.category);
+            const eventTxt = `${bil(r.category)}${r.amount !== '' && r.amount !== undefined ? '：' + r.amount + (unit ? ' ' + unit : '') : ''}`;
+            return `<tr class="border-b border-gray-50 ${late ? 'bg-amber-50/60' : ''}">
+                <td class="py-2 px-2 text-[11px] text-gray-400 whitespace-nowrap">${slot.zh}</td>
+                <td class="py-2 px-2 text-xs font-black whitespace-nowrap ${cls}">${r.time}${late ? ' 🟧' : ''}</td>
+                <td class="py-2 px-2 text-xs font-bold ${cls}">${eventTxt}${late ? `<span class="block text-[10px] font-black text-amber-500">補齊（逾時完成）/ Dilengkapi terlambat</span>` : ''}</td>
+                <td class="py-2 px-2 text-[11px] ${late ? 'text-amber-500' : 'text-gray-400'}">${r.note || '—'}</td>
+            </tr>`;
+        });
+
+        // 表格列：未完成 XX
+        slotTasks.filter(t => t.state === 'missed').forEach(t => {
+            rows.push(`<tr class="border-b border-gray-50 bg-red-50/60">
+                <td class="py-2 px-2 text-[11px] text-gray-400 whitespace-nowrap">${slot.zh}</td>
+                <td class="py-2 px-2 text-sm font-black text-red-600">XX</td>
+                <td class="py-2 px-2 text-xs font-black text-red-600">${t.zh}<span class="block text-[10px] font-medium text-red-400">${t.id}</span></td>
+                <td class="py-2 px-2 text-[11px] font-bold text-red-500">未在時段內完成 / Tidak selesai dalam periode</td>
+            </tr>`);
+        });
+
+        if (rows.length === 0) rows.push(`<tr><td colspan="4" class="py-3 px-2 text-center text-[11px] text-gray-300 font-medium">📭 此時段無紀錄 / Tidak ada catatan</td></tr>`);
+
+        html += `
+        <div class="bg-white rounded-3xl shadow-sm border-2 border-sky-100 overflow-hidden">
+            <div class="bg-sky-50/70 px-4 py-3 border-b border-sky-100">
+                <h3 class="font-black text-gray-700 text-sm">🕒 ${slot.zh} <span class="text-xs text-gray-400 font-bold">${slot.start}–${slot.end}</span></h3>
+                <p class="text-[10px] text-gray-400 font-bold">${slot.id}</p>
+                ${chips ? `<div class="mt-2 flex flex-wrap gap-1.5">${chips}</div>` : ''}
+            </div>
+            <table class="w-full text-left">
+                <thead><tr class="text-[10px] text-gray-400 font-black border-b border-gray-100">
+                    <th class="py-1.5 px-2">時間段<br>Periode</th>
+                    <th class="py-1.5 px-2">記錄時間<br>Waktu</th>
+                    <th class="py-1.5 px-2">記錄事件<br>Peristiwa</th>
+                    <th class="py-1.5 px-2">備註<br>Catatan</th>
+                </tr></thead>
+                <tbody>${rows.join('')}</tbody>
+            </table>
+        </div>`;
+    });
+
+    if (!html) html = `<div class="text-center py-8 text-gray-400 text-xs font-medium bg-white rounded-3xl border border-dashed">📭 本日尚無任何紀錄 / Tidak ada catatan hari ini</div>`;
+
+    // 全日統計
+    const done = taskStatus.filter(t=>t.state==='done').length;
+    const late = taskStatus.filter(t=>t.state==='late').length;
+    const missed = taskStatus.filter(t=>t.state==='missed').length;
+    const summary = `
+    <div class="bg-white rounded-3xl p-4 shadow-sm border-2 border-rose-100 flex justify-around text-center">
+        <div><p class="text-lg font-black text-green-600">${done}</p><p class="text-[10px] font-bold text-gray-400">準時完成<br>Tepat waktu</p></div>
+        <div><p class="text-lg font-black text-amber-500">${late}</p><p class="text-[10px] font-bold text-gray-400">補齊<br>Dilengkapi</p></div>
+        <div><p class="text-lg font-black text-red-600">${missed}</p><p class="text-[10px] font-bold text-gray-400">未完成 XX<br>Belum selesai</p></div>
+        <div><p class="text-lg font-black text-gray-700">${records.length}</p><p class="text-[10px] font-bold text-gray-400">總紀錄筆數<br>Total catatan</p></div>
+    </div>`;
+
+    container.innerHTML = summary + html;
+}
+
+// 初始化：URL ?date= 優先，否則今天
+(function init(){
+    const p = new URLSearchParams(window.location.search).get('date');
+    document.getElementById('report-date').value = (p && /^\d{4}-\d{2}-\d{2}$/.test(p)) ? p : todayStr();
+    loadReport();
+})();
+</script>
+</body>
+</html>
