@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>奶奶照護日誌 / Catatan Perawatan Nenek</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="care-tasks.js"></script>
     <style>
+        /* 語言模式：mode-zh 只顯示繁中、mode-id 只顯示印尼文、mode-both 全顯示 */
+        body.mode-zh .lang-id, body.mode-zh .lang-sep, body.mode-zh br.lang-br { display: none; }
+        body.mode-id .lang-zh, body.mode-id .lang-sep, body.mode-id br.lang-br { display: none; }
         @keyframes pulse-gold {
             0%, 100% { transform: scale(1); border-color: #f59e0b; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
             50% { transform: scale(1.02); border-color: #fbbf24; box-shadow: 0 0 15px 5px rgba(245, 158, 11, 0.4); }
@@ -28,6 +32,17 @@
         <div class="text-center mb-4">
             <h1 class="text-xl font-black text-rose-400 tracking-wide flex items-center justify-center gap-1.5">👵💗 奶奶照護日誌</h1>
             <p class="text-[11px] text-gray-400 font-bold mt-0.5">Buku Harian Perawatan Nenek</p>
+        </div>
+
+        <!-- 使用者 / 語言切換 -->
+        <div class="flex items-center justify-between mb-3">
+            <div id="user-switch" class="flex gap-1"></div>
+            <div id="lang-switch" class="flex gap-1"></div>
+        </div>
+
+        <!-- 今日完成進度格：時段 / 項目 / 方格 -->
+        <div class="bg-white rounded-3xl p-3 shadow-sm border-2 border-rose-100 mb-4 overflow-x-auto">
+            <div id="progress-grid" class="text-center text-[10px] text-gray-300 font-bold">⏳</div>
         </div>
 
         <div class="bg-red-600 text-white rounded-2xl px-4 py-3 mb-4 shadow-lg flex items-start gap-2 border-2 border-red-700">
@@ -229,6 +244,10 @@
                 <div class="text-center py-8 text-gray-400 text-xs font-medium bg-white rounded-3xl border border-dashed">正在串聯雲端資料庫... / Menghubungkan ke database cloud...</div>
             </div>
         </div>
+
+        <div class="mt-6 text-center">
+            <a href="admin.html" class="text-[10px] font-bold text-gray-300 hover:text-sky-500">🗂️ 管理者總表 / Tampilan admin</a>
+        </div>
     </div>
 
     <div id="reminder-modal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
@@ -299,7 +318,111 @@
             '總攝入水量': '總攝入水量 / Total Asupan Air',
             '血壓/心跳': '血壓與心跳 / Tekanan darah dan detak jantung'
         };
-        function bil(k){ return ITEM_BILINGUAL[k] || k; }
+        // ===== 使用者身分與語言模式（care-tasks.js） =====
+        const CARE_USER = careGetUser();
+        const LANG_MODE = careGetLang();
+        document.body.classList.add('mode-' + LANG_MODE);
+        // 依語言模式回傳單語或雙語
+        function bil(k){
+            const full = ITEM_BILINGUAL[k] || k;
+            if (LANG_MODE === 'both' || !ITEM_BILINGUAL[k]) return full;
+            const parts = full.split(' / ');
+            return LANG_MODE === 'id' ? (parts[1] || parts[0]) : parts[0];
+        }
+        function LTXT(zh, id){ return LANG_MODE === 'id' ? id : (LANG_MODE === 'zh' ? zh : zh + ' / ' + id); }
+
+        function renderTopBar(){
+            const us = document.getElementById('user-switch');
+            us.innerHTML = ['1','2','3'].map(u =>
+                `<button type="button" onclick="switchUser('${u}')" class="px-3 py-1.5 rounded-full text-[11px] font-black border ${CARE_USER===u?'bg-rose-400 text-white border-rose-400':'bg-white text-gray-500 border-gray-200'}">👤U${u}</button>`
+            ).join('');
+            const ls = document.getElementById('lang-switch');
+            ls.innerHTML = [['zh','中'],['id','ID'],['both','中+ID']].map(([m,lbl]) =>
+                `<button type="button" onclick="switchLang('${m}')" class="px-2.5 py-1.5 rounded-full text-[10px] font-black border ${LANG_MODE===m?'bg-sky-400 text-white border-sky-400':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
+            ).join('');
+        }
+        window.switchUser = function(u){ careSetUser(u); location.reload(); };
+        window.switchLang = function(m){ careSetLang(m); location.reload(); };
+
+        // 今日完成進度格（時段/項目/方格），每次紀錄變動後重繪
+        function updateProgressGrid(){
+            const dateStr = document.getElementById('input-date').value || careTodayStr();
+            const { tasks } = careComputeTasks(cloudRecords || [], dateStr);
+            careRenderGrid(document.getElementById('progress-grid'), tasks, LANG_MODE);
+        }
+
+        // ===== 語言分離器：把「中文 / 印尼文」文字自動拆成可切換的 span =====
+        const CJK_RE = /[一-鿿]/;
+        function localizePage(){
+            const root = document.body;
+            // pass 1：同一文字節點內「中文 / 外文」
+            const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+            const splits = []; let node;
+            while (node = tw.nextNode()) {
+                const p = node.parentElement;
+                if (!p || p.closest('script,style') || p.dataset.i18nDone) continue;
+                if (p.classList.contains('lang-zh') || p.classList.contains('lang-id') || p.classList.contains('lang-sep')) continue;
+                const m = /^(\s*)([^\/]*[一-鿿][^\/]*?)(\s*\/\s*)([^一-鿿]+)$/.exec(node.nodeValue);
+                if (m && /[A-Za-z]{2}/.test(m[4])) splits.push([node, m]);
+            }
+            splits.forEach(([n, m]) => {
+                const mk = (cls, txt) => { const s = document.createElement('span'); s.className = cls; s.textContent = txt; s.dataset.i18nDone = '1'; return s; };
+                const frag = document.createDocumentFragment();
+                if (m[1]) frag.appendChild(document.createTextNode(m[1]));
+                frag.appendChild(mk('lang-zh', m[2])); frag.appendChild(mk('lang-sep', m[3])); frag.appendChild(mk('lang-id', m[4]));
+                n.parentNode && n.parentNode.replaceChild(frag, n);
+            });
+            // pass 2：整段外文元素（中文段落後的印尼文 span/p）
+            root.querySelectorAll('span,p,li').forEach(el => {
+                if (el.dataset.i18nMarked || el.classList.contains('lang-zh') || el.classList.contains('lang-id') || el.classList.contains('lang-sep')) return;
+                if (el.querySelector('.lang-zh,.lang-id')) return;
+                const t = el.textContent.trim();
+                if (!t || CJK_RE.test(t) || t.length < 8 || !/[A-Za-z]{3}/.test(t)) return;
+                const parent = el.parentElement;
+                if (!parent || !CJK_RE.test(parent.textContent)) return;
+                el.classList.add('lang-id'); el.dataset.i18nMarked = '1';
+            });
+            // pass 3：裸外文文字節點（如 按鈕內 中文<br>外文）
+            const tw2 = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+            const bare = [];
+            while (node = tw2.nextNode()) {
+                const p = node.parentElement;
+                if (!p || p.closest('script,style') || p.dataset.i18nDone) continue;
+                if (p.classList.contains('lang-zh') || p.classList.contains('lang-id') || p.classList.contains('lang-sep')) continue;
+                const v = node.nodeValue;
+                if (!v || CJK_RE.test(v) || v.trim().length < 8 || !/[A-Za-z]{3}/.test(v)) continue;
+                if (!CJK_RE.test(p.textContent)) continue;   // 同層要有中文才視為翻譯句
+                bare.push(node);
+            }
+            bare.forEach(n => {
+                const s = document.createElement('span'); s.className = 'lang-id'; s.dataset.i18nDone = '1';
+                n.parentNode.replaceChild(s, n); s.appendChild(n);
+            });
+            // pass 4：lang-id 前的 <br> 標記，單語模式一併隱藏；同層中文裸字包 lang-zh
+            root.querySelectorAll('.lang-id').forEach(el => {
+                let prev = el.previousSibling;
+                while (prev && prev.nodeType === 3 && !prev.nodeValue.trim()) prev = prev.previousSibling;
+                if (prev && prev.nodeType === 1 && prev.tagName === 'BR') prev.classList.add('lang-br');
+                const parent = el.parentElement;
+                if (parent && !parent.dataset.i18nWrapped) {
+                    parent.dataset.i18nWrapped = '1';
+                    Array.from(parent.childNodes).forEach(cn => {
+                        if (cn.nodeType === 3 && CJK_RE.test(cn.nodeValue)) {
+                            const s = document.createElement('span'); s.className = 'lang-zh'; s.dataset.i18nDone = '1';
+                            parent.replaceChild(s, cn); s.appendChild(cn);
+                        }
+                    });
+                }
+            });
+        }
+        // 動態內容（今日紀錄/提醒/標題重繪）後自動再分離一次
+        let i18nScheduled = false;
+        new MutationObserver(() => {
+            if (i18nScheduled || LANG_MODE === 'both') return;
+            i18nScheduled = true;
+            // 不用 requestAnimationFrame：背景分頁會停擺
+            setTimeout(() => { try { localizePage(); } finally { i18nScheduled = false; } }, 60);
+        }).observe(document.body, { childList: true, subtree: true });
 
         function updateView() {
             const selectedType = document.querySelector('input[name="type"]:checked').value;
@@ -421,7 +544,7 @@
             let currentItem = checkedCategory;
             if (['飲水量', '服藥飲水', '營養飲品', '進食'].includes(checkedCategory)) currentItem = '總攝入水量';
 
-            document.getElementById('dashboard-title').innerText = `🎯 【${bil(currentItem)}】今日目標 / Gol hari ini`;
+            document.getElementById('dashboard-title').innerText = LTXT(`🎯 【${bil(currentItem)}】今日目標`, `🎯 Gol hari ini [${bil(currentItem)}]`);
 
             const unitEls = document.querySelectorAll('.target-unit');
             let unitText = 'c.c.';
@@ -705,7 +828,7 @@
                 const checkedCategory = document.querySelector('input[name="category"]:checked');
                 if (checkedCategory) { filterKeyword = checkedCategory.value; displayKey = checkedCategory.value; }
             }
-            document.getElementById('cloud-list-title').innerText = `📋 今日【${bil(displayKey)}】紀錄 / Rekor [${bil(displayKey)}] Hari ini`;
+            document.getElementById('cloud-list-title').innerText = LTXT(`📋 今日【${bil(displayKey)}】紀錄`, `📋 Rekor [${bil(displayKey)}] Hari ini`);
             const filteredData = cloudRecords.filter(item => {
                 if (!item.category) return false;
                 if (filterKeyword === '血壓/心跳') return item.category.includes('血壓/心跳');
@@ -738,6 +861,7 @@
                     <button type="button" onclick="openConfirmModal('${item.recordId}')" class="ml-3 shrink-0 w-20 min-h-12 py-1.5 flex flex-col items-center justify-center rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 border border-red-100 shadow-sm transition-all active:scale-95"><span class="text-lg leading-none">✖</span><span class="text-[9px] font-black mt-0.5 leading-tight text-center">錯誤<br>Batalkan</span></button>`;
                 container.appendChild(card);
             });
+            updateProgressGrid();
         }
 
         document.getElementById('log-form').addEventListener('submit', function(e) {
@@ -777,6 +901,9 @@
             if (category === '排便' && document.getElementById('enema-check').checked) {
                 noteValue += (noteValue ? ' ' : '') + '[浣腸 / Supositoria gliserin]';
             }
+
+            // 記錄者標記（U1/U2/U3），供管理者總表與報表歸戶
+            noteValue += (noteValue ? ' ' : '') + '👤U' + CARE_USER;
 
             btn.disabled = true;
             btn.innerHTML = `<span>⏳ 儲存中... / Menyimpan...</span>`;
@@ -859,7 +986,12 @@
             .catch(err => { showToast("連線失敗", true); if (cardEl) cardEl.classList.remove('hidden'); fetchCloudData(); });
         };
 
-        window.onload = function() { setNow(); updateView(); fetchCloudData(); document.getElementById('view-sheet-btn').href = SPREADSHEET_URL; };
+        window.onload = function() {
+            renderTopBar();
+            if (LANG_MODE !== 'both') localizePage();
+            setNow(); updateView(); fetchCloudData();
+            document.getElementById('view-sheet-btn').href = SPREADSHEET_URL;
+        };
 
         function checkBowelMovementAlert() {
             if (typeof cloudRecords === 'undefined' || cloudRecords.length === 0) return;
