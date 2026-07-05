@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>奶奶照護日誌 / Catatan Perawatan Nenek</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=5"></script>
+    <script src="care-tasks.js?v=6"></script>
     <style>
         /* 語言模式：mode-zh 只顯示繁中、mode-id 只顯示印尼文 */
         body.mode-zh .lang-id, body.mode-zh .lang-sep, body.mode-zh br.lang-br { display: none; }
@@ -120,7 +120,11 @@
             <div class="bg-white rounded-3xl p-4 shadow-sm border-2 border-sky-100 grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-bold text-gray-400 mb-1">日期 / Tanggal</label>
-                    <input id="input-date" type="date" class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-bold text-gray-700">
+                    <div class="relative">
+                        <!-- 顯示層固定 XXXX/XX/XX；真正的 date input 蓋在上面透明，點擊仍開原生日曆 -->
+                        <input id="input-date-display" type="text" readonly class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-bold text-gray-700">
+                        <input id="input-date" type="date" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-400 mb-1">時間 / waktu</label>
@@ -151,25 +155,17 @@
                         <p>🕒 復健練習 / Latihan rehabilitasi 應於三餐飯前及睡前半小時進行，每日至少四次。若患者因特殊情況無法在規定時間內完成，請另覓時間補做，但勿將四次運動集中於同一時段。</p>
                         <p class="text-[10px] text-teal-600 font-medium">Latihan rehabilitasi sebaiknya dilakukan setengah jam sebelum masing-masing dari tiga waktu makan dan sebelum tidur, setidaknya empat kali sehari. Jika pasien tidak dapat menyelesaikan latihan dalam waktu yang ditentukan karena keadaan khusus, mohon cari waktu lain untuk menggantinya, tetapi jangan menggabungkan keempat latihan tersebut dalam periode yang sama.</p>
                     </div>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="雙手舉水瓶"> 雙手舉水瓶 / Angkat Botol</label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="腳底板抬壓"> 腳底板抬壓 / Tekan Kaki</label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="膝蓋彎伸"> 膝蓋彎伸 / Tekuk Lutut</label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="站立"> 站立 / Berdiri</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="仰臥抬腿" class="mt-1 shrink-0"> <span><span class="lang-zh">仰臥抬腿，左右交替10秒</span><span class="lang-id">Berbaringlah telentang dan angkat kaki Anda, bergantian sisi selama 10 detik.</span></span></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="大腿內收" class="mt-1 shrink-0"> <span><span class="lang-zh">仰躺大腿內收訓練，左右交替10秒</span><span class="lang-id">Berbaring telentang, lakukan latihan adduksi paha, bergantian sisi selama 10 detik.</span></span></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="橋式抬臀" class="mt-1 shrink-0"> <span><span class="lang-zh">橋式／仰躺雙腳屈膝抬臀10秒</span><span class="lang-id">Berbaringlah telentang dengan lutut ditekuk dan kaki rata di tempat tidur, lalu angkat pinggul Anda selama sepuluh detik.</span></span></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="站立" class="mt-1 shrink-0"> <span><span class="lang-zh">站立</span><span class="lang-id">Berdiri</span></span></label>
 
                     <div id="stand-warning" class="bg-red-50 border border-red-200 rounded-2xl p-3 text-red-800 font-bold text-[11px] space-y-1.5 hidden mt-1">
                         <p class="text-sm border-b border-red-200 pb-1 font-black">⚠️ 站立式安全指南 / Pedoman Keselamatan Berdiri</p>
                         <p>1. 至少需要兩名照顧者在同一樓層互相支援。<br><span class="text-[10px] text-red-600 font-medium">Setidaknya dua pengasuh diperlukan untuk saling membantu di lantai yang sama.</span></p>
-                        <p>2. 患者身心狀況皆須在良好的狀態。<br><span class="text-[10px] text-red-600 font-medium">Pasien harus dalam kondisi fisik dan mental yang baik.</span></p>
+                        <p>2. 評估患者身心狀況皆須在良好的狀態。<br><span class="text-[10px] text-red-600 font-medium">Pasien harus dalam kondisi fisik dan mental yang baik.</span></p>
                         <p>3. 照顧者不得同時進行其他操作。<br><span class="text-[10px] text-red-600 font-medium">Staf keperawatan tidak boleh melakukan prosedur lain pada saat yang bersamaan.</span></p>
-                        <p>4. 操作步驟 / Prosedur:</p>
-                        <ul class="pl-2 space-y-1">
-                            <li>a. 降低床位，使患者雙腳著地。 <span class="text-[10px] text-red-600 font-medium">Turunkan tempat tidur sehingga kaki pasien berada di lantai.</span></li>
-                            <li>b. 降低床欄，並在床欄頂部鋪上毛巾，以防止受傷。 <span class="text-[10px] text-red-600 font-medium">Turunkan pagar tempat tidur dan letakkan handuk di atasnya untuk mencegah cedera.</span></li>
-                            <li>c. 當患者坐在床邊時，應有堅固的扶手提供支撐。 <span class="text-[10px] text-red-600 font-medium">Saat pasien duduk di tepi tempat tidur, harus ada pegangan tangan yang kokoh untuk memberikan dukungan.</span></li>
-                            <li>d. 照顧者站穩後，彎腰擁抱患者。 <span class="text-[10px] text-red-600 font-medium">Setelah perawat stabil, bungkuk dan peluk pasien.</span></li>
-                            <li>e. 照顧者協助患者站立，提供向上支撐的力量。 <span class="text-[10px] text-red-600 font-medium">Perawat membantu pasien untuk berdiri, memberikan dukungan ke atas.</span></li>
-                            <li>f. 患者感知雙腿該使力的部位，並逐漸習慣腿部用力的感覺。 <span class="text-[10px] text-red-600 font-medium">Pasien menjadi sadar di mana harus mengerahkan kekuatan pada kakinya dan secara bertahap terbiasa dengan sensasi menggunakan kakinya.</span></li>
-                        </ul>
+                        <p>4. 將電動床下降至最低，放下一邊圍欄，讓病患坐至床沿，使之雙腳能踩到地面，注意導尿管擺放位置，照顧者的膝蓋抵住病患的膝蓋給予支撐，令病患環抱住照顧者頸部發力站起，站起後必須保持抬頭挺胸、眼睛直視前方，維持站立姿勢直到病患耗盡力氣便可坐下休息片刻。<br><span class="text-[10px] text-red-600 font-medium">Turunkan ranjang listrik ke posisi terendah dan turunkan salah satu pagar pengaman samping. Minta pasien duduk di tepi ranjang sehingga kedua kakinya dapat menyentuh lantai. Perhatikan penempatan kateter. Pengasuh harus menopang lutut pasien dengan lutut mereka sendiri di lutut pasien. Minta pasien memeluk leher pengasuh dan berdiri. Setelah berdiri, pasien harus tetap tegak, dada membusung, dan mata melihat lurus ke depan. Pertahankan postur berdiri ini sampai pasien kelelahan, lalu duduk dan istirahat sebentar.</span></p>
                     </div>
                 </div>
 
@@ -235,12 +231,6 @@
                 <div class="text-center py-8 text-gray-400 text-xs font-medium bg-white rounded-3xl border border-dashed">正在串聯雲端資料庫... / Menghubungkan ke database cloud...</div>
             </div>
         </div>
-
-        <div id="view-sheet-wrap" class="mt-5 hidden">
-            <a id="view-sheet-btn" href="#" target="_blank" class="w-full bg-rose-400 text-white text-center py-3.5 px-4 rounded-3xl font-bold shadow-md flex items-center justify-center gap-2 transition-all hover:bg-rose-500 active:scale-[0.98]">
-                <span>📊 審視每日總合月總表 / Tinjau Ringkasan</span>
-            </a>
-        </div>
     </div>
 
     <div id="reminder-modal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
@@ -304,10 +294,13 @@
             '進食': '進食 / Makan',
             '尿液': '尿液 / Air Kencing',
             '排便': '排便 / Buang Air Besar',
+            '仰臥抬腿': '仰臥抬腿 / Angkat Kaki Telentang',
+            '大腿內收': '大腿內收 / Adduksi Paha',
+            '橋式抬臀': '橋式抬臀 / Angkat Pinggul',
+            '站立': '站立 / Berdiri',
             '雙手舉水瓶': '雙手舉水瓶 / Angkat Botol',
             '腳底板抬壓': '腳底板抬壓 / Tekan Telapak Kaki',
             '膝蓋彎伸': '膝蓋彎伸 / Tekuk Lutut',
-            '站立': '站立 / Berdiri',
             '總攝入水量': '總攝入水量 / Total Asupan Air',
             '血壓/心跳': '血壓與心跳 / Tekanan darah dan detak jantung'
         };
@@ -329,7 +322,7 @@
         function renderTopBar(){
             const us = document.getElementById('user-switch');
             const nm = u => careUserName(cloudGoals, u);   // 管理者設定的名字，未設定則顯示 U1/U2/U3
-            us.innerHTML = [['1','👤'+nm('1')],['2','👤'+nm('2')],['3','👤'+nm('3')],['A','⚙️' + LTXT('管理','Admin')]].map(([u,lbl]) =>
+            us.innerHTML = [['1','👤'+nm('1')],['2','👤'+nm('2')],['3','👤'+nm('3')],['4','👤'+nm('4')],['A','⚙️' + LTXT('管理','Admin')]].map(([u,lbl]) =>
                 `<button type="button" onclick="switchUser('${u}')" class="px-2.5 py-1.5 rounded-full text-[11px] font-black border ${CARE_USER===u?'bg-rose-400 text-white border-rose-400':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
             ).join('');
             const ls = document.getElementById('lang-switch');
@@ -337,10 +330,10 @@
                 `<button type="button" onclick="switchLang('${m}')" class="px-2.5 py-1.5 rounded-full text-[10px] font-black border ${LANG_MODE===m?'bg-sky-400 text-white border-sky-400':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
             ).join('');
         }
-        // 換身分需管理者密碼（照顧者不能自行切到別人的介面）
+        // 換身分需管理者密碼（照顧者不能自行切到別人的介面）；👤U4 開放身分，任何人可直接使用
         window.switchUser = function(u){
             if (u === CARE_USER) return;
-            if (!careAskPin(LTXT('切換身分需要管理者密碼：','Ganti pengguna perlu PIN admin:'))) {
+            if (u !== '4' && !careAskPin(LTXT('切換身分需要管理者密碼：','Ganti pengguna perlu PIN admin:'))) {
                 showToast(LTXT('密碼錯誤，無法切換', 'PIN salah'), true); return;
             }
             careSetUser(u); location.reload();
@@ -528,12 +521,9 @@
             }
 
             if (selectedType === '運動') {
-                if (checkedCategory && checkedCategory.value === '站立') {
-                    if (standWarning) standWarning.classList.remove('hidden');
-                    titleZh.innerText = LTXT('次數', 'Frekuensi'); amountUnit.innerText = LTXT('次', 'Kali');
-                } else {
-                    titleZh.innerText = LTXT('組數', 'Jumlah Set'); amountUnit.innerText = LTXT('組', 'Set');
-                }
+                // 四項復健動作一律以「次數」計量
+                if (checkedCategory && checkedCategory.value === '站立' && standWarning) standWarning.classList.remove('hidden');
+                titleZh.innerText = LTXT('次數', 'Frekuensi'); amountUnit.innerText = LTXT('次', 'Kali');
                 amountInput.placeholder = LTXT('獨自完成數量', 'Jumlah item yang diselesaikan secara mandiri'); amountInput.min = '0';
             } else if (checkedCategory && checkedCategory.value === '排便') {
                 stoolShortcut.classList.remove('hidden');
@@ -564,8 +554,8 @@
 
             const unitEls = document.querySelectorAll('.target-unit');
             let unitText = 'c.c.';
-            if (['排便', '站立'].includes(currentItem)) unitText = LTXT('次', 'Kali');
-            if (['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸'].includes(currentItem)) unitText = LTXT('組', 'Set');
+            if (['排便'].concat(CARE_EX_TYPES).includes(currentItem)) unitText = LTXT('次', 'Kali');
+            if (['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸'].includes(currentItem)) unitText = LTXT('組', 'Set');   // 舊項目相容
             unitEls.forEach(el => el.innerText = unitText);
 
             // 今日目標：優先抓雲端最後一次設定值，其次抓本機記住的前一次數值，不使用固定預設數值
@@ -657,7 +647,7 @@
 
             const bpCount = records.filter(r => r.category && r.category.includes('血壓/心跳')).length;
             const exCount = records.filter(r => r.type === '運動').length;
-            const exTypes = ['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸', '站立'];
+            const exTypes = CARE_EX_TYPES;   // 復健項目中央定義在 care-tasks.js
             const missingEx = exTypes.filter(ex => !records.some(r => r.category === ex));
 
             const stillNote = `<p class="text-xs text-orange-500 mt-1">※ 測量血壓前，請奶奶保持靜止15分鐘，確保讀數準確。<br>Sebelum mengukur tekanan darah, mintalah Nenek untuk diam selama 15 menit untuk memastikan pembacaan yang akurat.</p>`;
@@ -803,8 +793,13 @@
             setTimeout(() => toast.classList.add('opacity-0'), 3500);
         }
 
+        function syncDateDisplay() {
+            const v = document.getElementById('input-date').value;
+            document.getElementById('input-date-display').value = v ? v.replace(/-/g, '/') : '';
+        }
         function fetchCloudData() {
             const targetDate = document.getElementById('input-date').value || setNow();
+            syncDateDisplay();
             const icon = document.getElementById('sync-icon');
             icon.classList.add('animate-spin-slow');
             const syncModal = document.getElementById('sync-modal');
@@ -1013,7 +1008,6 @@
             document.getElementById('input-note').placeholder = LTXT('輸入額外說明內容...', 'Masukkan catatan tambahan...');
             localizePage();
             setNow(); updateView(); fetchCloudData();
-            document.getElementById('view-sheet-btn').href = SPREADSHEET_URL;
         };
 
         function checkBowelMovementAlert() {

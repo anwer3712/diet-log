@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>每日時段報表 / Laporan Harian</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=5"></script>
+    <script src="care-tasks.js?v=6"></script>
     <style>
         body { background: linear-gradient(180deg, #fff1f2 0%, #ffffff 45%, #eff6ff 100%); }
         .animate-spin-slow { animation: spin 3s linear infinite; }
@@ -57,6 +57,7 @@ const L = (zh,id) => LANG==='id' ? id : (LANG==='both' ? zh+' / '+id : zh);
 const CAT_SHORT = {
     '飲水量':['飲水','Minum'], '服藥飲水':['服藥','Obat'], '營養飲品':['營養','Susu'], '進食':['進食','Makan'],
     '尿液':['尿液','Urine'], '排便':['排便','BAB'],
+    '仰臥抬腿':['仰臥抬腿','Angkat Kaki'], '大腿內收':['大腿內收','Adduksi Paha'], '橋式抬臀':['橋式抬臀','Angkat Pinggul'],
     '雙手舉水瓶':['舉水瓶','Angkat Botol'], '腳底板抬壓':['抬腳壓','Tekan Kaki'], '膝蓋彎伸':['膝彎伸','Tekuk Lutut'], '站立':['站立','Berdiri']
 };
 function catShort(cat){
@@ -65,7 +66,7 @@ function catShort(cat){
     return cat;
 }
 function unitOf(cat){
-    if (['排便','站立'].includes(cat)) return L('次','x');
+    if (['排便'].concat(CARE_EX_TYPES).includes(cat)) return L('次','x');
     if (['雙手舉水瓶','腳底板抬壓','膝蓋彎伸'].includes(cat)) return L('組','set');
     if (cat && cat.indexOf('血壓') === 0) return '';
     return 'cc';

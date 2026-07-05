@@ -16,8 +16,9 @@ const CARE_SLOTS = [
     { key:'late',    start:'22:00', end:'24:00', zh:'深夜', id:'Larut' }
 ];
 
-const CARE_EX_TYPES = ['雙手舉水瓶','腳底板抬壓','膝蓋彎伸','站立'];
-const CARE_EX_SHORT = { '雙手舉水瓶':['舉瓶','Botol'], '腳底板抬壓':['抬壓','Kaki'], '膝蓋彎伸':['膝彎','Lutut'], '站立':['站立','Berdiri'] };
+/* 2026-07-05 復健項目換新（舊資料保留顯示：雙手舉水瓶/腳底板抬壓/膝蓋彎伸 仍認得，只是不再列入任務） */
+const CARE_EX_TYPES = ['仰臥抬腿','大腿內收','橋式抬臀','站立'];
+const CARE_EX_SHORT = { '仰臥抬腿':['抬腿','Angkat'], '大腿內收':['內收','Adduksi'], '橋式抬臀':['橋式','Pinggul'], '站立':['站立','Berdiri'] };
 const careIsBP = r => r.category && r.category.includes('血壓/心跳');
 
 /* 應完成任務：
@@ -118,12 +119,12 @@ function careRenderGrid(el, tasks, lang){
     </div>`;
 }
 
-/* ===== 使用者身分：'1'/'2'/'3'/'A'(管理者)。換身分需管理者密碼 ===== */
+/* ===== 使用者身分：'1'/'2'/'3'/'4'(開放，免密碼)/'A'(管理者)。換到 1/2/3/A 需管理者密碼 ===== */
 function careGetUser(){
     const p = new URLSearchParams(location.search).get('user');
-    if (p && ['1','2','3'].includes(p)) { localStorage.setItem('care_user', p); return p; }
+    if (p && ['1','2','3','4'].includes(p)) { localStorage.setItem('care_user', p); return p; }
     const s = localStorage.getItem('care_user');
-    return ['1','2','3','A'].includes(s) ? s : '1';
+    return ['1','2','3','4','A'].includes(s) ? s : '4';
 }
 function careSetUser(u){ localStorage.setItem('care_user', String(u)); }
 function careAskPin(msg){
@@ -167,7 +168,7 @@ function careJoinLink(u){
 function careApplyJoin(){
     const j = new URLSearchParams(location.search).get('join');
     if (!j) return null;
-    const m = /^([123])\.([a-z0-9]+)$/.exec(j);
+    const m = /^([1234])\.([a-z0-9]+)$/.exec(j);
     if (m && m[2] === careSig(m[1])) {
         localStorage.setItem('care_user', m[1]);
         history.replaceState(null, '', location.pathname);
@@ -176,12 +177,12 @@ function careApplyJoin(){
     return null;
 }
 
-/* 記錄者標記 👤U1/U2/U3/UA */
+/* 記錄者標記 👤U1/U2/U3/U4/UA */
 function careUserOfNote(note){
-    const m = /👤U([123A])/.exec(note || '');
+    const m = /👤U([1234A])/.exec(note || '');
     return m ? m[1] : null;
 }
-function careStripUserTag(note){ return (note || '').replace(/\s*👤U[123A]/g, '').trim(); }
+function careStripUserTag(note){ return (note || '').replace(/\s*👤U[1234A]/g, '').trim(); }
 
 /* 備註單語化：把「中文 / 外文」對與已知標籤依語言取單側 */
 function careNoteDisplay(note, lang){
