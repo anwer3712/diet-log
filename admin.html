@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理者總表 — 奶奶照護日誌</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js"></script>
+    <script src="care-tasks.js?v=5"></script>
     <style>
         body { background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 45%, #fff1f2 100%); }
         .animate-spin-slow { animation: spin 3s linear infinite; }
@@ -128,7 +128,7 @@ function gmailJoin(u){
 
 function renderFilter(counts){
     const nm = u => careUserName(cachedGoals, u);
-    const defs = [['1','👤'+nm('1')],['2','👤'+nm('2')],['3','👤'+nm('3')],['all','👤ALL'],['none','未標記']];
+    const defs = [['1','👤'+nm('1')],['2','👤'+nm('2')],['3','👤'+nm('3')],['all','👤ALL']];
     document.getElementById('user-filter').innerHTML = defs.map(([k,lbl]) => {
         const c = counts ? (counts[k] || 0) : 0;
         return `<button type="button" onclick="setFilter('${k}')" class="px-3 py-1.5 rounded-full text-[11px] font-black border ${FILTER===k?'bg-sky-500 text-white border-sky-500':'bg-white text-gray-500 border-gray-200'}">${lbl}${counts?` <span class="opacity-70">${c}</span>`:''}</button>`;
@@ -169,10 +169,10 @@ function render(){
     records.forEach(r => { const u = careUserOfNote(r.note); counts[u || 'none']++; });
     renderFilter(counts);
 
+    // 👤ALL＝全表（含舊的未標記紀錄）；U1/U2/U3＝各自的紀錄
     const show = records.filter(r => {
         const u = careUserOfNote(r.note);
         if (FILTER === 'all') return true;
-        if (FILTER === 'none') return !u;
         return u === FILTER;
     });
 

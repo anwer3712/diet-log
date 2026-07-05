@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>奶奶照護日誌 / Catatan Perawatan Nenek</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js"></script>
+    <script src="care-tasks.js?v=5"></script>
     <style>
         /* 語言模式：mode-zh 只顯示繁中、mode-id 只顯示印尼文 */
         body.mode-zh .lang-id, body.mode-zh .lang-sep, body.mode-zh br.lang-br { display: none; }
@@ -36,26 +36,21 @@
             <p class="text-[11px] text-gray-400 font-bold mt-0.5">Buku Harian Perawatan Nenek</p>
         </div>
 
+        <!-- 今日完成進度格：時段 / 項目 / 方格（最上方，一眼看完今天還缺什麼） -->
+        <div class="bg-white rounded-3xl p-3 shadow-sm border-2 border-rose-100 mb-3 overflow-x-auto">
+            <h3 class="text-center text-[12px] font-black text-rose-400 mb-1.5">🌟 <span class="lang-zh">今日進度</span><span class="lang-id">Progres Hari Ini</span></h3>
+            <div id="progress-grid" class="text-center text-[10px] text-gray-300 font-bold">⏳</div>
+        </div>
+
         <!-- 使用者 / 語言切換 -->
         <div class="flex items-center justify-between mb-3">
             <div id="user-switch" class="flex gap-1"></div>
             <div id="lang-switch" class="flex gap-1"></div>
         </div>
 
-        <!-- 今日完成進度格：時段 / 項目 / 方格 -->
-        <div class="bg-white rounded-3xl p-3 shadow-sm border-2 border-rose-100 mb-4 overflow-x-auto">
-            <div id="progress-grid" class="text-center text-[10px] text-gray-300 font-bold">⏳</div>
-        </div>
-
         <div class="bg-red-600 text-white rounded-2xl px-4 py-3 mb-4 shadow-lg flex items-start gap-2 border-2 border-red-700">
             <span class="text-xl leading-none">🚨</span>
             <p class="text-xs font-black leading-snug">床圍欄放下時，照顧者不得離開病患 1 公尺。<br><span class="text-[11px] font-bold text-red-100">Saat pagar tempat tidur diturunkan, perawat tidak boleh meninggalkan pasien lebih dari 1 meter.</span></p>
-        </div>
-
-        <div id="view-sheet-wrap" class="mb-4 hidden">
-            <a id="view-sheet-btn" href="#" target="_blank" class="w-full bg-rose-400 text-white text-center py-3.5 px-4 rounded-3xl font-bold shadow-md flex items-center justify-center gap-2 transition-all hover:bg-rose-500 active:scale-[0.98]">
-                <span>📊 審視每日總合月總表 / Tinjau Ringkasan</span>
-            </a>
         </div>
 
         <div id="target-dashboard" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-rose-100 mb-4 transition-all">
@@ -239,6 +234,12 @@
             <div id="today-logs-container" class="space-y-2.5">
                 <div class="text-center py-8 text-gray-400 text-xs font-medium bg-white rounded-3xl border border-dashed">正在串聯雲端資料庫... / Menghubungkan ke database cloud...</div>
             </div>
+        </div>
+
+        <div id="view-sheet-wrap" class="mt-5 hidden">
+            <a id="view-sheet-btn" href="#" target="_blank" class="w-full bg-rose-400 text-white text-center py-3.5 px-4 rounded-3xl font-bold shadow-md flex items-center justify-center gap-2 transition-all hover:bg-rose-500 active:scale-[0.98]">
+                <span>📊 審視每日總合月總表 / Tinjau Ringkasan</span>
+            </a>
         </div>
     </div>
 
@@ -836,6 +837,7 @@
         }
 
         function renderRecords() {
+            updateProgressGrid();   // 放最前：下方「無紀錄」會提前 return
             const container = document.getElementById('today-logs-container');
             const selectedType = document.querySelector('input[name="type"]:checked').value;
             let filterKeyword = "", displayKey = "";
@@ -877,7 +879,6 @@
                     <button type="button" onclick="openConfirmModal('${item.recordId}')" class="ml-3 shrink-0 w-20 min-h-12 py-1.5 flex flex-col items-center justify-center rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 border border-red-100 shadow-sm transition-all active:scale-95"><span class="text-lg leading-none">✖</span><span class="text-[9px] font-black mt-0.5 leading-tight text-center">錯誤<br>Batalkan</span></button>`;
                 container.appendChild(card);
             });
-            updateProgressGrid();
         }
 
         document.getElementById('log-form').addEventListener('submit', function(e) {

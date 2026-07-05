@@ -93,10 +93,10 @@ function careRenderGrid(el, tasks, lang){
     const L = (zh,id) => lang==='id' ? id : zh;
     const slotsWithTasks = CARE_SLOTS.filter(s => tasks.some(t=>t.slot===s.key));
     const sq = {
-        done:    '<div class="w-6 h-6 rounded-md bg-green-500 flex items-center justify-center text-white text-[11px] font-black">✓</div>',
-        late:    `<div class="w-6 h-6 rounded-md bg-amber-400 flex items-center justify-center text-white text-[11px] font-black">${lang==='id'?'+':'補'}</div>`,
-        missed:  '<div class="w-6 h-6 rounded-md bg-red-500 flex items-center justify-center text-white text-[11px] font-black">✕</div>',
-        pending: '<div class="w-6 h-6 rounded-md border-2 border-gray-200 bg-gray-50"></div>'
+        done:    '<div class="w-7 h-7 rounded-lg bg-green-400 shadow-sm flex items-center justify-center text-white text-[12px] font-black">✓</div>',
+        late:    `<div class="w-7 h-7 rounded-lg bg-amber-300 shadow-sm flex items-center justify-center text-amber-800 text-[11px] font-black">${lang==='id'?'+':'補'}</div>`,
+        missed:  '<div class="w-7 h-7 rounded-lg bg-red-400 shadow-sm flex items-center justify-center text-white text-[12px] font-black">✕</div>',
+        pending: '<div class="w-7 h-7 rounded-lg border-2 border-dashed border-gray-200 bg-white"></div>'
     };
     let row1='', row2='', row3='';
     slotsWithTasks.forEach((s,i) => {
@@ -111,10 +111,10 @@ function careRenderGrid(el, tasks, lang){
     });
     el.innerHTML = `<table class="mx-auto border-collapse"><tr>${row1}</tr><tr>${row2}</tr><tr>${row3}</tr></table>
     <div class="flex justify-center gap-3 mt-2 text-[9px] font-bold text-gray-400">
-        <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-green-500"></span>${L('準時','Tepat')}</span>
-        <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-amber-400"></span>${L('補齊','Terlambat')}</span>
-        <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-red-500"></span>${L('未做','Belum')}</span>
-        <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm border border-gray-300 bg-gray-50"></span>${L('未到','Nanti')}</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-green-400"></span>${L('準時','Tepat')}</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-amber-300"></span>${L('補齊','Terlambat')}</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-red-400"></span>${L('未做','Belum')}</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm border border-dashed border-gray-300 bg-white"></span>${L('未到','Nanti')}</span>
     </div>`;
 }
 
