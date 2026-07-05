@@ -140,6 +140,42 @@ function careGetLang(){
 }
 function careSetLang(m){ localStorage.setItem('care_lang', m); }
 
+/* ===== 共用設定 blob：存在後端 last_med property（原樣 JSON 進出，全裝置同步）
+ * 內容：{ diuretic, laxative, names:{1:'',2:'',3:''} }
+ * 注意：寫回時必須先讀最新值合併，不可整包覆蓋（否則會洗掉別的欄位） ===== */
+function careConfig(goals){
+    try { return JSON.parse((goals && goals['last_med']) || '{}'); } catch(e) { return {}; }
+}
+function careUserName(goals, u){
+    const c = careConfig(goals);
+    const n = c.names && c.names[u];
+    return (n && String(n).trim()) ? String(n).trim() : 'U' + u;
+}
+
+/* ===== 授權連結：admin 產生、照顧者點開即綁定該裝置身分（免密碼）
+ * token = 簡易簽章(身分+CARE_PIN)，防亂猜網址；家庭級防護 ===== */
+function careSig(u){
+    let h = 0; const s = 'CARE' + u + CARE_PIN;
+    for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+    return Math.abs(h).toString(36);
+}
+function careJoinLink(u){
+    const base = location.href.split(/[?#]/)[0].replace(/admin\.html$/, 'index.html');
+    return base + '?join=' + u + '.' + careSig(u);
+}
+/* index.html 開頁呼叫：網址帶 ?join=U.sig 就綁定身分並清掉 token */
+function careApplyJoin(){
+    const j = new URLSearchParams(location.search).get('join');
+    if (!j) return null;
+    const m = /^([123])\.([a-z0-9]+)$/.exec(j);
+    if (m && m[2] === careSig(m[1])) {
+        localStorage.setItem('care_user', m[1]);
+        history.replaceState(null, '', location.pathname);
+        return m[1];
+    }
+    return null;
+}
+
 /* 記錄者標記 👤U1/U2/U3/UA */
 function careUserOfNote(note){
     const m = /👤U([123A])/.exec(note || '');

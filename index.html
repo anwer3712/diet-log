@@ -311,6 +311,7 @@
             '血壓/心跳': '血壓與心跳 / Tekanan darah dan detak jantung'
         };
         // ===== 使用者身分與語言模式（care-tasks.js） =====
+        const CARE_JOINED = careApplyJoin();   // ?join=U.sig 授權連結 → 綁定此裝置
         const CARE_USER = careGetUser();
         const LANG_MODE = careGetLang();
         document.body.classList.add('mode-' + LANG_MODE);
@@ -326,7 +327,8 @@
 
         function renderTopBar(){
             const us = document.getElementById('user-switch');
-            us.innerHTML = [['1','👤U1'],['2','👤U2'],['3','👤U3'],['A','⚙️' + LTXT('管理','Admin')]].map(([u,lbl]) =>
+            const nm = u => careUserName(cloudGoals, u);   // 管理者設定的名字，未設定則顯示 U1/U2/U3
+            us.innerHTML = [['1','👤'+nm('1')],['2','👤'+nm('2')],['3','👤'+nm('3')],['A','⚙️' + LTXT('管理','Admin')]].map(([u,lbl]) =>
                 `<button type="button" onclick="switchUser('${u}')" class="px-2.5 py-1.5 rounded-full text-[11px] font-black border ${CARE_USER===u?'bg-rose-400 text-white border-rose-400':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
             ).join('');
             const ls = document.getElementById('lang-switch');
@@ -827,6 +829,7 @@
                     renderRecords();
                     checkReminders();
                     checkBowelMovementAlert();
+                    renderTopBar();   // 名字存雲端，取回後更新身分按鈕
                 })
                 .catch(err => showToast("同步失敗，請檢查網路連線", true))
                 .finally(() => { icon.classList.remove('animate-spin-slow'); if (syncModal) syncModal.classList.add('hidden'); });
@@ -961,8 +964,12 @@
         });
 
         function saveMedState() {
-            const medState = { diuretic: document.getElementById('med-diuretic').checked, laxative: document.getElementById('med-laxative').checked };
-            fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "setMed", val: JSON.stringify(medState) }) });
+            // last_med 是共用設定 blob（含 names 等），必須合併寫回，不可整包覆蓋
+            const cfg = careConfig(cloudGoals);
+            cfg.diuretic = document.getElementById('med-diuretic').checked;
+            cfg.laxative = document.getElementById('med-laxative').checked;
+            cloudGoals['last_med'] = JSON.stringify(cfg);
+            fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "setMed", val: JSON.stringify(cfg) }) });
         }
         document.getElementById('med-diuretic').addEventListener('change', saveMedState);
         document.getElementById('med-laxative').addEventListener('change', saveMedState);
@@ -1001,6 +1008,7 @@
 
         window.onload = function() {
             renderTopBar();
+            if (CARE_JOINED) showToast(LTXT('✅ 此裝置已綁定為 👤U' + CARE_JOINED, '✅ Perangkat ini terdaftar sebagai 👤U' + CARE_JOINED));
             document.getElementById('input-note').placeholder = LTXT('輸入額外說明內容...', 'Masukkan catatan tambahan...');
             localizePage();
             setNow(); updateView(); fetchCloudData();
