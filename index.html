@@ -155,10 +155,10 @@
                         <p>🕒 復健練習 / Latihan rehabilitasi 應於三餐飯前及睡前半小時進行，每日至少四次。若患者因特殊情況無法在規定時間內完成，請另覓時間補做，但勿將四次運動集中於同一時段。</p>
                         <p class="text-[10px] text-teal-600 font-medium">Latihan rehabilitasi sebaiknya dilakukan setengah jam sebelum masing-masing dari tiga waktu makan dan sebelum tidur, setidaknya empat kali sehari. Jika pasien tidak dapat menyelesaikan latihan dalam waktu yang ditentukan karena keadaan khusus, mohon cari waktu lain untuk menggantinya, tetapi jangan menggabungkan keempat latihan tersebut dalam periode yang sama.</p>
                     </div>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="仰臥抬腿" class="mt-1 shrink-0"> <span><span class="lang-zh">仰臥抬腿，左右交替10秒</span><span class="lang-id">Berbaringlah telentang dan angkat kaki Anda, bergantian sisi selama 10 detik.</span></span></label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="大腿內收" class="mt-1 shrink-0"> <span><span class="lang-zh">仰躺大腿內收訓練，左右交替10秒</span><span class="lang-id">Berbaring telentang, lakukan latihan adduksi paha, bergantian sisi selama 10 detik.</span></span></label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="橋式抬臀" class="mt-1 shrink-0"> <span><span class="lang-zh">橋式／仰躺雙腳屈膝抬臀10秒</span><span class="lang-id">Berbaringlah telentang dengan lutut ditekuk dan kaki rata di tempat tidur, lalu angkat pinggul Anda selama sepuluh detik.</span></span></label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="站立" class="mt-1 shrink-0"> <span><span class="lang-zh">站立</span><span class="lang-id">Berdiri</span></span></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="仰臥抬腿" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">仰臥抬腿，左右交替10秒</span><span class="lang-id">Berbaringlah telentang dan angkat kaki Anda, bergantian sisi selama 10 detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('仰臥抬腿')" class="shrink-0 self-center bg-teal-100 text-teal-700 rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="大腿內收" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">仰躺大腿內收訓練，左右交替10秒</span><span class="lang-id">Berbaring telentang, lakukan latihan adduksi paha, bergantian sisi selama 10 detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('大腿內收')" class="shrink-0 self-center bg-teal-100 text-teal-700 rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="橋式抬臀" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">橋式／仰躺雙腳屈膝抬臀10秒</span><span class="lang-id">Berbaringlah telentang dengan lutut ditekuk dan kaki rata di tempat tidur, lalu angkat pinggul Anda selama sepuluh detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('橋式抬臀')" class="shrink-0 self-center bg-teal-100 text-teal-700 rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="站立" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">站立</span><span class="lang-id">Berdiri</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('站立')" class="shrink-0 self-center bg-teal-100 text-teal-700 rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
 
                     <div id="stand-warning" class="bg-red-50 border border-red-200 rounded-2xl p-3 text-red-800 font-bold text-[11px] space-y-1.5 hidden mt-1">
                         <p class="text-sm border-b border-red-200 pb-1 font-black">⚠️ 站立式安全指南 / Pedoman Keselamatan Berdiri</p>
@@ -180,7 +180,7 @@
             </div>
 
             <div id="standard-amount-group" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-sky-100 space-y-3">
-                <div>
+                <div id="amount-field">
                     <label id="amount-title-zh" class="block text-xs font-bold text-gray-400 mb-1">容量 / Kapasitas</label>
                     <div class="relative rounded-2xl shadow-sm">
                         <input id="input-amount" type="number" required class="w-full bg-gray-50 border-0 rounded-2xl py-3 pl-4 pr-16 text-base font-black text-gray-700" placeholder="例如: 250">
@@ -520,15 +520,19 @@
                 }
             }
 
+            const amountField = document.getElementById('amount-field');
+            if (amountField) amountField.classList.remove('hidden');
+
             if (selectedType === '運動') {
                 // 四項復健動作一律以「次數」計量
                 if (checkedCategory && checkedCategory.value === '站立' && standWarning) standWarning.classList.remove('hidden');
                 titleZh.innerText = LTXT('次數', 'Frekuensi'); amountUnit.innerText = LTXT('次', 'Kali');
                 amountInput.placeholder = LTXT('獨自完成數量', 'Jumlah item yang diselesaikan secara mandiri'); amountInput.min = '0';
             } else if (checkedCategory && checkedCategory.value === '排便') {
+                // 排便每次固定計 1 次，隱藏單次次數輸入；當日累計由記錄筆數自動加總
                 stoolShortcut.classList.remove('hidden');
-                titleZh.innerText = LTXT('次數', ''); amountUnit.innerText = LTXT('次', 'Kali');
-                amountInput.placeholder = ''; amountInput.min = '0';
+                if (amountField) amountField.classList.add('hidden');
+                amountInput.required = false; amountInput.value = '1'; amountInput.min = '0';
             } else if (checkedCategory && checkedCategory.value === '尿液') {
                 if (urineColorShortcut) urineColorShortcut.classList.remove('hidden');
                 titleZh.innerText = LTXT('容量', 'Kapasitas'); amountUnit.innerText = 'c.c.';
@@ -892,9 +896,13 @@
                 amount = `${sys}/${dia} (心跳:${hr})`;
             } else {
                 category = document.querySelector('input[name="category"]:checked').value;
-                amount = parseInt(document.getElementById('input-amount').value, 10);
-                if (isNaN(amount) || amount < 0) return showToast("請輸入正確的數值！", true);
-                if (amount === 0 && category !== '排便' && type !== '運動') return showToast("此項目的容量不能為 0！", true);
+                if (category === '排便') {
+                    amount = 1;   // 排便每次固定計 1 次；當日累計由記錄筆數自動加總
+                } else {
+                    amount = parseInt(document.getElementById('input-amount').value, 10);
+                    if (isNaN(amount) || amount < 0) return showToast("請輸入正確的數值！", true);
+                    if (amount === 0 && type !== '運動') return showToast("此項目的容量不能為 0！", true);
+                }
             }
 
             let noteValue = document.getElementById('input-note').value.trim();
@@ -1029,7 +1037,103 @@
                 localStorage.removeItem('lastBowelAlertTime');
             }
         }
+        // ===== 復健動作範例彈窗 / Popup contoh latihan rehabilitasi =====
+        const REHAB_GUIDE = {
+            '仰臥抬腿': {
+                title: '仰臥抬腿 / Angkat Kaki Telentang',
+                images: ['rehab-img/legraise-1.jpg', 'rehab-img/legraise-2.jpg'],
+                steps: [
+                    ['平躺準備：病患平躺床上，雙腿伸直。', 'Persiapan: Pasien berbaring telentang di tempat tidur dengan kedua kaki lurus.'],
+                    ['單腳抬起：彎曲單一膝蓋向上抬，使小腿與床面平行。', 'Angkat satu kaki: Tekuk satu lutut dan angkat ke atas hingga bagian bawah kaki sejajar dengan permukaan tempat tidur.'],
+                    ['注意：若病肢無力，照顧者輕托「腳踝」與「膝窩」稍微輔助，避免拉傷。', 'Catatan: Jika anggota tubuh yang terkena lemah, pengasuh harus dengan lembut menopang pergelangan kaki dan bagian belakang lutut untuk memberikan sedikit bantuan dan menghindari ketegangan.'],
+                    ['計時十秒：維持姿勢，照顧者倒數 10 秒。', 'Hitungan mundur 10 detik: Pertahankan posisi tersebut sementara pengasuh menghitung mundur selama 10 detik.'],
+                    ['換腳交替：緩慢放下，換另一隻腳重覆相同動作。', 'Bergantian Kaki: Turunkan kaki secara perlahan dan ulangi gerakan yang sama dengan kaki lainnya.'],
+                    ['建議訓練量：左右各做完 1 次為 1 回，每次進行 10～15 回。', 'Volume latihan yang disarankan: Selesaikan 1 repetisi pada setiap sisi sebagai 1 set, dan lakukan 10-15 set setiap kali.']
+                ]
+            },
+            '大腿內收': {
+                title: '仰臥大腿內收 / Adduksi Paha Telentang',
+                images: ['rehab-img/adduction-1.jpg', 'rehab-img/adduction-2.jpg', 'rehab-img/adduction-3.jpg'],
+                steps: [
+                    ['平躺準備：病患平躺床上，雙腿伸直放鬆。', 'Persiapan: Pasien berbaring telentang di tempat tidur dengan kedua kaki lurus dan rileks.'],
+                    ['單腳屈膝：彎曲單一膝蓋向上立起，使腳掌穩定平貼於床面。', 'Latihan menekuk lutut satu kaki: Tekuk satu lutut dan angkat ke atas, jaga agar telapak kaki tetap rata dan stabil di permukaan tempat tidur.'],
+                    ['膝蓋內夾：令病患主動使用大腿肌群，將屈起的膝蓋往內側夾緊。', 'Remas Lutut ke Dalam: Minta pasien untuk secara aktif menggunakan otot paha mereka untuk meremas lutut yang ditekuk ke dalam.'],
+                    ['注意：若病患大腿乏力，照顧者將一手置於膝蓋外側輕壓協助引導，順勢推向內側，以無痛為原則。', 'Catatan: Jika pasien mengalami kelemahan pada paha, pengasuh harus meletakkan satu tangan di bagian luar lutut dan menekannya perlahan untuk mengarahkannya ke dalam, pastikan tidak terasa sakit.'],
+                    ['計時十秒：維持向內夾緊的姿勢，照顧者倒數 10 秒。', 'Waktu: 10 detik: Pertahankan posisi lutut menekuk ke dalam, dan pengasuh menghitung mundur hingga 10 detik.'],
+                    ['換腳交替：緩慢將腳放下伸直，換另一隻腳重覆相同動作。', 'Bergantian kaki: Turunkan dan luruskan kaki secara perlahan, lalu ulangi gerakan yang sama dengan kaki lainnya.'],
+                    ['建議訓練量：左右各做完 1 次為 1 回，每次進行 10～15 回。', 'Volume latihan yang disarankan: Selesaikan 1 repetisi pada setiap sisi sebagai 1 set, dan lakukan 10-15 set setiap kali.']
+                ]
+            },
+            '橋式抬臀': {
+                title: '仰臥屈膝抬臀（橋式）/ Angkat Pinggul (Jembatan)',
+                images: ['rehab-img/bridge-1.jpg', 'rehab-img/bridge-2.jpg'],
+                steps: [
+                    ['平躺準備：病患平躺在床上，上半身自然放鬆。', 'Persiapan: Pasien berbaring telentang di tempat tidur, dengan tubuh bagian atas rileks.'],
+                    ['雙腳立起：兩腳膝蓋彎曲向上立起，使腳掌穩定平貼於床面。', 'Angkat Kaki: Tekuk kedua lutut dan angkat kedua kaki ke atas, pastikan telapak kaki rata dan stabil di tempat tidur.'],
+                    ['臀部抬起：令病患使用臀部與大腿後側的力量，將臀部往上抬離床面。', 'Angkat pinggul: Instruksikan pasien untuk menggunakan kekuatan pinggul dan bagian belakang paha mereka untuk mengangkat pinggul mereka dari tempat tidur.'],
+                    ['計時十秒：維持抬臀姿勢穩定，照顧者協助倒數 10 秒。', 'Waktu: 10 detik: Pertahankan posisi pinggul terangkat, dan pengasuh membantu dengan hitungan mundur 10 detik.'],
+                    ['緩慢放下：緩慢將臀部放回床面休息，完成動作後重覆練習。', 'Turunkan perlahan: Turunkan bokong perlahan kembali ke tempat tidur untuk beristirahat. Ulangi latihan setelah menyelesaikan gerakan.'],
+                    ['建議訓練量：做完 1 次為 1 回，每次進行 10～15 回。', 'Volume latihan yang disarankan: Satu repetisi dianggap sebagai satu set, dan setiap set terdiri dari 10 hingga 15 repetisi.']
+                ]
+            },
+            '站立': {
+                title: '床沿站立練習 / Latihan Berdiri di Samping Tempat Tidur',
+                images: ['rehab-img/stand-1.jpg', 'rehab-img/stand-2.jpg', 'rehab-img/stand-3.jpg', 'rehab-img/stand-4.jpg', 'rehab-img/stand-5.jpg'],
+                steps: [
+                    ['降床準備：將電動床高度下降至最低，放下一邊床欄，協助病患移動坐至床沿，確保雙腳能平穩踩踏地面。', 'Persiapan menurunkan tempat tidur: Turunkan tempat tidur elektrik ke posisi terendah, turunkan satu sisi rel tempat tidur, dan bantu pasien untuk bergerak dan duduk di tepi tempat tidur, pastikan kedua kaki menapak kuat di lantai.'],
+                    ['注意：移動與站立過程中，務必留意導尿管的擺放位置，避免壓迫、牽拉或高於膀胱水平。', 'Catatan: Selama bergerak dan berdiri, perhatikan dengan saksama penempatan kateter untuk menghindari kompresi, tarikan, atau posisinya yang lebih tinggi dari level kandung kemih.'],
+                    ['膝蓋頂防：照顧者站於病患正前方，以雙膝（或單膝）抵住病患的膝蓋給予支撐防護，防止病患腿部軟弱向前滑跪。', 'Penopang lutut: Pengasuh berdiri tepat di depan pasien dan menggunakan kedua lutut (atau satu lutut) untuk menopang dan melindungi lutut pasien, mencegah pasien tergelincir ke depan karena kelemahan kaki.'],
+                    ['抱頸站起：令病患雙手環抱住照顧者頸部（或抓穩助行器），照顧者順勢穩定引導，讓病患自行發力站起。', 'Berdiri dengan lengan melingkari leher: Minta pasien untuk melingkarkan lengannya di leher pengasuh (atau berpegangan pada alat bantu jalan), dan pengasuh dengan lembut membimbing pasien untuk berdiri sendiri.'],
+                    ['姿勢維持：病患站起後，必須保持抬頭挺胸、眼睛直視前方，照顧者在旁持續戒護。', 'Pemeliharaan postur: Setelah pasien berdiri, ia harus menjaga kepala tetap tegak, dada membusung, dan mata menatap lurus ke depan, sementara pengasuh tetap berada di sisinya untuk memberikan pengawasan terus-menerus.'],
+                    ['坐下休息：維持站立姿勢，直到病患感到體力耗盡或酸累，便可協助其緩慢坐回床沿休息片刻。', 'Duduk untuk beristirahat: Pertahankan postur berdiri sampai pasien merasa lelah, lalu bantu mereka perlahan-lahan duduk kembali di tepi tempat tidur untuk beristirahat sejenak.']
+                ]
+            }
+        };
+
+        function openRehabGuide(key) {
+            const g = REHAB_GUIDE[key];
+            if (!g) return;
+            document.getElementById('rehab-modal-title').textContent = g.title;
+            const imgHtml = g.images.map((src, i) =>
+                `<img src="${src}" alt="${g.title} ${i + 1}" loading="lazy" class="w-full rounded-2xl border border-gray-200 shadow-sm">`
+            ).join('');
+            const stepHtml = g.steps.map((s, i) =>
+                `<div class="flex gap-2.5">
+                    <span class="shrink-0 w-6 h-6 rounded-full bg-teal-500 text-white text-xs font-bold flex items-center justify-center mt-0.5">${i + 1}</span>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-gray-700 leading-snug">${s[0]}</p>
+                        <p class="text-[11px] text-teal-600 font-medium leading-snug mt-0.5">${s[1]}</p>
+                    </div>
+                </div>`
+            ).join('');
+            document.getElementById('rehab-modal-body').innerHTML =
+                `<div class="space-y-2.5 mb-4">${imgHtml}</div><div class="space-y-3">${stepHtml}</div>`;
+            const modal = document.getElementById('rehab-modal');
+            modal.classList.remove('hidden');
+            modal.querySelector('.rehab-modal-scroll').scrollTop = 0;
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRehabGuide() {
+            document.getElementById('rehab-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
     </script>
+
+    <!-- 復健動作範例彈窗 / Modal contoh latihan -->
+    <div id="rehab-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onclick="if(event.target===this)closeRehabGuide()">
+        <div class="absolute inset-0 bg-black/50"></div>
+        <div class="relative bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
+                <h3 id="rehab-modal-title" class="font-black text-gray-800 text-base leading-tight pr-2">動作範例</h3>
+                <button type="button" onclick="closeRehabGuide()" class="shrink-0 w-9 h-9 rounded-full bg-gray-100 text-gray-500 text-xl font-bold flex items-center justify-center active:scale-95">×</button>
+            </div>
+            <div class="rehab-modal-scroll overflow-y-auto px-4 py-4"><div id="rehab-modal-body"></div></div>
+            <div class="px-4 py-3 border-t border-gray-100 shrink-0">
+                <button type="button" onclick="closeRehabGuide()" class="w-full bg-teal-500 text-white rounded-2xl py-2.5 font-bold text-sm active:scale-95 transition-all">關閉 / Tutup</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 
