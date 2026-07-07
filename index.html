@@ -7,24 +7,28 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="care-tasks.js?v=6"></script>
     <style>
-        /* 語言模式：mode-zh 只顯示繁中、mode-id 只顯示印尼文 */
         body.mode-zh .lang-id, body.mode-zh .lang-sep, body.mode-zh br.lang-br { display: none; }
         body.mode-id .lang-zh, body.mode-id .lang-sep, body.mode-id br.lang-br { display: none; }
-        /* 今日目標鉛筆：只有管理者身分能修改 */
         body.role-user #target-edit-btn { display: none !important; }
-        @keyframes pulse-gold {
-            0%, 100% { transform: scale(1); border-color: #f59e0b; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
-            50% { transform: scale(1.02); border-color: #fbbf24; box-shadow: 0 0 15px 5px rgba(245, 158, 11, 0.4); }
+        @keyframes pulse-coral {
+            0%, 100% { transform: scale(1); border-color: #FB8B7A; box-shadow: 0 0 0 0 rgba(251,139,122,0.5); }
+            50% { transform: scale(1.01); border-color: #F4726B; box-shadow: 0 0 10px 3px rgba(251,139,122,0.25); }
         }
-        .celebrate-active { animation: pulse-gold 2s infinite ease-in-out; background: linear-gradient(to bottom right, #fffdf5, #fffbeb); }
+        .celebrate-active { animation: pulse-coral 2s infinite ease-in-out; background: #FFF5F3; }
         @keyframes pulse-red {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
-            50% { box-shadow: 0 0 14px 4px rgba(239, 68, 68, 0.35); }
+            0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35); }
+            50% { box-shadow: 0 0 12px 3px rgba(220, 38, 38, 0.3); }
         }
-        .danger-active { animation: pulse-red 1.6s infinite ease-in-out; border-color: #ef4444 !important; }
+        .danger-active { animation: pulse-red 1.6s infinite ease-in-out; border-color: #dc2626 !important; }
+        @keyframes border-guide {
+            0% { border-color: #F59E0B; box-shadow: 0 0 0 1px rgba(245,158,11,0.4); }
+            50% { border-color: #FCD34D; box-shadow: 0 0 0 3px rgba(245,158,11,0.6); }
+            100% { border-color: #F59E0B; box-shadow: 0 0 0 1px rgba(245,158,11,0.4); }
+        }
+        .guided-border { animation: border-guide 1s infinite ease-in-out; border-width: 2px !important; }
         .animate-spin-slow { animation: spin 3s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        body { background: linear-gradient(180deg, #fff1f2 0%, #ffffff 45%, #eff6ff 100%); }
+        body { background: #FFF8F6; font-size: 15px; }
     </style>
 </head>
 <body class="text-gray-800 min-h-screen pb-12 font-sans selection:bg-rose-100">
@@ -32,13 +36,13 @@
     <div class="max-w-md mx-auto px-4 pt-5">
 
         <div class="text-center mb-4">
-            <a href="admin.html"><h1 class="text-xl font-black text-rose-400 tracking-wide flex items-center justify-center gap-1.5">👵💗 奶奶照護日誌</h1></a>
+            <a href="admin.html"><h1 class="text-xl font-black text-[#FB8B7A] tracking-wide flex items-center justify-center gap-1.5">👵💗 奶奶照護日誌</h1></a>
             <p class="text-[11px] text-gray-400 font-bold mt-0.5">Buku Harian Perawatan Nenek</p>
         </div>
 
         <!-- 今日完成進度格：時段 / 項目 / 方格（最上方，一眼看完今天還缺什麼） -->
-        <div class="bg-white rounded-3xl p-3 shadow-sm border-2 border-rose-100 mb-3 overflow-x-auto">
-            <h3 class="text-center text-[12px] font-black text-rose-400 mb-1.5">🌟 <span class="lang-zh">今日進度</span><span class="lang-id">Progres Hari Ini</span></h3>
+        <div class="bg-white rounded-3xl p-3 shadow-sm border-2 border-stone-100 mb-3 overflow-x-auto">
+            <h3 class="text-center text-[12px] font-black text-[#FB8B7A] mb-1.5">🌟 <span class="lang-zh">今日進度</span><span class="lang-id">Progres Hari Ini</span></h3>
             <div id="progress-grid" class="text-center text-[10px] text-gray-300 font-bold">⏳</div>
         </div>
 
@@ -53,19 +57,19 @@
             <p class="text-xs font-black leading-snug">床圍欄放下時，照顧者不得離開病患 1 公尺。<br><span class="text-[11px] font-bold text-red-100">Saat pagar tempat tidur diturunkan, perawat tidak boleh meninggalkan pasien lebih dari 1 meter.</span></p>
         </div>
 
-        <div id="target-dashboard" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-rose-100 mb-4 transition-all">
+        <div id="target-dashboard" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-stone-100 mb-4 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <h3 id="dashboard-title" class="font-bold text-gray-700 flex items-center gap-1.5 text-base">🎯 今日目標追蹤</h3>
-                <span id="progress-percent" class="text-xs font-black bg-rose-50 text-rose-500 px-2.5 py-0.5 rounded-full">0%</span>
+                <span id="progress-percent" class="text-xs font-black bg-stone-50 text-[#F4726B] px-2.5 py-0.5 rounded-full">0%</span>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 bg-rose-50/50 rounded-2xl p-3 mb-3 text-center">
+            <div class="grid grid-cols-2 gap-3 bg-stone-50 rounded-2xl p-3 mb-3 text-center">
                 <div>
                     <p class="text-[11px] text-gray-400 font-medium">今日目標 / Gol hari ini</p>
                     <div class="flex items-center justify-center gap-1 mt-0.5">
-                        <input id="input-target-val" type="number" readonly class="w-16 text-center font-bold text-lg bg-transparent border-b border-transparent focus:border-rose-400 focus:outline-none p-0 text-gray-700" value="" min="0">
+                        <input id="input-target-val" type="number" readonly class="w-16 text-center font-bold text-lg bg-transparent border-b border-transparent focus:border-[#FB8B7A] focus:outline-none p-0 text-gray-700" value="" min="0">
                         <span class="target-unit text-xs font-bold text-gray-500">c.c.</span>
-                        <button type="button" id="target-edit-btn" onclick="toggleTargetEdit()" class="ml-0.5 text-gray-300 hover:text-rose-400 text-sm active:scale-90 transition-all" title="修改目標 / Ubah target">✏️</button>
+                        <button type="button" id="target-edit-btn" onclick="toggleTargetEdit()" class="ml-0.5 text-gray-300 hover:text-[#FB8B7A] text-sm active:scale-90 transition-all" title="修改目標 / Ubah target">✏️</button>
                     </div>
                 </div>
                 <div>
@@ -75,7 +79,7 @@
             </div>
 
             <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden mb-2">
-                <div id="progress-bar" class="bg-rose-400 h-full w-0 transition-all duration-500 rounded-full"></div>
+                <div id="progress-bar" class="bg-[#FB8B7A] h-full w-0 transition-all duration-500 rounded-full"></div>
             </div>
 
             <div id="fluid-warning" class="hidden bg-red-100 text-red-700 p-2.5 rounded-2xl text-xs font-black mt-2 mb-2 animate-pulse text-center border border-red-200">
@@ -88,8 +92,8 @@
             <div id="med-section" class="mt-3 pt-3 border-t border-gray-100 hidden">
                 <label class="block text-[11px] font-bold text-gray-500 mb-2">💊 服用藥物 / Mengonsumsi obat：</label>
                 <div class="flex gap-4">
-                    <label class="flex items-center gap-1.5 text-xs font-bold text-gray-600"><input type="checkbox" id="med-diuretic" class="w-4 h-4 text-rose-500 rounded"> 利尿藥物 / Diuretik</label>
-                    <label class="flex items-center gap-1.5 text-xs font-bold text-gray-600"><input type="checkbox" id="med-laxative" class="w-4 h-4 text-rose-500 rounded"> 利便藥物 / Obat pencahar</label>
+                    <label class="flex items-center gap-1.5 text-xs font-bold text-gray-600"><input type="checkbox" id="med-diuretic" class="w-4 h-4 text-[#F4726B] rounded"> 利尿藥物 / Diuretik</label>
+                    <label class="flex items-center gap-1.5 text-xs font-bold text-gray-600"><input type="checkbox" id="med-laxative" class="w-4 h-4 text-[#F4726B] rounded"> 利便藥物 / Obat pencahar</label>
                 </div>
             </div>
         </div>
@@ -105,8 +109,8 @@
                 <p class="text-[11px] text-red-500 font-medium pl-3">3. Untuk pasien hipertensi, tekanan darah sistolik/diastolik &lt; 130/80 mmHg.</p>
             </div>
 
-            <div class="bg-white rounded-3xl p-2.5 shadow-sm border-2 border-sky-100 grid grid-cols-4 gap-1">
-                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-sky-50 text-sky-600 font-black transition-all"><input type="radio" name="type" value="攝入" class="sr-only" checked onchange="updateView()"><span class="text-lg">📥</span><span class="text-[10px] mt-0.5">攝入/Asupan</span></label>
+            <div class="bg-white rounded-3xl p-2.5 shadow-sm border-2 border-stone-100 grid grid-cols-4 gap-1">
+                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-stone-50 text-stone-600 font-black transition-all"><input type="radio" name="type" value="攝入" class="sr-only" checked onchange="updateView()"><span class="text-lg">📥</span><span class="text-[10px] mt-0.5">攝入/Asupan</span></label>
                 <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="排出" class="sr-only" onchange="updateView()"><span class="text-lg">📤</span><span class="text-[10px] mt-0.5">排出/ekskresi</span></label>
                 <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="運動" class="sr-only" onchange="updateView()"><span class="text-lg">💪</span><span class="text-[10px] mt-0.5 leading-tight">復健練習/Latihan rehabilitasi</span></label>
                 <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="血壓" class="sr-only" onchange="updateView()"><span class="text-lg">🩸</span><span class="text-[10px] mt-0.5 leading-tight">血壓/Mengukur tekanan darah</span></label>
@@ -117,7 +121,7 @@
                 <p class="text-[11px] text-amber-600 font-medium">Kateter ditutup pada siang hari untuk melatih kandung kemih agar merasakan urine, dan dibuka pada malam hari untuk mencegah kandung kemih kelebihan beban.</p>
             </div>
 
-            <div class="bg-white rounded-3xl p-4 shadow-sm border-2 border-sky-100 grid grid-cols-2 gap-3">
+            <div class="bg-white rounded-3xl p-4 shadow-sm border-2 border-stone-100 grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-bold text-gray-400 mb-1">日期 / Tanggal</label>
                     <div class="relative">
@@ -135,7 +139,7 @@
                 </div>
             </div>
 
-            <div id="items-category-card" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-sky-100">
+            <div id="items-category-card" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-stone-100">
                 <label class="block text-xs font-bold text-gray-400 mb-2">選擇項目 / Pilih Item</label>
 
                 <div id="intake-group" class="grid grid-cols-2 gap-2">
@@ -151,14 +155,14 @@
                 </div>
 
                 <div id="exercise-group" class="grid grid-cols-1 gap-2 hidden">
-                    <div class="bg-teal-50 border border-teal-200 rounded-2xl p-3 text-teal-800 font-bold text-[11px] space-y-1">
+                    <div class="bg-stone-50 border border-stone-200 rounded-2xl p-3 text-gray-700 font-bold text-[11px] space-y-1">
                         <p>🕒 復健練習 / Latihan rehabilitasi 應於三餐飯前及睡前半小時進行，每日至少四次。若患者因特殊情況無法在規定時間內完成，請另覓時間補做，但勿將四次運動集中於同一時段。</p>
-                        <p class="text-[10px] text-teal-600 font-medium">Latihan rehabilitasi sebaiknya dilakukan setengah jam sebelum masing-masing dari tiga waktu makan dan sebelum tidur, setidaknya empat kali sehari. Jika pasien tidak dapat menyelesaikan latihan dalam waktu yang ditentukan karena keadaan khusus, mohon cari waktu lain untuk menggantinya, tetapi jangan menggabungkan keempat latihan tersebut dalam periode yang sama.</p>
+                        <p class="text-[10px] text-gray-500 font-medium">Latihan rehabilitasi sebaiknya dilakukan setengah jam sebelum masing-masing dari tiga waktu makan dan sebelum tidur, setidaknya empat kali sehari. Jika pasien tidak dapat menyelesaikan latihan dalam waktu yang ditentukan karena keadaan khusus, mohon cari waktu lain untuk menggantinya, tetapi jangan menggabungkan keempat latihan tersebut dalam periode yang sama.</p>
                     </div>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="仰臥抬腿" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">仰臥抬腿，左右交替10秒</span><span class="lang-id">Berbaringlah telentang dan angkat kaki Anda, bergantian sisi selama 10 detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('仰臥抬腿')" class="shrink-0 self-center bg-teal-100 text-teal-700 rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="大腿內收" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">仰躺大腿內收訓練，左右交替10秒</span><span class="lang-id">Berbaring telentang, lakukan latihan adduksi paha, bergantian sisi selama 10 detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('大腿內收')" class="shrink-0 self-center bg-teal-100 text-teal-700 rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="橋式抬臀" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">橋式／仰躺雙腳屈膝抬臀10秒</span><span class="lang-id">Berbaringlah telentang dengan lutut ditekuk dan kaki rata di tempat tidur, lalu angkat pinggul Anda selama sepuluh detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('橋式抬臀')" class="shrink-0 self-center bg-teal-100 text-teal-700 rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="站立" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">站立</span><span class="lang-id">Berdiri</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('站立')" class="shrink-0 self-center bg-teal-100 text-teal-700 rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="仰臥抬腿" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">仰臥抬腿，左右交替10秒</span><span class="lang-id">Berbaringlah telentang dan angkat kaki Anda, bergantian sisi selama 10 detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('仰臥抬腿')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="大腿內收" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">仰躺大腿內收訓練，左右交替10秒</span><span class="lang-id">Berbaring telentang, lakukan latihan adduksi paha, bergantian sisi selama 10 detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('大腿內收')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="橋式抬臀" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">橋式／仰躺雙腳屈膝抬臀10秒</span><span class="lang-id">Berbaringlah telentang dengan lutut ditekuk dan kaki rata di tempat tidur, lalu angkat pinggul Anda selama sepuluh detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('橋式抬臀')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="站立" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">站立</span><span class="lang-id">Berdiri</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('站立')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
 
                     <div id="stand-warning" class="bg-red-50 border border-red-200 rounded-2xl p-3 text-red-800 font-bold text-[11px] space-y-1.5 hidden mt-1">
                         <p class="text-sm border-b border-red-200 pb-1 font-black">⚠️ 站立式安全指南 / Pedoman Keselamatan Berdiri</p>
@@ -179,7 +183,7 @@
                 </div>
             </div>
 
-            <div id="standard-amount-group" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-sky-100 space-y-3">
+            <div id="standard-amount-group" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-stone-100 space-y-3">
                 <div id="amount-field">
                     <label id="amount-title-zh" class="block text-xs font-bold text-gray-400 mb-1">容量 / Kapasitas</label>
                     <div class="relative rounded-2xl shadow-sm">
@@ -195,7 +199,7 @@
                         <button type="button" onclick="setStoolStatus('大便乾硬 / Kering dan keras')" class="bg-red-50 border border-red-100 text-red-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all leading-tight">乾硬 / Kering dan keras</button>
                         <button type="button" onclick="setStoolStatus('正常 / Normal')" class="bg-green-50 border border-green-100 text-green-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all leading-tight">正常 / Normal</button>
                     </div>
-                    <label class="flex items-center gap-2 text-xs font-bold text-purple-700 pt-1 cursor-pointer"><input type="checkbox" id="enema-check" class="w-4 h-4 text-purple-500 rounded" onchange="toggleEnemaWarning()"> 💉 <span class="lang-zh">使用浣腸</span><span class="lang-id">Memakai Supositoria gliserin</span> <span class="text-[10px] text-gray-400 font-medium"><span class="lang-zh">(選填)</span><span class="lang-id">(Opsional)</span></span></label>
+                    <label class="flex items-center gap-2 text-xs font-bold text-gray-700 pt-1 cursor-pointer"><input type="checkbox" id="enema-check" class="w-4 h-4 text-gray-500 rounded" onchange="toggleEnemaWarning()"> 💉 <span class="lang-zh">使用浣腸</span><span class="lang-id">Memakai Supositoria gliserin</span> <span class="text-[10px] text-gray-400 font-medium"><span class="lang-zh">(選填)</span><span class="lang-id">(Opsional)</span></span></label>
                     <div id="enema-warning" class="hidden bg-red-50 border border-red-200 rounded-2xl p-2.5 text-red-700 font-bold text-[11px] space-y-1.5">
                         <p>🚫 未排便達三日以上，才允許使用浣腸 / Supositoria gliserin。<br><span class="text-[10px] text-red-500 font-medium">Enema / supositoria gliserin hanya diperbolehkan jika tidak terjadi buang air besar pada hari ketiga.</span></p>
                         <p>💧 使用浣腸 / Supositoria gliserin 後須注意病患飲水，避免脫水。<br><span class="text-[10px] text-red-500 font-medium">Perhatian khusus harus diberikan pada kondisi pasien setelah menggunakan enema / Supositoria gliserin untuk mencegah dehidrasi.</span></p>
@@ -205,19 +209,19 @@
                 <div id="urine-color-shortcut" class="hidden space-y-1.5">
                     <label class="block text-[11px] font-bold text-gray-400">💧 <span class="lang-zh">尿液顏色 (必選):</span><span class="lang-id">warna urin (Wajib):</span></label>
                     <div class="grid grid-cols-3 gap-1.5">
-                        <button type="button" onclick="setUrineColor('淡紅色 / Merah Muda')" class="bg-rose-50 text-rose-600 rounded-2xl py-2 text-xs font-bold leading-tight">淡紅色 / Merah Muda</button>
+                        <button type="button" onclick="setUrineColor('淡紅色 / Merah Muda')" class="bg-stone-50 text-rose-600 rounded-2xl py-2 text-xs font-bold leading-tight">淡紅色 / Merah Muda</button>
                         <button type="button" onclick="setUrineColor('深黃色 / Kuning Tua')" class="bg-yellow-100 text-yellow-700 rounded-2xl py-2 text-xs font-bold leading-tight">深黃 / Kuning Tua</button>
                         <button type="button" onclick="setUrineColor('正常淺黃 / Kuning Muda')" class="bg-yellow-50 text-yellow-600 rounded-2xl py-2 text-xs font-bold leading-tight">淺黃 / Kuning Muda</button>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">備註 / Catatan <span id="note-required-hint" class="text-rose-400">(進食必填 / Wajib untuk Makan)</span></label>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">備註 / Catatan <span id="note-required-hint" class="text-[#FB8B7A]">(進食必填 / Wajib untuk Makan)</span></label>
                     <input id="input-note" type="text" class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-medium text-gray-700">
                 </div>
             </div>
 
-            <button id="submit-btn" type="submit" class="w-full bg-rose-500 text-white text-center py-4 px-4 rounded-3xl font-black shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:bg-gray-400">
+            <button id="submit-btn" type="submit" class="w-full bg-[#F4726B] text-white text-center py-4 px-4 rounded-3xl font-black shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:bg-gray-400">
                 <span>💾 儲存紀錄 / Simpan data ini</span>
             </button>
         </form>
@@ -234,14 +238,14 @@
     </div>
 
     <div id="reminder-modal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-2 border-rose-100 text-center space-y-4">
-            <div class="w-16 h-16 bg-rose-50 text-rose-400 rounded-full flex items-center justify-center mx-auto text-3xl font-bold animate-bounce">🔔</div>
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-2 border-stone-100 text-center space-y-4">
+            <div class="w-16 h-16 bg-stone-50 text-[#FB8B7A] rounded-full flex items-center justify-center mx-auto text-3xl font-bold animate-bounce">🔔</div>
             <div>
                 <h4 class="font-black text-gray-800 text-lg">照護提醒 / Pengingat</h4>
                 <div id="reminder-content" class="mt-4 space-y-3 text-sm font-bold text-gray-600 text-left bg-gray-50 p-4 rounded-2xl border border-gray-100">
                     </div>
             </div>
-            <button type="button" onclick="document.getElementById('reminder-modal').classList.add('hidden')" class="w-full bg-rose-400 hover:bg-rose-500 text-white font-black rounded-2xl py-3 text-sm shadow-md transition-all">我已了解 / Saya Mengerti</button>
+            <button type="button" onclick="document.getElementById('reminder-modal').classList.add('hidden')" class="w-full bg-[#FB8B7A] hover:bg-[#F4726B] text-white font-black rounded-2xl py-3 text-sm shadow-md transition-all">我已了解 / Saya Mengerti</button>
         </div>
     </div>
 
@@ -260,7 +264,7 @@
     </div>
 
     <div id="sync-modal" class="fixed inset-0 bg-black/40 z-[70] flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl px-6 py-5 shadow-2xl border-2 border-sky-100 flex items-center gap-3">
+        <div class="bg-white rounded-3xl px-6 py-5 shadow-2xl border-2 border-stone-100 flex items-center gap-3">
             <span class="text-2xl animate-spin-slow">🔄</span>
             <div class="font-black text-gray-700 text-sm">同步中...<br><span class="text-xs text-gray-400 font-bold">Sinkronisasi...</span></div>
         </div>
@@ -323,7 +327,7 @@
             const us = document.getElementById('user-switch');
             const nm = u => careUserName(cloudGoals, u);   // 管理者設定的名字，未設定則顯示 U1/U2/U3
             us.innerHTML = [['1','👤'+nm('1')],['2','👤'+nm('2')],['3','👤'+nm('3')],['4','👤'+nm('4')],['A','⚙️' + LTXT('管理','Admin')]].map(([u,lbl]) =>
-                `<button type="button" onclick="switchUser('${u}')" class="px-2.5 py-1.5 rounded-full text-[11px] font-black border ${CARE_USER===u?'bg-rose-400 text-white border-rose-400':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
+                `<button type="button" onclick="switchUser('${u}')" class="px-2.5 py-1.5 rounded-full text-[11px] font-black border ${CARE_USER===u?'bg-[#FB8B7A] text-white border-[#FB8B7A]':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
             ).join('');
             const ls = document.getElementById('lang-switch');
             ls.innerHTML = [['zh','中文'],['id','ID']].map(([m,lbl]) =>
@@ -474,10 +478,31 @@
                 targetDashboard.classList.add('hidden');
                 if (viewSheetWrap) viewSheetWrap.classList.remove('hidden');
             }
-            checkSubCategory(); checkBpTime();
+            guideCategoryCard(); checkSubCategory(); checkBpTime();
         }
 
-        function checkBpTime() {
+        
+        // === 引導高亮：黃色動態邊框引導操作 ===
+        function clearAllGuides(){
+            document.querySelectorAll('.guided-border').forEach(el => el.classList.remove('guided-border'));
+        }
+        function guideTypeTabs(){
+            clearAllGuides();
+            document.querySelectorAll('#type-tabs label').forEach(el => el.classList.add('guided-border'));
+        }
+        function guideCategoryCard(){
+            clearAllGuides();
+            document.getElementById('items-category-card').classList.add('guided-border');
+        }
+        function guideField(selector){
+            clearAllGuides();
+            document.querySelectorAll(selector).forEach(el => el.classList.add('guided-border'));
+        }
+        // 初始：高亮四大分類按鈕
+        document.addEventListener('DOMContentLoaded', function(){
+            setTimeout(guideTypeTabs, 500);
+        });
+function checkBpTime() {
             const timeVal = document.getElementById('input-time').value;
             const bpTitle = document.getElementById('bp-dynamic-title');
             if(timeVal >= '05:00' && timeVal <= '15:00') bpTitle.innerHTML = LTXT("🌞 血壓與心跳 (早)", "🌞 Tekanan darah dan detak jantung (Pagi)");
@@ -513,7 +538,7 @@
                 const cat = checkedCategory ? checkedCategory.value : '';
                 if (cat === '進食') {
                     noteHint.textContent = LTXT('(進食必填)', '(Wajib untuk Makan)');
-                    noteHint.className = 'text-rose-400';
+                    noteHint.className = 'text-[#FB8B7A]';
                 } else {
                     noteHint.textContent = LTXT('(選填)', '(Opsional)');
                     noteHint.className = 'text-gray-400';
@@ -540,6 +565,20 @@
             } else {
                 titleZh.innerText = LTXT('容量', 'Kapasitas'); amountUnit.innerText = 'c.c.';
                 amountInput.placeholder = LTXT('例如：250 c.c.', 'Misalnya: 250 c.c.'); amountInput.min = '1';
+            }
+            clearAllGuides();
+            if (selectedType === '運動') {
+                guideField('#amount-field');
+            } else if (checkedCategory && checkedCategory.value === '排便') {
+                guideField('#stool-shortcut');
+            } else if (checkedCategory && checkedCategory.value === '尿液') {
+                guideField('#amount-field, #urine-color-shortcut');
+            } else if (checkedCategory && checkedCategory.value === '進食') {
+                guideField('#amount-field, #input-note');
+            } else if (selectedType === '攝入') {
+                guideField('#amount-field');
+            } else {
+                guideCategoryCard();
             }
             updateTargetPanel(); renderRecords();
         }
@@ -593,7 +632,7 @@
                 targetInput.value = savedTarget;
                 targetInput.readOnly = true;   // 預設鎖定，按鉛筆才能改（防其他照顧者誤觸）
                 targetInput.style.color = '';
-                targetInput.classList.remove('border-rose-400');
+                targetInput.classList.remove('border-[#FB8B7A]');
                 if (editBtn) { editBtn.classList.remove('hidden'); editBtn.innerText = '✏️'; }
                 if (currentItem === '總攝入水量') {
                     urineRangeInfoEl.classList.remove('hidden');
@@ -615,7 +654,14 @@
             let finalTarget = parseFloat(savedTarget);
             let percent = finalTarget > 0 ? Math.round((achieved / finalTarget) * 100) : 0;
             document.getElementById('progress-percent').innerText = percent + '%';
-            document.getElementById('progress-bar').style.width = Math.min(percent, 100) + '%';
+            document.getElementById('progress-bar').style.width = finalTarget <= 0 ? '100%' : Math.min(percent, 100) + '%';
+            if (finalTarget <= 0) {
+                document.getElementById('progress-bar').style.background = '#e5e7eb';
+                document.getElementById('progress-bar').classList.remove('bg-[#FB8B7A]','bg-red-500');
+            } else {
+                document.getElementById('progress-bar').style.background = '';
+            }
+            
 
             const warningEl = document.getElementById('fluid-warning');
             const bar = document.getElementById('progress-bar');
@@ -632,11 +678,11 @@
                 warningEl.classList.remove('hidden');
                 warningEl.innerHTML = `🚨 總液體量已超過目標值 (1200 c.c.)！<br><span class="text-[10px] font-medium">Volume cairan melebihi target (1200 c.c.)!</span>`;
                 targetDashboard.classList.add('danger-active');
-                bar.classList.remove('bg-rose-400'); bar.classList.add('bg-red-500');
+                bar.classList.remove('bg-[#FB8B7A]'); bar.classList.add('bg-red-500');
             } else {
                 warningEl.classList.add('hidden');
                 targetDashboard.classList.remove('danger-active');
-                bar.classList.add('bg-rose-400'); bar.classList.remove('bg-red-500');
+                bar.classList.add('bg-[#FB8B7A]'); bar.classList.remove('bg-red-500');
             }
 
             targetDashboard.classList.remove('celebrate-active');
@@ -647,56 +693,49 @@
             const now = new Date();
             const hourMin = now.toTimeString().substring(0, 5);
             const todayStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-            const records = cloudRecords || [];
+            const records = cloudRecords || [];
+            // 21:00 檢查：總攝入水量未達目標 + 尿液超出範圍警告
+            if (hourMin >= '21:00') {
+                const intakeRecs = records.filter(r => ['飲水量','服藥飲水','營養飲品','進食'].includes(r.category));
+                const totalIntake = intakeRecs.reduce((sum, r) => sum + parseFloat(r.amount||0), 0);
+                const intakeTarget = parseFloat(cloudGoals['goal_總攝入水量'] || getLastGoals()['總攝入水量'] || 0);
+                const urineTarget = parseFloat(cloudGoals['goal_尿液'] || getLastGoals()['尿液'] || 0);
+                const urineAchieved = records.filter(r => r.category === '尿液').reduce((sum, r) => sum + parseFloat(r.amount||0), 0);
+                
+                if (intakeTarget > 0 && totalIntake < intakeTarget) {
+                    document.getElementById('target-dashboard').classList.add('danger-active');
+                    alert('⚠️ 注意！請檢查今日攝入量有無填寫正確\n\n※C※C※CPerhatian※C ※C※C Mohon periksa apakah asupan harian Anda telah dimasukkan dengan benar.');
+                }
+                if (urineTarget > 0 && urineAchieved > 0 && urineAchieved > urineTarget * 1.5) {
+                    document.getElementById('target-dashboard').classList.add('danger-active');
+                }
+            }
+            
 
             const bpCount = records.filter(r => r.category && r.category.includes('血壓/心跳')).length;
-            const exCount = records.filter(r => r.type === '運動').length;
+            const exDone = records.filter(r => r.type === '運動').length;
+            // removed old exCount
             const exTypes = CARE_EX_TYPES;   // 復健項目中央定義在 care-tasks.js
-            const missingEx = exTypes.filter(ex => !records.some(r => r.category === ex));
+            const missingEx = CARE_EX_TYPES.filter(ex => !records.some(r => r.category === ex));
 
             const stillNote = `<p class="text-xs text-orange-500 mt-1">※ 測量血壓前，請奶奶保持靜止15分鐘，確保讀數準確。<br>Sebelum mengukur tekanan darah, mintalah Nenek untuk diam selama 15 menit untuk memastikan pembacaan yang akurat.</p>`;
 
             const redMissed = (zh, id) => `<div class="bg-red-50 border border-red-200 rounded-2xl p-2.5 mb-2"><p class="text-red-700 font-black text-sm">🚨 ${zh}<br><span class="text-[11px] font-medium text-red-500">${id}</span></p></div>`;
-            const blueGuide = (html) => `<div class="border-l-4 border-sky-400 pl-3 py-1.5 bg-sky-50/50 rounded-r-xl">${html}</div>`;
+            const blueGuide = (html) => `<div class="border-l-4 border-sky-400 pl-3 py-1.5 bg-stone-50/50 rounded-r-xl">${html}</div>`;
 
             let reminders = [];
             let missedSet = new Set();
             try { missedSet = new Set(JSON.parse(localStorage.getItem('missed_items_' + todayStr) || '[]')); } catch(e) {}
 
-            // === Slot (1): 07:00-10:30 起床後血壓 + 早餐前運動 ===
-            if (hourMin >= '07:00' && hourMin < '10:30') {
-                if (bpCount < 1) reminders.push(blueGuide(`<p class="font-black text-sm">🩺 起床後測量血壓<br><span class="text-xs text-gray-500">Ukur tekanan darah setelah bangun tidur</span></p>${stillNote}`));
-                if (exCount < 1) reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 早餐前運動<br><span class="text-xs text-gray-500">Latihan sebelum sarapan</span></p>`));
+            // === 運動提醒：19:00 前尚未完成任何復健項目則提醒 ===
+            if (hourMin >= '16:00' && hourMin < '19:00') {
+                const exDone = records.filter(r => r.type === '運動').length;
+                if (exDone < 1) reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 今日尚未進行復健運動<br><span class="text-xs text-gray-500">Nenek belum melakukan latihan rehabilitasi hari ini</span></p>`));
             }
-            if (hourMin >= '10:30' && bpCount < 1) missedSet.add('morning_bp'); else missedSet.delete('morning_bp');
-            if (hourMin >= '10:30' && exCount < 1) missedSet.add('morning_ex'); else missedSet.delete('morning_ex');
-
-            // === Slot (2): 10:30-16:30 午餐前運動 ===
-            if (hourMin >= '10:30' && hourMin < '16:30') {
-                if (exCount < 2) reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 午餐前運動<br><span class="text-xs text-gray-500">Latihan sebelum makan siang</span></p>`));
-            }
-            if (hourMin >= '16:30' && exCount < 2) missedSet.add('lunch_ex'); else missedSet.delete('lunch_ex');
-
-            // === Slot (3): 16:30-19:00 晚餐前運動 ===
-            if (hourMin >= '16:30' && hourMin < '19:00') {
-                if (exCount < 3) reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 晚餐前運動<br><span class="text-xs text-gray-500">Latihan sebelum makan malam</span></p>`));
-            }
-            if (hourMin >= '19:00' && exCount < 3) missedSet.add('dinner_ex'); else missedSet.delete('dinner_ex');
-
-            // === Slot (4): 19:00-22:00 睡前血壓 + 睡前運動 + 盤點 ===
-            if (hourMin >= '19:00' && hourMin < '22:00') {
-                if (bpCount < 2) reminders.push(blueGuide(`<p class="font-black text-sm">🩺 睡前測量血壓<br><span class="text-xs text-gray-500">Ukur tekanan darah sebelum tidur</span></p>${stillNote}`));
-                reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 睡前運動<br><span class="text-xs text-gray-500">Latihan sebelum tidur</span></p>`));
-                if (missingEx.length > 0) {
-                    reminders.push(`<div class="bg-purple-50 p-3 rounded-2xl border border-purple-200 text-sm"><p class="font-black text-purple-800">📋 睡前盤點 / Rekap Sebelum Tidur:</p><p class="text-purple-700 mt-1">今天還沒有【${missingEx.map(bil).join('、')}】，不要忘了<br><span class="text-xs text-purple-500">Nenek belum latihan 《${missingEx.map(bil).join('、')}》hari ini, jangan lupa!</span></p></div>`);
-                }
-            }
-            if (hourMin >= '22:00' && bpCount < 2) missedSet.add('evening_bp'); else missedSet.delete('evening_bp');
-            exTypes.forEach(ex => {
-                const hasEx = records.some(r => r.category === ex);
-                if (hourMin >= '22:00' && !hasEx) missedSet.add('ex_' + ex); else missedSet.delete('ex_' + ex);
-            });
-
+            if (hourMin >= '19:00' && exDone === 0) missedSet.add('evening_ex');
+            else missedSet.delete('evening_ex');
+            
+            // === Slot (4): 19:00-22:00 睡前盤點 ===
             // === Slot (5): 22:00-24:00 睡前最後一次尿液量 ===
             if (hourMin >= '22:00') {
                 reminders.push(blueGuide(`<p class="font-black text-sm">🚽 睡前量測今日最後一次尿液量<br><span class="text-xs text-gray-500">Ukur volume urine terakhir Anda sebelum tidur.</span></p>`));
@@ -705,34 +744,14 @@
             // === 極致提醒：紅色警示（以次數判斷補完成，非時段）===
             const missedLabel = {
                 'morning_bp': ['尚未測量早上血壓', 'Belum ukur tekanan darah pagi'],
-                'morning_ex': ['尚未完成早餐前運動', 'Belum latihan sebelum sarapan'],
-                'lunch_ex': ['尚未完成午餐前運動', 'Belum latihan sebelum makan siang'],
-                'dinner_ex': ['尚未完成晚餐前運動', 'Belum latihan sebelum makan malam'],
                 'evening_bp': ['尚未測量睡前血壓', 'Belum ukur tekanan darah sebelum tidur'],
+                'evening_ex': ['尚未完成復健運動', 'Nenek belum latihan hari ini'],
             };
-            exTypes.forEach(ex => { missedLabel['ex_'+ex] = [`尚未完成 ${bil(ex)}`, `Nenek belum latihan ${bil(ex)} hari ini`]; });
-
             let redItems = [];
             missedSet.forEach(key => {
                 const lbl = missedLabel[key];
                 if (lbl) redItems.push(redMissed(lbl[0], lbl[1]));
             });
-
-            // === 每週清潔提醒（13:30-16:30，當天只彈一次）===
-            let cleanReminders = [];
-            if (hourMin >= '13:30' && hourMin < '16:30') {
-                const dow = now.getDay();
-                const cleanKey = 'clean_notified_' + todayStr;
-                if (!localStorage.getItem(cleanKey)) {
-                    if (dow === 3 || dow === 6) {
-                        cleanReminders.push(`<div class="bg-green-50 p-3 rounded-2xl border border-green-200 text-green-800 text-sm"><p class="font-black">🧹 每週三和週六清潔整個一樓地板。</p><p class="text-xs font-medium mt-0.5">Bersihkan seluruh area lantai pertama setiap hari Rabu dan Sabtu.</p></div>`);
-                        localStorage.setItem(cleanKey, '1');
-                    } else if (dow === 1 || dow === 5) {
-                        cleanReminders.push(`<div class="bg-green-50 p-3 rounded-2xl border border-green-200 text-green-800 text-sm"><p class="font-black">🛋️ 每週一和週五清潔一樓的沙發和餐桌。</p><p class="text-xs font-medium mt-0.5">Bersihkan sofa dan meja makan di lantai pertama setiap hari Senin dan Jumat.</p></div>`);
-                        localStorage.setItem(cleanKey, '1');
-                    }
-                }
-            }
 
             // === 組合：紅色警示優先 → 當前時段引導 → 清潔提醒 ===
             reminders = [...redItems, ...reminders, ...cleanReminders];
@@ -770,12 +789,12 @@
             if (inp.readOnly) {
                 if (!confirm('要修改今日目標數值嗎？\nUbah nilai target hari ini?')) return;
                 inp.readOnly = false;
-                inp.classList.add('border-rose-400');
+                inp.classList.add('border-[#FB8B7A]');
                 inp.focus(); inp.select();
                 if (btn) btn.innerText = '✔️';
             } else {
                 inp.readOnly = true;
-                inp.classList.remove('border-rose-400');
+                inp.classList.remove('border-[#FB8B7A]');
                 if (btn) btn.innerText = '✏️';
             }
         }
@@ -1099,10 +1118,10 @@
             ).join('');
             const stepHtml = g.steps.map((s, i) =>
                 `<div class="flex gap-2.5">
-                    <span class="shrink-0 w-6 h-6 rounded-full bg-teal-500 text-white text-xs font-bold flex items-center justify-center mt-0.5">${i + 1}</span>
+                    <span class="shrink-0 w-6 h-6 rounded-full bg-stone-500 text-white text-xs font-bold flex items-center justify-center mt-0.5">${i + 1}</span>
                     <div class="flex-1">
                         <p class="text-sm font-bold text-gray-700 leading-snug">${s[0]}</p>
-                        <p class="text-[11px] text-teal-600 font-medium leading-snug mt-0.5">${s[1]}</p>
+                        <p class="text-[11px] text-gray-500 font-medium leading-snug mt-0.5">${s[1]}</p>
                     </div>
                 </div>`
             ).join('');
@@ -1130,7 +1149,7 @@
             </div>
             <div class="rehab-modal-scroll overflow-y-auto px-4 py-4"><div id="rehab-modal-body"></div></div>
             <div class="px-4 py-3 border-t border-gray-100 shrink-0">
-                <button type="button" onclick="closeRehabGuide()" class="w-full bg-teal-500 text-white rounded-2xl py-2.5 font-bold text-sm active:scale-95 transition-all">關閉 / Tutup</button>
+                <button type="button" onclick="closeRehabGuide()" class="w-full bg-stone-500 text-white rounded-2xl py-2.5 font-bold text-sm active:scale-95 transition-all">關閉 / Tutup</button>
             </div>
         </div>
     </div>

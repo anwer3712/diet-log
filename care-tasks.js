@@ -22,8 +22,8 @@ const CARE_EX_SHORT = { '仰臥抬腿':['抬腿','Angkat'], '大腿內收':['內
 const careIsBP = r => r.category && r.category.includes('血壓/心跳');
 
 /* 應完成任務：
- * - 四項復健（舉瓶/抬壓/膝彎/站立）早上、中午、下午、睡前 各一次
- *   → 第 k 個運動時段截止前，該項累計次數需 ≥ k（晚做會自動遞補＝補齊）
+ * - 四項復健（抬腿/內收/橋式/站立）每天各完成一次
+ *   → 19:00 前完成為準時，19:00 後未做顯示為「未做」
  * - 血壓：早上一次、睡前累計兩次
  * - 尿液：22:00 後量測今日最後一次 */
 function careTaskDefs(){
@@ -32,23 +32,19 @@ function careTaskDefs(){
         return s.length >= n ? s[n-1] : null;
     };
     const defs = [];
-    const exSlots = [ ['morning','10:30',1], ['midday','16:30',2], ['evening','19:00',3], ['night','22:00',4] ];
 
     defs.push({ slot:'morning', deadline:'10:30', order:0, zh:'早壓', id:'Tensi', full_zh:'起床後測量血壓', full_id:'Ukur tensi pagi',
         need:(rs,t)=> rs.filter(r=>careIsBP(r)&&r.time<t).length>=1, rec:rs=>nth(rs,careIsBP,1) });
 
-    exSlots.forEach(([slot, dl, k], si) => {
-        CARE_EX_TYPES.forEach((ex, ti) => {
-            const sh = CARE_EX_SHORT[ex];
-            const slotDef = CARE_SLOTS.find(s=>s.key===slot);
-            defs.push({ slot:slot, deadline:dl, order:ti+1, zh:sh[0], id:sh[1],
-                full_zh:`${slotDef.zh}${ex}`, full_id:`${sh[1]} (${slotDef.id})`,
-                need:(rs,t)=> rs.filter(r=>r.category===ex && r.time<t).length>=k,
-                rec:rs=>nth(rs, r=>r.category===ex, k) });
-        });
+    CARE_EX_TYPES.forEach((ex, ti) => {
+        const sh = CARE_EX_SHORT[ex];
+        defs.push({ slot:'night', deadline:'19:00', order:ti+1, zh:sh[0], id:sh[1],
+            full_zh:`睡前${ex}`, full_id:`${sh[1]} (Sblm tidur)`,
+            need:(rs,t)=> rs.some(r=>r.category===ex && r.time<t),
+            rec:rs=>{ const s=rs.filter(r=>r.category===ex).sort((a,b)=>a.time.localeCompare(b.time)); return s.length>0?s[0]:null; } });
     });
 
-    defs.push({ slot:'night', deadline:'22:00', order:0, zh:'晚壓', id:'Tensi', full_zh:'睡前測量血壓', full_id:'Ukur tensi sebelum tidur',
+        defs.push({ slot:'night', deadline:'22:00', order:0, zh:'晚壓', id:'Tensi', full_zh:'睡前測量血壓', full_id:'Ukur tensi sebelum tidur',
         need:(rs,t)=> rs.filter(r=>careIsBP(r)&&r.time<t).length>=2, rec:rs=>nth(rs,careIsBP,2) });
 
     defs.push({ slot:'late', deadline:'24:00', order:0, zh:'尿量', id:'Urine', full_zh:'睡前量測今日最後一次尿液', full_id:'Ukur urine terakhir',
