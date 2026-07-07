@@ -109,7 +109,7 @@
                 <p class="text-[11px] text-red-500 font-medium pl-3">3. Untuk pasien hipertensi, tekanan darah sistolik/diastolik &lt; 130/80 mmHg.</p>
             </div>
 
-            <div class="bg-white rounded-3xl p-2.5 shadow-sm border-2 border-stone-100 grid grid-cols-4 gap-1">
+            <div id="type-tabs" class="bg-white rounded-3xl p-2.5 shadow-sm border-2 border-stone-100 grid grid-cols-4 gap-1">
                 <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-stone-50 text-stone-600 font-black transition-all"><input type="radio" name="type" value="攝入" class="sr-only" checked onchange="updateView()"><span class="text-lg">📥</span><span class="text-[10px] mt-0.5">攝入/Asupan</span></label>
                 <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="排出" class="sr-only" onchange="updateView()"><span class="text-lg">📤</span><span class="text-[10px] mt-0.5">排出/ekskresi</span></label>
                 <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="運動" class="sr-only" onchange="updateView()"><span class="text-lg">💪</span><span class="text-[10px] mt-0.5 leading-tight">復健練習/Latihan rehabilitasi</span></label>
@@ -478,7 +478,7 @@
                 targetDashboard.classList.add('hidden');
                 if (viewSheetWrap) viewSheetWrap.classList.remove('hidden');
             }
-            guideCategoryCard(); checkSubCategory(); checkBpTime();
+            checkSubCategory(); checkBpTime();
         }
 
         
@@ -488,7 +488,8 @@
         }
         function guideTypeTabs(){
             clearAllGuides();
-            document.querySelectorAll('#type-tabs label').forEach(el => el.classList.add('guided-border'));
+            const _tt = document.getElementById('type-tabs');
+            if (_tt) _tt.classList.add('guided-border');
         }
         function guideCategoryCard(){
             clearAllGuides();
@@ -498,7 +499,24 @@
             clearAllGuides();
             document.querySelectorAll(selector).forEach(el => el.classList.add('guided-border'));
         }
-        // 初始：高亮四大分類按鈕
+        // 步驟3：依目前類型／項目高亮對應輸入欄位
+        function guideCurrentField(){
+            const selectedType = document.querySelector('input[name="type"]:checked').value;
+            const checkedCategory = document.querySelector('input[name="category"]:checked');
+            if (selectedType === '血壓') { guideField('#bp-inputs-group'); return; }
+            if (selectedType === '運動') { guideField('#amount-field'); return; }
+            if (checkedCategory && checkedCategory.value === '排便') { guideField('#stool-shortcut'); return; }
+            if (checkedCategory && checkedCategory.value === '尿液') { guideField('#amount-field, #urine-color-shortcut'); return; }
+            if (checkedCategory && checkedCategory.value === '進食') { guideField('#amount-field, #input-note'); return; }
+            guideField('#amount-field');
+        }
+        // 步驟2：點類型後→一般類型引導到「選擇項目」；血壓無子項則直接到輸入欄
+        function guideAfterType(){
+            const selectedType = document.querySelector('input[name="type"]:checked').value;
+            if (selectedType === '血壓') guideCurrentField();
+            else guideCategoryCard();
+        }
+        // 步驟1（初始）：高亮最上方四大類型分頁
         document.addEventListener('DOMContentLoaded', function(){
             setTimeout(guideTypeTabs, 500);
         });
@@ -565,20 +583,6 @@ function checkBpTime() {
             } else {
                 titleZh.innerText = LTXT('容量', 'Kapasitas'); amountUnit.innerText = 'c.c.';
                 amountInput.placeholder = LTXT('例如：250 c.c.', 'Misalnya: 250 c.c.'); amountInput.min = '1';
-            }
-            clearAllGuides();
-            if (selectedType === '運動') {
-                guideField('#amount-field');
-            } else if (checkedCategory && checkedCategory.value === '排便') {
-                guideField('#stool-shortcut');
-            } else if (checkedCategory && checkedCategory.value === '尿液') {
-                guideField('#amount-field, #urine-color-shortcut');
-            } else if (checkedCategory && checkedCategory.value === '進食') {
-                guideField('#amount-field, #input-note');
-            } else if (selectedType === '攝入') {
-                guideField('#amount-field');
-            } else {
-                guideCategoryCard();
             }
             updateTargetPanel(); renderRecords();
         }
@@ -998,6 +1002,9 @@ function checkBpTime() {
         document.getElementById('med-laxative').addEventListener('change', saveMedState);
 
         document.querySelectorAll('input[name="category"]').forEach(radio => radio.addEventListener('change', checkSubCategory));
+        // 三階段引導：點類型分頁→引導「選擇項目」；點項目→引導輸入欄（用 click 以涵蓋點選已預設選中的項目）
+        document.querySelectorAll('#type-tabs label').forEach(lbl => lbl.addEventListener('click', () => setTimeout(guideAfterType, 0)));
+        document.querySelectorAll('#items-category-card label').forEach(lbl => { if (lbl.querySelector('input[name="category"]')) lbl.addEventListener('click', () => setTimeout(guideCurrentField, 0)); });
         document.getElementById('input-time').addEventListener('input', checkBpTime);
 
         // 選擇日期後自動同步
