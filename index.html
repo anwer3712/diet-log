@@ -753,8 +753,8 @@ function checkBpTime() {
                 if (lbl) redItems.push(redMissed(lbl[0], lbl[1]));
             });
 
-            // === 組合：紅色警示優先 → 當前時段引導 → 清潔提醒 ===
-            reminders = [...redItems, ...reminders, ...cleanReminders];
+            // === 組合：紅色警示優先 → 當前時段引導 ===
+            reminders = [...redItems, ...reminders];
 
             // === 持久化：錯過項存入 localStorage，直到完成次數達標才清除 ===
             localStorage.setItem('missed_items_' + todayStr, JSON.stringify([...missedSet]));
