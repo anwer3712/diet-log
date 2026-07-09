@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>奶奶照護日誌 / Catatan Perawatan Nenek</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=6"></script>
+    <script src="care-tasks.js?v=7"></script>
     <style>
         body.mode-zh .lang-id, body.mode-zh .lang-sep, body.mode-zh br.lang-br { display: none; }
         body.mode-id .lang-zh, body.mode-id .lang-sep, body.mode-id br.lang-br { display: none; }
@@ -28,7 +28,32 @@
         .guided-border { animation: border-guide 1s infinite ease-in-out; border-width: 2px !important; }
         .animate-spin-slow { animation: spin 3s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        body { background: #FFF8F6; font-size: 15px; }
+
+        /* ===== 日式清新 × 企業商務（長輩友善）：白底、高對比、大字、粗框區塊 ===== */
+        body { background: #fafafa; font-size: 16px; }
+        .text-gray-300 { color: #4b5563 !important; }
+        .text-gray-400 { color: #374151 !important; }
+        .text-gray-500 { color: #1f2937 !important; }
+        input::placeholder { color: #6b7280; }
+        /* 欄位標籤與填寫內容放大 */
+        #log-form label.block { font-size: 1rem !important; }
+        #items-category-card .grid label { font-size: 1.05rem !important; border-width: 2.5px !important; border-color: #9ca3af !important; }
+        #items-category-card input[type=radio] { width: 1.35rem; height: 1.35rem; }
+        #input-amount { font-size: 1.5rem !important; }
+        #input-note { font-size: 1.15rem !important; }
+        #bp-inputs-group .grid label { font-size: 0.95rem !important; }
+        #input-bp-sys, #input-bp-dia, #input-bp-hr { font-size: 1.5rem !important; font-weight: 900; padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        /* 區塊感：主卡框線加粗加深 */
+        #log-form .rounded-3xl.border-2, #target-dashboard { border-width: 3px !important; }
+        .border-stone-100 { border-color: #9ca3af !important; }
+        .border-gray-200 { border-color: #9ca3af !important; }
+
+        /* ===== 日期→時→分 水藍閃動引導框線 ===== */
+        .guide-flash { border-color: #0ea5e9 !important; animation: guide-pulse 1.1s infinite ease-in-out; }
+        @keyframes guide-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.85); }
+            50% { box-shadow: 0 0 14px 6px rgba(14, 165, 233, 0.45); }
+        }
     </style>
 </head>
 <body class="text-gray-800 min-h-screen pb-12 font-sans selection:bg-rose-100">
@@ -109,11 +134,11 @@
                 <p class="text-[11px] text-red-500 font-medium pl-3">3. Untuk pasien hipertensi, tekanan darah sistolik/diastolik &lt; 130/80 mmHg.</p>
             </div>
 
-            <div id="type-tabs" class="bg-white rounded-3xl p-2.5 shadow-sm border-2 border-stone-100 grid grid-cols-4 gap-1">
-                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-stone-50 text-stone-600 font-black transition-all"><input type="radio" name="type" value="攝入" class="sr-only" checked onchange="updateView()"><span class="text-lg">📥</span><span class="text-[10px] mt-0.5">攝入/Asupan</span></label>
-                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="排出" class="sr-only" onchange="updateView()"><span class="text-lg">📤</span><span class="text-[10px] mt-0.5">排出/ekskresi</span></label>
-                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="運動" class="sr-only" onchange="updateView()"><span class="text-lg">💪</span><span class="text-[10px] mt-0.5 leading-tight">復健練習/Latihan rehabilitasi</span></label>
-                <label class="flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-gray-50 text-gray-500 font-bold transition-all"><input type="radio" name="type" value="血壓" class="sr-only" onchange="updateView()"><span class="text-lg">🩸</span><span class="text-[10px] mt-0.5 leading-tight">血壓/Mengukur tekanan darah</span></label>
+            <div id="type-tabs" class="bg-white rounded-3xl p-2.5 shadow-sm border-2 border-stone-100 grid grid-cols-4 gap-1.5">
+                <label class="type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-sky-100 text-sky-700 border-[3px] border-sky-500 font-black transition-all"><input type="radio" name="type" value="攝入" class="sr-only" checked onchange="updateView()"><span class="text-2xl">🍚</span><span class="text-[11px] mt-0.5">攝入/Asupan</span></label>
+                <label class="type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-white text-gray-500 border-[3px] border-gray-200 font-black transition-all"><input type="radio" name="type" value="排出" class="sr-only" onchange="updateView()"><span class="text-2xl">🚽</span><span class="text-[11px] mt-0.5">排出/ekskresi</span></label>
+                <label class="type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-white text-gray-500 border-[3px] border-gray-200 font-black transition-all"><input type="radio" name="type" value="運動" class="sr-only" onchange="updateView()"><span class="text-2xl">💪</span><span class="text-[11px] mt-0.5 leading-tight">復健練習/Latihan rehabilitasi</span></label>
+                <label class="type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-white text-gray-500 border-[3px] border-gray-200 font-black transition-all"><input type="radio" name="type" value="血壓" class="sr-only" onchange="updateView()"><span class="text-2xl">🩺</span><span class="text-[11px] mt-0.5 leading-tight">血壓/Mengukur tekanan darah</span></label>
             </div>
 
             <div id="catheter-note" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-3 text-amber-800 font-bold text-xs space-y-1">
@@ -121,20 +146,24 @@
                 <p class="text-[11px] text-amber-600 font-medium">Kateter ditutup pada siang hari untuk melatih kandung kemih agar merasakan urine, dan dibuka pada malam hari untuk mencegah kandung kemih kelebihan beban.</p>
             </div>
 
-            <div class="bg-white rounded-3xl p-4 shadow-sm border-2 border-stone-100 grid grid-cols-2 gap-3">
+            <div id="date-time-card" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-stone-100 grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">日期 / Tanggal</label>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">📅 日期 / Tanggal</label>
                     <div class="relative">
                         <!-- 顯示層固定 XXXX/XX/XX；真正的 date input 蓋在上面透明，點擊仍開原生日曆 -->
-                        <input id="input-date-display" type="text" readonly class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-bold text-gray-700">
+                        <input id="input-date-display" type="text" readonly class="w-full bg-gray-50 border-[3px] border-gray-300 rounded-2xl py-2.5 px-2 text-base font-black text-gray-900">
                         <input id="input-date" type="date" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">時間 / waktu</label>
-                    <div class="flex gap-1">
-                        <input id="input-time" type="time" class="w-full bg-gray-50 border-0 rounded-2xl py-2.5 px-3 text-sm font-bold text-gray-700">
-                        <button type="button" onclick="setNow(); fetchCloudData();" class="bg-gray-100 text-gray-600 px-2.5 rounded-2xl text-[9px] font-black active:scale-95 transition-all leading-tight">現在<br>Waktu saat ini</button>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">🕐 時間 / waktu　<span class="text-[11px]">(時:分 / Jam:Menit)</span></label>
+                    <div class="flex gap-1 items-stretch">
+                        <!-- 時/分兩段大字下拉；#input-time 隱藏欄位保留給既有邏輯（checkBpTime／儲存／早晚判定） -->
+                        <select id="sel-hour" title="時 / Jam" class="flex-1 min-w-0 bg-gray-50 border-[3px] border-gray-300 rounded-2xl py-2.5 px-1 text-lg font-black text-gray-900 text-center"></select>
+                        <span class="self-center font-black text-xl text-gray-700">:</span>
+                        <select id="sel-min" title="分 / Menit" class="flex-1 min-w-0 bg-gray-50 border-[3px] border-gray-300 rounded-2xl py-2.5 px-1 text-lg font-black text-gray-900 text-center"></select>
+                        <input id="input-time" type="hidden">
+                        <button type="button" onclick="setNow(); setGuide(null); fetchCloudData();" class="bg-gray-800 text-white px-2 rounded-2xl text-[9px] font-black active:scale-95 transition-all leading-tight shrink-0">現在<br>Waktu saat ini</button>
                     </div>
                 </div>
             </div>
@@ -143,15 +172,15 @@
                 <label class="block text-xs font-bold text-gray-400 mb-2">選擇項目 / Pilih Item</label>
 
                 <div id="intake-group" class="grid grid-cols-2 gap-2">
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="飲水量" checked> 飲水 / Air Minum</label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="服藥飲水"> 服藥 / Minum Obat</label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="營養飲品"> 營養 / Susu Nutrisi</label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="進食"> 進食 / Makan</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="飲水量" checked> 💧 飲水 / Air Minum</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="服藥飲水"> 💊 服藥 / Minum Obat</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="營養飲品"> 🥛 營養 / Susu Nutrisi</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="進食"> 🍚 進食 / Makan</label>
                 </div>
 
                 <div id="output-group" class="grid grid-cols-2 gap-2 hidden">
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="尿液"> 尿液 / Air Kencing</label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="排便"> 排便 / BAB</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="尿液"> 🚽 尿液 / Air Kencing</label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="排便"> 💩 排便 / BAB</label>
                 </div>
 
                 <div id="exercise-group" class="grid grid-cols-1 gap-2 hidden">
@@ -159,10 +188,10 @@
                         <p>🕒 復健練習 / Latihan rehabilitasi 應於三餐飯前及睡前半小時進行，每日至少四次。若患者因特殊情況無法在規定時間內完成，請另覓時間補做，但勿將四次運動集中於同一時段。</p>
                         <p class="text-[10px] text-gray-500 font-medium">Latihan rehabilitasi sebaiknya dilakukan setengah jam sebelum masing-masing dari tiga waktu makan dan sebelum tidur, setidaknya empat kali sehari. Jika pasien tidak dapat menyelesaikan latihan dalam waktu yang ditentukan karena keadaan khusus, mohon cari waktu lain untuk menggantinya, tetapi jangan menggabungkan keempat latihan tersebut dalam periode yang sama.</p>
                     </div>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="仰臥抬腿" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">仰臥抬腿，左右交替10秒</span><span class="lang-id">Berbaringlah telentang dan angkat kaki Anda, bergantian sisi selama 10 detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('仰臥抬腿')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="大腿內收" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">仰躺大腿內收訓練，左右交替10秒</span><span class="lang-id">Berbaring telentang, lakukan latihan adduksi paha, bergantian sisi selama 10 detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('大腿內收')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="橋式抬臀" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">橋式／仰躺雙腳屈膝抬臀10秒</span><span class="lang-id">Berbaringlah telentang dengan lutut ditekuk dan kaki rata di tempat tidur, lalu angkat pinggul Anda selama sepuluh detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('橋式抬臀')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
-                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="站立" class="mt-1 shrink-0"> <span class="flex-1"><span class="lang-zh">站立</span><span class="lang-id">Berdiri</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('站立')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="仰臥抬腿" class="mt-1 shrink-0"> <span class="flex-1">🦵 <span class="lang-zh">仰臥抬腿，左右交替10秒</span><span class="lang-id">Berbaringlah telentang dan angkat kaki Anda, bergantian sisi selama 10 detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('仰臥抬腿')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="大腿內收" class="mt-1 shrink-0"> <span class="flex-1">🩲 <span class="lang-zh">仰躺大腿內收訓練，左右交替10秒</span><span class="lang-id">Berbaring telentang, lakukan latihan adduksi paha, bergantian sisi selama 10 detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('大腿內收')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="橋式抬臀" class="mt-1 shrink-0"> <span class="flex-1">🍑 <span class="lang-zh">橋式／仰躺雙腳屈膝抬臀10秒</span><span class="lang-id">Berbaringlah telentang dengan lutut ditekuk dan kaki rata di tempat tidur, lalu angkat pinggul Anda selama sepuluh detik.</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('橋式抬臀')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <label class="border border-gray-200 rounded-2xl p-3 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700"><input type="radio" name="category" value="站立" class="mt-1 shrink-0"> <span class="flex-1">🧍 <span class="lang-zh">站立</span><span class="lang-id">Berdiri</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('站立')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
 
                     <div id="stand-warning" class="bg-red-50 border border-red-200 rounded-2xl p-3 text-red-800 font-bold text-[11px] space-y-1.5 hidden mt-1">
                         <p class="text-sm border-b border-red-200 pb-1 font-black">⚠️ 站立式安全指南 / Pedoman Keselamatan Berdiri</p>
@@ -260,6 +289,16 @@
                 <button type="button" onclick="closeModal()" class="bg-gray-100 text-gray-600 font-bold rounded-2xl py-2.5 text-xs">取消/Batal</button>
                 <button id="modal-confirm-btn" type="button" class="bg-red-500 text-white font-black rounded-2xl py-2.5 text-xs">確定錯誤/Benar</button>
             </div>
+        </div>
+    </div>
+
+    <div id="bp-alert-modal" class="fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-red-500 text-center space-y-4">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-4xl animate-bounce">⚠️</div>
+            <h4 class="font-black text-red-700 text-2xl leading-tight">請注意奶奶狀況！<br><span class="text-lg">Perhatikan kondisi Nenek!</span></h4>
+            <p id="bp-alert-sub" class="text-base font-black text-gray-700"></p>
+            <div id="bp-alert-body" class="space-y-2"></div>
+            <button type="button" onclick="closeBpAlert()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl py-4 text-xl shadow-md transition-all">我知道了 / Saya mengerti</button>
         </div>
     </div>
 
@@ -478,10 +517,11 @@
                 targetDashboard.classList.add('hidden');
                 if (viewSheetWrap) viewSheetWrap.classList.remove('hidden');
             }
+            paintTypeZones(selectedType);   // 色彩分區跟著 type 換
             checkSubCategory(); checkBpTime();
         }
 
-        
+
         // === 引導高亮：黃色動態邊框引導操作 ===
         function clearAllGuides(){
             document.querySelectorAll('.guided-border').forEach(el => el.classList.remove('guided-border'));
@@ -697,7 +737,7 @@ function checkBpTime() {
             const now = new Date();
             const hourMin = now.toTimeString().substring(0, 5);
             const todayStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-            const records = cloudRecords || [];
+            const records = cloudRecords || [];
             // 21:00 檢查：總攝入水量未達目標 + 尿液超出範圍警告
             if (hourMin >= '21:00') {
                 const intakeRecs = records.filter(r => ['飲水量','服藥飲水','營養飲品','進食'].includes(r.category));
@@ -808,7 +848,50 @@ function checkBpTime() {
             const localTime = now.toTimeString().substring(0, 5);
             document.getElementById('input-date').value = localDate;
             document.getElementById('input-time').value = localTime;
+            syncSelectsFromTime();
             checkBpTime(); return localDate;
+        }
+
+        // ===== 時/分大字下拉 ↔ #input-time(hidden) 同步；日期→時→分 水藍閃動引導 =====
+        function initTimeSelects() {
+            const opts = n => Array.from({ length: n }, (_, i) => { const s = String(i).padStart(2, '0'); return `<option value="${s}">${s}</option>`; }).join('');
+            const sh = document.getElementById('sel-hour'), sm = document.getElementById('sel-min');
+            sh.innerHTML = opts(24); sm.innerHTML = opts(60);
+            sh.addEventListener('change', () => { syncTimeFromSelects(); setGuide('min'); });
+            sm.addEventListener('change', () => { syncTimeFromSelects(); setGuide(null); });
+        }
+        function syncTimeFromSelects() {
+            const t = document.getElementById('input-time');
+            t.value = document.getElementById('sel-hour').value + ':' + document.getElementById('sel-min').value;
+            t.dispatchEvent(new Event('input'));   // 讓 checkBpTime 等既有 listener 照常運作
+        }
+        function syncSelectsFromTime() {
+            const v = document.getElementById('input-time').value;
+            if (!/^\d{2}:\d{2}$/.test(v)) return;
+            document.getElementById('sel-hour').value = v.slice(0, 2);
+            document.getElementById('sel-min').value = v.slice(3, 5);
+        }
+        function setGuide(step) {
+            ['input-date-display', 'sel-hour', 'sel-min'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('guide-flash'); });
+            const map = { date: 'input-date-display', hour: 'sel-hour', min: 'sel-min' };
+            if (map[step]) document.getElementById(map[step]).classList.add('guide-flash');
+        }
+
+        // ===== 色彩分區：攝入=淡藍 排出=淡黃 運動=淡綠 血壓=淡紅 =====
+        const TYPE_ZONE = {
+            '攝入': { tab: 'bg-sky-100 text-sky-700 border-sky-500', line: '#38bdf8' },
+            '排出': { tab: 'bg-amber-100 text-amber-700 border-amber-500', line: '#f59e0b' },
+            '運動': { tab: 'bg-green-100 text-green-700 border-green-500', line: '#22c55e' },
+            '血壓': { tab: 'bg-rose-100 text-rose-700 border-rose-500', line: '#f43f5e' }
+        };
+        function paintTypeZones(sel) {
+            document.querySelectorAll('label.type-tab').forEach(lb => {
+                const v = lb.querySelector('input').value;
+                lb.className = 'type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer font-black transition-all border-[3px] ' +
+                    (v === sel ? TYPE_ZONE[v].tab : 'bg-white text-gray-500 border-gray-200');
+            });
+            const c = TYPE_ZONE[sel] ? TYPE_ZONE[sel].line : '#9ca3af';
+            ['items-category-card', 'standard-amount-group'].forEach(id => { const el = document.getElementById(id); if (el) el.style.borderColor = c; });
         }
 
         function showToast(msg, isError = false) {
@@ -824,37 +907,56 @@ function checkBpTime() {
             const v = document.getElementById('input-date').value;
             document.getElementById('input-date-display').value = v ? v.replace(/-/g, '/') : '';
         }
+        // ===== 當日資料快取：先渲染快取立即可操作，背景再刷新（解決開頁卡「同步中」） =====
+        function readDayCache(d) { try { return JSON.parse(localStorage.getItem('cache_day_' + d) || 'null'); } catch (e) { return null; } }
+        function writeDayCache(d, data) {
+            try { localStorage.setItem('cache_day_' + d, JSON.stringify({ records: data.records || [], goals: data.goals || {}, ts: Date.now() })); } catch (e) {}
+            const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('cache_day_') && k.slice(10) < cutoff) localStorage.removeItem(k);
+            }
+        }
+        function applyCloudData(data) {
+            cloudRecords = data.records || [];
+            cloudGoals = data.goals || {};
+            // 把雲端目標記到本機，作為下次（例如換日後）顯示用的「前一次數值」
+            Object.keys(cloudGoals).forEach(k => {
+                if (k.startsWith('goal_')) saveLastGoal(k.replace('goal_', ''), cloudGoals[k]);
+            });
+            if (cloudGoals['last_med']) {
+                try {
+                    const meds = JSON.parse(cloudGoals['last_med']);
+                    document.getElementById('med-diuretic').checked = !!meds.diuretic;
+                    document.getElementById('med-laxative').checked = !!meds.laxative;
+                } catch(e) {}
+            }
+            updateTargetPanel();
+            renderRecords();
+            checkReminders();
+            checkBowelMovementAlert();
+            renderTopBar();   // 名字存雲端，取回後更新身分按鈕
+        }
+        function fetchWithTimeout(url, ms) {
+            const ctrl = new AbortController();
+            const t = setTimeout(() => ctrl.abort(), ms);
+            return fetch(url, { cache: 'no-store', signal: ctrl.signal }).finally(() => clearTimeout(t));
+        }
         function fetchCloudData() {
             const targetDate = document.getElementById('input-date').value || setNow();
             syncDateDisplay();
             const icon = document.getElementById('sync-icon');
             icon.classList.add('animate-spin-slow');
+            const cached = readDayCache(targetDate);
+            if (cached) applyCloudData(cached);   // 先用快取渲染，立即可操作
             const syncModal = document.getElementById('sync-modal');
-            if (syncModal) syncModal.classList.remove('hidden');
+            if (!cached && syncModal) syncModal.classList.remove('hidden');   // 只有無快取（第一次）才顯示全屏同步
             const fetchUrl = `${GAS_URL}?date=${targetDate}&t=${new Date().getTime()}`;
-            fetch(fetchUrl, { cache: "no-store" })
+            fetchWithTimeout(fetchUrl, 20000)
+                .catch(() => fetchWithTimeout(fetchUrl, 20000))   // 逾時/失敗自動重試一次
                 .then(res => res.json())
-                .then(data => {
-                    cloudRecords = data.records || [];
-                    cloudGoals = data.goals || {};
-                    // 把雲端目標記到本機，作為下次（例如換日後）顯示用的「前一次數值」
-                    Object.keys(cloudGoals).forEach(k => {
-                        if (k.startsWith('goal_')) saveLastGoal(k.replace('goal_', ''), cloudGoals[k]);
-                    });
-                    if (cloudGoals['last_med']) {
-                        try {
-                            const meds = JSON.parse(cloudGoals['last_med']);
-                            document.getElementById('med-diuretic').checked = !!meds.diuretic;
-                            document.getElementById('med-laxative').checked = !!meds.laxative;
-                        } catch(e) {}
-                    }
-                    updateTargetPanel();
-                    renderRecords();
-                    checkReminders();
-                    checkBowelMovementAlert();
-                    renderTopBar();   // 名字存雲端，取回後更新身分按鈕
-                })
-                .catch(err => showToast("同步失敗，請檢查網路連線", true))
+                .then(data => { writeDayCache(targetDate, data); applyCloudData(data); })
+                .catch(err => showToast(LTXT("同步失敗，請檢查網路連線", "Sinkronisasi gagal, periksa jaringan"), true))
                 .finally(() => { icon.classList.remove('animate-spin-slow'); if (syncModal) syncModal.classList.add('hidden'); });
         }
 
@@ -917,6 +1019,9 @@ function checkBpTime() {
                 const hr = document.getElementById('input-bp-hr').value;
                 if (!sys || !dia || !hr) return showToast("請完整填寫血壓與心跳數值！", true);
                 amount = `${sys}/${dia} (心跳:${hr})`;
+                // 合理區間檢查（care-tasks.js v7）：超出→彈窗提醒注意奶奶狀況，不擋存檔
+                const bpChk = careBpViolations(category, sys, dia, hr);
+                if (bpChk.violations.length > 0) showBpAlert(bpChk);
             } else {
                 category = document.querySelector('input[name="category"]:checked').value;
                 if (category === '排便') {
@@ -1009,6 +1114,9 @@ function checkBpTime() {
 
         // 選擇日期後自動同步
         document.getElementById('input-date').addEventListener('change', fetchCloudData);
+        // 引導序：點過/改過日期 → 換「時」閃動
+        document.getElementById('input-date').addEventListener('change', () => setGuide('hour'));
+        document.getElementById('input-date').addEventListener('click', () => setGuide('hour'));
 
         document.getElementById('input-target-val').addEventListener('change', function() {
             const checkedCategory = document.querySelector('input[name="category"]:checked')?.value;
@@ -1021,6 +1129,21 @@ function checkBpTime() {
                 fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "setGoal", category: currentItem, amount: this.value }) });
             }
         });
+
+        // ===== 血壓/心跳超出合理區間 → 超大字紅色彈窗（只提醒，不擋存檔） =====
+        function showBpAlert(chk) {
+            const sub = chk.slot === '早'
+                ? LTXT('晨間（服藥前）合理控制區間', 'Kisaran wajar pagi (sebelum obat)')
+                : LTXT('晚間（睡前）合理控制區間', 'Kisaran wajar malam (sebelum tidur)');
+            document.getElementById('bp-alert-sub').innerText = sub;
+            document.getElementById('bp-alert-body').innerHTML = chk.violations.map(v =>
+                `<div class="bg-red-50 border-2 border-red-300 rounded-2xl p-3 text-left">
+                    <p class="text-xl font-black text-red-700">${LTXT(v.zh, v.id)}：${v.val}</p>
+                    <p class="text-base font-bold text-red-500">${LTXT('合理', 'Wajar')} ${v.lo}–${v.hi} ${v.unit === '次/分' ? LTXT('次/分', 'x/menit') : v.unit}</p>
+                </div>`).join('');
+            document.getElementById('bp-alert-modal').classList.remove('hidden');
+        }
+        window.closeBpAlert = function() { document.getElementById('bp-alert-modal').classList.add('hidden'); };
 
         window.openConfirmModal = function(id) { currentActiveId = id; document.getElementById('confirm-modal').classList.remove('hidden'); };
         window.closeModal = function() { currentActiveId = null; document.getElementById('confirm-modal').classList.add('hidden'); };
@@ -1037,11 +1160,13 @@ function checkBpTime() {
         };
 
         window.onload = function() {
+            initTimeSelects();
             renderTopBar();
             if (CARE_JOINED) showToast(LTXT('✅ 此裝置已綁定為 👤U' + CARE_JOINED, '✅ Perangkat ini terdaftar sebagai 👤U' + CARE_JOINED));
             document.getElementById('input-note').placeholder = LTXT('輸入額外說明內容...', 'Masukkan catatan tambahan...');
             localizePage();
             setNow(); updateView(); fetchCloudData();
+            setGuide('date');   // 引導起點：日期框閃水藍
         };
 
         function checkBowelMovementAlert() {

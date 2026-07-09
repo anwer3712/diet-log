@@ -1,7 +1,7 @@
 /* ============================================================
  * care-tasks.js — index.html / report.html / admin.html 共用
  * 時段定義、任務判定（準時/補齊/XX/未到期）、進度格渲染、
- * 使用者身分（U1/U2/U3/管理者）、語言（zh/id）、備註單語化
+ * 使用者身分（U1–U5/管理者，U5=anak.html 兒童頁）、語言（zh/id）、備註單語化
  * ============================================================ */
 
 /* 管理者密碼：改這裡（僅家庭內部防誤觸用，非高強度保密） */
@@ -173,12 +173,32 @@ function careApplyJoin(){
     return null;
 }
 
-/* 記錄者標記 👤U1/U2/U3/U4/UA */
+/* 記錄者標記 👤U1/U2/U3/U4/U5/UA（U5＝兒童頁 anak.html） */
 function careUserOfNote(note){
-    const m = /👤U([1234A])/.exec(note || '');
+    const m = /👤U([12345A])/.exec(note || '');
     return m ? m[1] : null;
 }
-function careStripUserTag(note){ return (note || '').replace(/\s*👤U[1234A]/g, '').trim(); }
+function careStripUserTag(note){ return (note || '').replace(/\s*👤U[12345A]/g, '').trim(); }
+
+/* ===== 血壓/心跳合理控制區間（index.html／anak.html 共用；超出→彈窗提醒，不擋存檔） ===== */
+const CARE_BP_RANGES = {
+    '早': { sys:[130,150], dia:[70,90], hr:[65,85] },   // 晨間（服藥前）
+    '晚': { sys:[120,140], dia:[70,85], hr:[65,80] }    // 晚間（睡前）
+};
+/* category 含 (早)/(晚)；回傳 { slot, violations:[{zh,id,val,lo,hi,unit}] }，空陣列＝全部合理 */
+function careBpViolations(category, sys, dia, hr){
+    const slot = (category || '').includes('(早)') ? '早' : '晚';
+    const R = CARE_BP_RANGES[slot];
+    const out = [];
+    const chk = (zh, id, v, lo, hi, unit) => {
+        const n = Number(v);
+        if (!isFinite(n) || n < lo || n > hi) out.push({ zh, id, val: v, lo, hi, unit });
+    };
+    chk('收縮壓', 'Tekanan atas',   sys, R.sys[0], R.sys[1], 'mmHg');
+    chk('舒張壓', 'Tekanan bawah',  dia, R.dia[0], R.dia[1], 'mmHg');
+    chk('心跳',   'Detak jantung',  hr,  R.hr[0],  R.hr[1],  '次/分');
+    return { slot, violations: out };
+}
 
 /* 備註單語化：把「中文 / 外文」對與已知標籤依語言取單側 */
 function careNoteDisplay(note, lang){
