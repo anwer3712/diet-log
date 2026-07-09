@@ -22,11 +22,15 @@
     <div class="max-w-md mx-auto px-3 pt-4 space-y-4">
 
         <div class="text-center">
-            <h1 class="text-3xl font-black">👵 CATATAN NENEK</h1>
+            <div class="flex items-center justify-between">
+                <h1 class="text-3xl font-black flex-1 text-left">👵 CATATAN NENEK</h1>
+                <a href="index.html" class="shrink-0 bg-gray-800 text-white rounded-2xl px-4 py-2 text-xl font-black active:scale-95">👤 DEWASA</a>
+            </div>
             <div class="mt-1 text-xl font-black text-sky-800 flex items-center justify-center gap-2">
                 <span id="target-strip">🎯 Target: … cc　|　Sudah: … cc</span>
                 <span id="sync-icon" class="text-base">🔄</span>
             </div>
+            <div id="warn-box" class="space-y-2 mt-2 text-center"></div>
         </div>
 
         <!-- 一、日期＋時間 -->
@@ -183,6 +187,16 @@
             <p class="text-xl font-black">Perhatikan kondisi Nenek!</p>
             <div id="bp-modal-body" class="space-y-2 text-left"></div>
             <button type="button" onclick="document.getElementById('bp-modal').classList.add('hidden')" class="bigbtn w-full bg-red-600 text-white rounded-2xl text-2xl font-black py-3">OK, SUDAH PANGGIL</button>
+        </div>
+    </div>
+
+    <!-- 一般警示（喝太多/尿太多）：兒童版大彈窗 -->
+    <div id="warn-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border-8 border-red-600 p-5 w-full max-w-sm text-center space-y-3">
+            <p class="text-5xl">🚨</p>
+            <div id="warn-modal-body" class="space-y-2"></div>
+            <p class="text-2xl font-black">PANGGIL ORANG DEWASA! 🧑</p>
+            <button type="button" onclick="document.getElementById('warn-modal').classList.add('hidden')" class="bigbtn w-full bg-red-600 text-white rounded-2xl text-2xl font-black py-3">OK, SUDAH PANGGIL</button>
         </div>
     </div>
 
@@ -371,24 +385,56 @@ function renderAll(){
     const sudah = records.filter(r => ['飲水量','服藥飲水','營養飲品','進食'].includes(r.category)).reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
     $('target-strip').innerText = `🎯 Target: ${goal} cc　|　Sudah: ${sudah} cc`;
     // 紀錄列
+    // 依時段分框（同管理者總表：凌晨/早上/中午/下午/睡前/深夜），版面不雜亂
+    const SLOT_EMOJI = { dawn:'🌙', morning:'🌅', midday:'☀️', evening:'🌇', night:'🛏️', late:'💤' };
+    const recRow = r => {
+        const isBP = (r.category || '').includes('血壓');
+        const emoji = isBP ? '❤️' : (CAT_EMOJI[r.category] || '📝');
+        const unit = isBP ? '' : (['排便','仰臥抬腿','大腿內收','橋式抬臀','站立'].includes(r.category) ? 'x' : ' cc');
+        const note = careNoteDisplay(r.note || '', 'id');
+        return `<div class="flex items-center gap-2 border-[3px] border-gray-400 rounded-2xl p-3 bg-white">
+            <div class="flex-1 min-w-0">
+                <p class="text-2xl font-black">${r.time} ${emoji} ${r.amount}${unit}</p>
+                ${note ? `<p class="text-base font-bold text-gray-600 truncate">${note}</p>` : ''}
+            </div>
+            <button type="button" onclick="askDelete('${r.recordId}')" class="shrink-0 w-16 h-16 rounded-2xl bg-red-600 text-white text-3xl font-black active:scale-95">❌</button>
+        </div>`;
+    };
     const list = $('rec-list');
     if (records.length === 0) { list.innerHTML = '<p class="text-xl font-black text-gray-500 text-center py-4">Belum ada catatan</p>'; }
     else {
-        list.innerHTML = records.slice().sort((a,b) => b.time.localeCompare(a.time)).map(r => {
-            const isBP = (r.category || '').includes('血壓');
-            const emoji = isBP ? '❤️' : (CAT_EMOJI[r.category] || '📝');
-            const unit = isBP ? '' : (['排便','仰臥抬腿','大腿內收','橋式抬臀','站立'].includes(r.category) ? 'x' : ' cc');
-            const note = careNoteDisplay(r.note || '', 'id');
-            return `<div class="flex items-center gap-2 border-4 border-gray-800 rounded-2xl p-3">
-                <div class="flex-1 min-w-0">
-                    <p class="text-2xl font-black">${r.time} ${emoji} ${r.amount}${unit}</p>
-                    ${note ? `<p class="text-base font-bold text-gray-600 truncate">${note}</p>` : ''}
-                </div>
-                <button type="button" onclick="askDelete('${r.recordId}')" class="shrink-0 w-16 h-16 rounded-2xl bg-red-600 text-white text-3xl font-black active:scale-95">❌</button>
+        list.innerHTML = CARE_SLOTS.map(s => {
+            const recs = records.filter(r => r.time >= s.start && (s.end === '24:00' || r.time < s.end)).sort((a,b) => a.time.localeCompare(b.time));
+            if (recs.length === 0) return '';
+            return `<div class="border-4 border-sky-700 rounded-3xl p-2 space-y-2 bg-sky-50">
+                <p class="text-2xl font-black text-sky-900 px-1">${SLOT_EMOJI[s.key] || ''} ${s.id} <span class="text-base text-sky-700">${s.start}-${s.end}</span></p>
+                ${recs.map(recRow).join('')}
             </div>`;
         }).join('');
     }
+    checkWarnings();
     refresh();
+}
+
+/* ===== 兒童版警示（跟大人版同規則，用小朋友看得懂的話）：
+ * 喝太多(>1200cc)、尿太多(>正常上限=喝的×1.1，吃利尿藥×1.5) → 大紅橫幅＋每天每種跳一次大彈窗 ===== */
+function checkWarnings(){
+    const intake = records.filter(r => ['飲水量','服藥飲水','營養飲品','進食'].includes(r.category)).reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
+    const urine = records.filter(r => r.category === '尿液').reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
+    const cfg = careConfig(goals);
+    const uMax = cfg.diuretic ? Math.round(intake * 1.5) : Math.round(intake * 1.1);
+    const warns = [];
+    if (intake > 1200) warns.push({ key:'minum', text:'🛑 STOP! Nenek minum TERLALU BANYAK!' });
+    if (urine > 0 && uMax > 0 && urine > uMax) warns.push({ key:'pipis', text:'🛑 Nenek pipis TERLALU BANYAK!' });
+    $('warn-box').innerHTML = warns.map(w =>
+        `<div class="border-8 border-red-700 bg-red-100 rounded-3xl p-3 text-2xl font-black text-red-700">${w.text}<br><span class="text-xl">PANGGIL ORANG DEWASA! 🧑</span></div>`).join('');
+    const date = $('input-date').value || careTodayStr();
+    const fresh = warns.filter(w => !localStorage.getItem('anak_warn_' + date + '_' + w.key));
+    if (fresh.length) {
+        $('warn-modal-body').innerHTML = fresh.map(w => `<p class="text-3xl font-black text-red-700">${w.text}</p>`).join('');
+        $('warn-modal').classList.remove('hidden');
+        fresh.forEach(w => localStorage.setItem('anak_warn_' + date + '_' + w.key, '1'));
+    }
 }
 
 /* ===== 同步：快取先渲染，背景刷新（不擋操作） ===== */

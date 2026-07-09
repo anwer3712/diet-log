@@ -15,17 +15,19 @@
             50% { transform: scale(1.01); border-color: #F4726B; box-shadow: 0 0 10px 3px rgba(251,139,122,0.25); }
         }
         .celebrate-active { animation: pulse-coral 2s infinite ease-in-out; background: #FFF5F3; }
+        /* 警示閃動：深紅色、光暈渲染開，務必醒目 */
         @keyframes pulse-red {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35); }
-            50% { box-shadow: 0 0 12px 3px rgba(220, 38, 38, 0.3); }
+            0%, 100% { box-shadow: 0 0 0 0 rgba(153, 27, 27, 0.9); }
+            50% { box-shadow: 0 0 24px 10px rgba(153, 27, 27, 0.55); }
         }
-        .danger-active { animation: pulse-red 1.6s infinite ease-in-out; border-color: #dc2626 !important; }
+        .danger-active { animation: pulse-red 1.2s infinite ease-in-out; border-color: #991b1b !important; border-width: 4px !important; }
+        /* 逐步引導：深紫色動態框線（黃色太不明顯） */
         @keyframes border-guide {
-            0% { border-color: #F59E0B; box-shadow: 0 0 0 1px rgba(245,158,11,0.4); }
-            50% { border-color: #FCD34D; box-shadow: 0 0 0 3px rgba(245,158,11,0.6); }
-            100% { border-color: #F59E0B; box-shadow: 0 0 0 1px rgba(245,158,11,0.4); }
+            0% { border-color: #6d28d9; box-shadow: 0 0 0 1px rgba(109,40,217,0.5); }
+            50% { border-color: #a855f7; box-shadow: 0 0 0 4px rgba(109,40,217,0.65); }
+            100% { border-color: #6d28d9; box-shadow: 0 0 0 1px rgba(109,40,217,0.5); }
         }
-        .guided-border { animation: border-guide 1s infinite ease-in-out; border-width: 2px !important; }
+        .guided-border { animation: border-guide 1s infinite ease-in-out; border-width: 2.5px !important; }
         .animate-spin-slow { animation: spin 3s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
@@ -142,8 +144,8 @@
             </div>
 
             <div id="catheter-note" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-3 text-amber-800 font-bold text-xs space-y-1">
-                <p>🚽 白天關閉導尿管，訓練感受尿液；晚上打開導尿管，防止膀胱超過負荷。</p>
-                <p class="text-[11px] text-amber-600 font-medium">Kateter ditutup pada siang hari untuk melatih kandung kemih agar merasakan urine, dan dibuka pada malam hari untuk mencegah kandung kemih kelebihan beban.</p>
+                <p>🚽 早上、下午各一次訓練尿感：關閉導尿管，每次最多 3 小時。</p>
+                <p class="text-[11px] text-amber-600 font-medium">Latihan sensasi kencing sekali di pagi hari dan sekali di sore hari: tutup kateter, maksimal 3 jam setiap kali.</p>
             </div>
 
             <div id="date-time-card" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-stone-100 grid grid-cols-2 gap-3">
@@ -367,7 +369,7 @@
             const nm = u => careUserName(cloudGoals, u);   // 管理者設定的名字，未設定則顯示 U1/U2/U3
             us.innerHTML = [['1','👤'+nm('1')],['2','👤'+nm('2')],['3','👤'+nm('3')],['4','👤'+nm('4')],['A','⚙️' + LTXT('管理','Admin')]].map(([u,lbl]) =>
                 `<button type="button" onclick="switchUser('${u}')" class="px-2.5 py-1.5 rounded-full text-[11px] font-black border ${CARE_USER===u?'bg-[#FB8B7A] text-white border-[#FB8B7A]':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
-            ).join('');
+            ).join('') + `<a href="anak.html" class="px-2.5 py-1.5 rounded-full text-[11px] font-black border bg-indigo-50 text-indigo-600 border-indigo-300">👦 Anak</a>`;
             const ls = document.getElementById('lang-switch');
             ls.innerHTML = [['zh','中文'],['id','ID']].map(([m,lbl]) =>
                 `<button type="button" onclick="switchLang('${m}')" class="px-2.5 py-1.5 rounded-full text-[10px] font-black border ${LANG_MODE===m?'bg-sky-400 text-white border-sky-400':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
@@ -711,16 +713,19 @@ function checkBpTime() {
             const bar = document.getElementById('progress-bar');
             const overFluid = (currentItem === '總攝入水量' && achieved > 1200);
 
-            // 尿液超出正常範圍警告
-            if (currentItem === '尿液' && achieved > 0 && urineRangeMax > 0 && achieved > urineRangeMax) {
+            // 尿液超出正常範圍警告（alert 提醒＋下方深紅閃動框與警示卡同步亮起）
+            const overUrine = (currentItem === '尿液' && achieved > 0 && urineRangeMax > 0 && achieved > urineRangeMax);
+            if (overUrine) {
                 const hasDiuretic = document.getElementById('med-diuretic').checked;
                 const medLabel = hasDiuretic ? '有利尿藥物' : '無藥物';
                 alert(`⚠️ 【尿液超出正常範圍警告】\n\n今日尿液量：${achieved} c.c.\n正常上限（${medLabel}）：${urineRangeMax} c.c.\n\n請注意並告知護理人員。\n\nPeringatan: Volume urine hari ini (${achieved} c.c.) melebihi batas normal (${urineRangeMax} c.c.). Harap laporkan ke perawat.`);
             }
 
-            if (overFluid) {
+            if (overFluid || overUrine) {
                 warningEl.classList.remove('hidden');
-                warningEl.innerHTML = `🚨 總液體量已超過目標值 (1200 c.c.)！<br><span class="text-[10px] font-medium">Volume cairan melebihi target (1200 c.c.)!</span>`;
+                warningEl.innerHTML = overFluid
+                    ? `🚨 總液體量已超過目標值 (1200 c.c.)！<br><span class="text-[10px] font-medium">Volume cairan melebihi target (1200 c.c.)!</span>`
+                    : `🚨 尿液量 ${achieved} c.c. 已超過正常上限 (${urineRangeMax} c.c.)！<br><span class="text-[10px] font-medium">Volume urine (${achieved} c.c.) melebihi batas normal (${urineRangeMax} c.c.)!</span>`;
                 targetDashboard.classList.add('danger-active');
                 bar.classList.remove('bg-[#FB8B7A]'); bar.classList.add('bg-red-500');
             } else {
@@ -730,7 +735,7 @@ function checkBpTime() {
             }
 
             targetDashboard.classList.remove('celebrate-active');
-            if (!overFluid && percent >= 90) targetDashboard.classList.add('celebrate-active');
+            if (!overFluid && !overUrine && percent >= 90) targetDashboard.classList.add('celebrate-active');
         }
 
         function checkReminders() {
