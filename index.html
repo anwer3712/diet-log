@@ -30,6 +30,20 @@
         .guided-border { animation: border-guide 1s infinite ease-in-out; border-width: 2.5px !important; }
         .animate-spin-slow { animation: spin 3s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* 警示彈窗動態：進場彈跳＋搖晃＋紅光暈（原生 alert 無動態，全面改用此彈窗） */
+        .modal-pop { animation: modal-pop .3s cubic-bezier(.2, .9, .3, 1.3); }
+        .modal-pop.danger { animation: modal-pop .3s cubic-bezier(.2, .9, .3, 1.3), alert-shake .5s ease .3s 2, pulse-red 1.2s infinite ease-in-out .9s; }
+        @keyframes modal-pop {
+            from { opacity: 0; transform: translateY(16px) scale(.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes alert-shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-7px); } 40% { transform: translateX(7px); }
+            60% { transform: translateX(-5px); } 80% { transform: translateX(5px); }
+        }
+        .bounce-big { display: inline-block; animation: bounce-big 1s infinite; }
+        @keyframes bounce-big { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
         /* ===== 日式清新 × 企業商務（長輩友善）：白底、高對比、大字、粗框區塊 ===== */
         body { background: #fafafa; font-size: 16px; }
@@ -269,7 +283,7 @@
     </div>
 
     <div id="reminder-modal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-2 border-stone-100 text-center space-y-4">
+        <div class="modal-pop bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-2 border-stone-100 text-center space-y-4">
             <div class="w-16 h-16 bg-stone-50 text-[#FB8B7A] rounded-full flex items-center justify-center mx-auto text-3xl font-bold animate-bounce">🔔</div>
             <div>
                 <h4 class="font-black text-gray-800 text-lg">照護提醒 / Pengingat</h4>
@@ -281,7 +295,7 @@
     </div>
 
     <div id="confirm-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-xl border border-gray-100 text-center space-y-4">
+        <div class="modal-pop bg-white rounded-3xl p-5 max-w-xs w-full shadow-xl border border-gray-100 text-center space-y-4">
             <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚠️</div>
             <div>
                 <h4 class="font-black text-gray-800 text-base">確定此筆紀錄輸入錯誤？</h4>
@@ -294,8 +308,18 @@
         </div>
     </div>
 
+    <!-- 通用動態警示彈窗（取代原生 alert：尿量超標／21:00 盤點／排便超時） -->
+    <div id="care-alert-modal" class="fixed inset-0 bg-black/70 z-[90] flex items-center justify-center p-4 hidden">
+        <div class="modal-pop danger bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-red-600 text-center space-y-4">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-4xl"><span class="bounce-big">🚨</span></div>
+            <h4 id="care-alert-title" class="font-black text-red-700 text-xl leading-tight"></h4>
+            <div id="care-alert-body" class="text-left text-sm font-bold text-gray-700 bg-red-50 border-2 border-red-200 rounded-2xl p-3 space-y-2 max-h-[45vh] overflow-y-auto"></div>
+            <button type="button" onclick="closeCareAlert()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl py-3.5 text-lg shadow-md transition-all active:scale-95">我知道了 / Saya mengerti</button>
+        </div>
+    </div>
+
     <div id="bp-alert-modal" class="fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-red-500 text-center space-y-4">
+        <div class="modal-pop danger bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-red-500 text-center space-y-4">
             <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-4xl animate-bounce">⚠️</div>
             <h4 class="font-black text-red-700 text-2xl leading-tight">請注意奶奶狀況！<br><span class="text-lg">Perhatikan kondisi Nenek!</span></h4>
             <p id="bp-alert-sub" class="text-base font-black text-gray-700"></p>
@@ -718,7 +742,10 @@ function checkBpTime() {
             if (overUrine) {
                 const hasDiuretic = document.getElementById('med-diuretic').checked;
                 const medLabel = hasDiuretic ? '有利尿藥物' : '無藥物';
-                alert(`⚠️ 【尿液超出正常範圍警告】\n\n今日尿液量：${achieved} c.c.\n正常上限（${medLabel}）：${urineRangeMax} c.c.\n\n請注意並告知護理人員。\n\nPeringatan: Volume urine hari ini (${achieved} c.c.) melebihi batas normal (${urineRangeMax} c.c.). Harap laporkan ke perawat.`);
+                showCareAlert('尿液超出正常範圍警告<br><span class="text-sm">Volume urine melebihi batas normal</span>',
+                    `<p>今日尿液量：<b class="text-red-600">${achieved} c.c.</b><br>正常上限（${medLabel}）：${urineRangeMax} c.c.</p>
+                     <p>請注意並告知護理人員。</p>
+                     <p class="text-xs text-gray-500">Peringatan: Volume urine hari ini (${achieved} c.c.) melebihi batas normal (${urineRangeMax} c.c.). Harap laporkan ke perawat.</p>`);
             }
 
             if (overFluid || overUrine) {
@@ -753,7 +780,9 @@ function checkBpTime() {
                 
                 if (intakeTarget > 0 && totalIntake < intakeTarget) {
                     document.getElementById('target-dashboard').classList.add('danger-active');
-                    alert('⚠️ 注意！請檢查今日攝入量有無填寫正確\n\n※C※C※CPerhatian※C ※C※C Mohon periksa apakah asupan harian Anda telah dimasukkan dengan benar.');
+                    showCareAlert('注意！請檢查今日攝入量<br><span class="text-sm">Periksa asupan hari ini</span>',
+                        `<p>今日總攝入 <b class="text-red-600">${totalIntake} c.c.</b> 尚未達到目標 ${intakeTarget} c.c.，請檢查有無漏填。</p>
+                         <p class="text-xs text-gray-500">Perhatian! Mohon periksa apakah asupan harian Anda telah dimasukkan dengan benar.</p>`);
                 }
                 if (urineTarget > 0 && urineAchieved > 0 && urineAchieved > urineTarget * 1.5) {
                     document.getElementById('target-dashboard').classList.add('danger-active');
@@ -898,6 +927,17 @@ function checkBpTime() {
             const c = TYPE_ZONE[sel] ? TYPE_ZONE[sel].line : '#9ca3af';
             ['items-category-card', 'standard-amount-group'].forEach(id => { const el = document.getElementById(id); if (el) el.style.borderColor = c; });
         }
+
+        // ===== 通用動態警示彈窗：所有警示/提醒一律動態呈現（原生 alert 無動態，停用） =====
+        function showCareAlert(title, bodyHtml) {
+            document.getElementById('care-alert-title').innerHTML = title;
+            document.getElementById('care-alert-body').innerHTML = bodyHtml;
+            const modal = document.getElementById('care-alert-modal');
+            const card = modal.querySelector('.modal-pop');
+            card.classList.remove('danger'); void card.offsetWidth; card.classList.add('danger');   // 重新觸發進場動畫
+            modal.classList.remove('hidden');
+        }
+        window.closeCareAlert = function() { document.getElementById('care-alert-modal').classList.add('hidden'); };
 
         function showToast(msg, isError = false) {
             const toast = document.getElementById('toast');
@@ -1186,7 +1226,10 @@ function checkBpTime() {
                 const lastAlertTime = localStorage.getItem('lastBowelAlertTime') || 0;
                 const hoursSinceLastAlert = (now - lastAlertTime) / (1000 * 60 * 60);
                 if (hoursSinceLastAlert >= 2) {
-                    alert(`🚨 【嚴重警告 / Peringatan Darurat】 🚨\n\n自前次解便至今已達 ${Math.floor(diffHours)} 小時！\n\n將「連續 3 天未解便」或「伴隨嚴重腹脹、食慾急遽下降」視為「必須立即回報醫師」的紅燈警訊，嚴禁照顧者在未經醫師許可下，自行購買並對病患使用任何液體浣腸劑。\n\n"Tidak buang air besar selama 3 hari berturut-turut" atau "disertai dengan perut kembung parah dan penurunan nafsu makan yang tajam" dianggap sebagai tanda bahaya yang memerlukan perhatian medis segera. Pengasuh dilarang keras membeli dan memberikan enema cair kepada pasien tanpa izin dokter.`);
+                    showCareAlert('嚴重警告 / Peringatan Darurat',
+                        `<p>自前次解便至今已達 <b class="text-red-600">${Math.floor(diffHours)} 小時</b>！</p>
+                         <p>將「連續 3 天未解便」或「伴隨嚴重腹脹、食慾急遽下降」視為「必須立即回報醫師」的紅燈警訊，嚴禁照顧者在未經醫師許可下，自行購買並對病患使用任何液體浣腸劑。</p>
+                         <p class="text-xs text-gray-500">"Tidak buang air besar selama 3 hari berturut-turut" atau "disertai dengan perut kembung parah dan penurunan nafsu makan yang tajam" dianggap sebagai tanda bahaya yang memerlukan perhatian medis segera. Pengasuh dilarang keras membeli dan memberikan enema cair kepada pasien tanpa izin dokter.</p>`);
                     localStorage.setItem('lastBowelAlertTime', now);
                 }
             } else if (diffHours < 60) {

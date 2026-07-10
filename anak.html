@@ -1,96 +1,171 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Catatan Nenek — Anak</title>
+    <title>奶奶日誌 — 兒童版 / Catatan Nenek — Anak</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="care-tasks.js?v=7"></script>
     <style>
-        /* 兒童＋先天遠視：超大字、純黑白高對比、粗實心框。禁用淡色/細閃動（他看不到） */
-        body { background: #ffffff; color: #111111; font-size: 22px; }
-        .step { border: 4px solid #d1d5db; border-radius: 1.5rem; }
-        .step.now { border: 6px solid #0369a1; }
-        .step .here { display: none; }
-        .step.now .here { display: block; }
-        .bigbtn { min-height: 64px; }
+        /* ============================================================
+         * 兒童＋先天遠視設計原則：超大字、白底高對比、粗實心框、
+         * 引導一律用「粗框＋強光暈」動態（禁用淡色/細閃動，他看不到）
+         * 主色改為深青 teal（原 sky 藍停用）；紅色只留給緊急警示
+         * ============================================================ */
+        :root {
+            --ink: #111827;
+            --line: #d1d5db;
+            --accent: #0f766e;        /* 深青：選取/主要動作 */
+            --accent-soft: #ccfbf1;
+            --guide: #6d28d9;         /* 深紫：目前步驟引導（與大人版一致） */
+            --guide2: #a855f7;
+            --danger: #b91c1c;        /* 深紅：緊急專用 */
+        }
+        body { background: #ffffff; color: var(--ink); font-size: 22px; }
+
+        /* 步驟卡：粗框＋左上超大數字徽章 */
+        .step { position: relative; border: 4px solid var(--line); border-radius: 1.75rem; }
+        .stepnum {
+            position: absolute; top: -1.35rem; left: -0.4rem;
+            width: 3.6rem; height: 3.6rem; border-radius: 9999px;
+            background: #111827; color: #fff;
+            font-size: 2.1rem; font-weight: 900; line-height: 1;
+            display: flex; align-items: center; justify-content: center;
+            border: 4px solid #fff; box-shadow: 0 3px 10px rgba(0,0,0,.25);
+            z-index: 10;
+        }
+        /* 目前步驟：深紫粗框動態引導（取代 DI SINI 文字） */
+        .step.now { border-color: var(--guide); animation: guide-step 1.1s infinite ease-in-out; }
+        .step.now .stepnum { background: var(--guide); animation: badge-pulse 1.1s infinite ease-in-out; }
+        @keyframes guide-step {
+            0%, 100% { border-color: var(--guide);  box-shadow: 0 0 0 2px rgba(109,40,217,.45); }
+            50%      { border-color: var(--guide2); box-shadow: 0 0 0 8px rgba(109,40,217,.30); }
+        }
+        @keyframes badge-pulse {
+            0%, 100% { transform: scale(1); }
+            50%      { transform: scale(1.12); }
+        }
+
+        /* 出現動畫：步驟/彈窗滑入 */
+        .enter { animation: pop-in .35s cubic-bezier(.2, .9, .3, 1.3); }
+        @keyframes pop-in {
+            from { opacity: 0; transform: translateY(14px) scale(.96); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* 緊急警示動態：深紅強光暈＋進場搖晃，務必醒目 */
+        .alert-banner { animation: shake .5s ease 2, glow-red 1.2s infinite ease-in-out; }
+        .glow-red { animation: glow-red 1.2s infinite ease-in-out; }
+        @keyframes glow-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(153, 27, 27, .9); }
+            50%      { box-shadow: 0 0 26px 10px rgba(153, 27, 27, .5); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-7px); } 40% { transform: translateX(7px); }
+            60% { transform: translateX(-5px); } 80% { transform: translateX(5px); }
+        }
+        .bounce-big { display: inline-block; animation: bounce-big 1s infinite; }
+        @keyframes bounce-big {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-12px); }
+        }
+        .modal-card { animation: pop-in .3s cubic-bezier(.2, .9, .3, 1.3); }
+        .modal-card.danger { animation: pop-in .3s cubic-bezier(.2, .9, .3, 1.3), shake .5s ease .3s 2, glow-red 1.2s infinite ease-in-out .9s; }
+
+        /* 按鈕通用 */
+        .bigbtn { min-height: 64px; transition: transform .12s ease, background-color .2s, color .2s, border-color .2s; }
+        .bigbtn:active { transform: scale(.95); }
+        .choice { border: 4px solid #1f2937; border-radius: 1.25rem; font-weight: 900; background: #fff; }
+        .choice.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .chip.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .ringed { box-shadow: 0 0 0 6px var(--accent); border-color: var(--accent) !important; }
+
         .animate-spin-slow { animation: spin 3s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        #toast { transition: opacity .3s, transform .3s; transform: translate(-50%, 20px); }
+        #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { animation: none !important; transition: none !important; }
+        }
     </style>
 </head>
 <body class="min-h-screen pb-16 font-sans">
-    <div class="max-w-md mx-auto px-3 pt-4 space-y-4">
+    <div class="max-w-md mx-auto px-3 pt-4 space-y-8">
 
-        <div class="text-center">
-            <div class="flex items-center justify-between">
-                <h1 class="text-3xl font-black flex-1 text-left">👵 CATATAN NENEK</h1>
-                <a href="index.html" class="shrink-0 bg-gray-800 text-white rounded-2xl px-4 py-2 text-xl font-black active:scale-95">👤 DEWASA</a>
+        <!-- 頂部：標題本身就是回大人版的連結（不另設按鈕，畫面乾淨） -->
+        <header class="space-y-2">
+            <div class="flex items-center justify-between gap-2">
+                <a href="index.html" class="flex-1 min-w-0 active:opacity-60">
+                    <h1 class="text-3xl font-black truncate">👵 <span data-t="title"></span> <span class="text-lg align-middle text-gray-400">👤›</span></h1>
+                </a>
+                <div id="lang-switch" class="flex gap-1 shrink-0"></div>
             </div>
-            <div class="mt-1 text-xl font-black text-sky-800 flex items-center justify-center gap-2">
-                <span id="target-strip">🎯 Target: … cc　|　Sudah: … cc</span>
+            <div class="text-xl font-black flex items-center justify-center gap-2" style="color: var(--accent)">
+                <span id="target-strip">🎯 … cc ｜ ✅ … cc</span>
                 <span id="sync-icon" class="text-base">🔄</span>
             </div>
-            <div id="warn-box" class="space-y-2 mt-2 text-center"></div>
-        </div>
+            <div class="mx-auto max-w-xs h-3 rounded-full bg-gray-200 overflow-hidden">
+                <div id="strip-bar" class="h-full w-0 rounded-full transition-all duration-700" style="background: var(--accent)"></div>
+            </div>
+            <div id="warn-box" class="space-y-2 text-center"></div>
+        </header>
 
-        <!-- 一、日期＋時間 -->
-        <section id="step1" class="step now bg-white p-4 space-y-3">
-            <p class="here text-2xl font-black text-sky-700">⬇️ DI SINI</p>
-            <h2 class="text-2xl font-black">1️⃣ TANGGAL & JAM</h2>
+        <!-- 一、日期＋時間（12 小時制：☀️ 白天 00–12、🌙 夜晚 13–00） -->
+        <section id="step1" class="step now bg-white p-4 pt-6 space-y-3">
+            <div class="stepnum">1</div>
+            <h2 class="text-2xl font-black text-center">📅 <span data-t="s1"></span></h2>
             <div class="relative">
                 <div id="date-display" class="w-full bg-white border-4 border-gray-800 rounded-2xl py-3 px-3 text-3xl font-black text-center"></div>
                 <input id="input-date" type="date" class="absolute inset-0 w-full h-full opacity-0">
             </div>
             <div class="flex gap-2 items-center justify-center">
-                <select id="sel-hour" class="flex-1 bg-white border-4 border-gray-800 rounded-2xl py-3 text-3xl font-black text-center"></select>
+                <span id="daynight" class="text-5xl shrink-0">☀️</span>
+                <select id="sel-hour" class="flex-1 min-w-0 bg-white border-4 border-gray-800 rounded-2xl py-3 text-3xl font-black text-center"></select>
                 <span class="text-3xl font-black">:</span>
-                <select id="sel-min" class="flex-1 bg-white border-4 border-gray-800 rounded-2xl py-3 text-3xl font-black text-center"></select>
+                <select id="sel-min" class="flex-1 min-w-0 bg-white border-4 border-gray-800 rounded-2xl py-3 text-3xl font-black text-center"></select>
             </div>
-            <button type="button" onclick="okStep1()" class="bigbtn w-full bg-sky-700 text-white rounded-2xl text-3xl font-black py-3 active:scale-95">OK ✓</button>
+            <button type="button" onclick="okStep1()" class="bigbtn w-full text-white rounded-2xl text-3xl font-black py-3" style="background: var(--accent)" data-t="ok"></button>
         </section>
 
-        <!-- 二、四大類 -->
-        <section id="step2" class="step bg-white p-4 space-y-3 hidden">
-            <p class="here text-2xl font-black text-sky-700">⬇️ DI SINI</p>
-            <h2 class="text-2xl font-black">2️⃣ PILIH SATU</h2>
+        <!-- 二、四大類（大圖示優先，字最少） -->
+        <section id="step2" class="step bg-white p-4 pt-6 space-y-3 hidden">
+            <div class="stepnum">2</div>
+            <h2 class="text-2xl font-black text-center">👇 <span data-t="s2"></span></h2>
             <div class="grid grid-cols-2 gap-3">
-                <button type="button" onclick="pickType('makan')"   id="type-makan"   class="bigbtn type-btn rounded-2xl border-4 border-gray-800 font-black text-2xl py-5 active:scale-95">🍚<br>MAKAN<br>MINUM</button>
-                <button type="button" onclick="pickType('keluar')"  id="type-keluar"  class="bigbtn type-btn rounded-2xl border-4 border-gray-800 font-black text-2xl py-5 active:scale-95">🚽<br>PIPIS<br>PUP</button>
-                <button type="button" onclick="pickType('latihan')" id="type-latihan" class="bigbtn type-btn rounded-2xl border-4 border-gray-800 font-black text-2xl py-5 active:scale-95">💪<br>LATIHAN</button>
-                <button type="button" onclick="pickType('tensi')"   id="type-tensi"   class="bigbtn type-btn rounded-2xl border-4 border-gray-800 font-black text-2xl py-5 active:scale-95">❤️<br>TENSI</button>
+                <button type="button" onclick="pickType('makan')"   id="type-makan"   class="bigbtn type-btn choice py-4"><span class="block text-5xl leading-none mb-1">🍚🥤</span><span class="text-xl" data-t="tMakan"></span></button>
+                <button type="button" onclick="pickType('keluar')"  id="type-keluar"  class="bigbtn type-btn choice py-4"><span class="block text-5xl leading-none mb-1">🚽💩</span><span class="text-xl" data-t="tKeluar"></span></button>
+                <button type="button" onclick="pickType('latihan')" id="type-latihan" class="bigbtn type-btn choice py-4"><span class="block text-5xl leading-none mb-1">💪</span><span class="text-xl" data-t="tLatihan"></span></button>
+                <button type="button" onclick="pickType('tensi')"   id="type-tensi"   class="bigbtn type-btn choice py-4"><span class="block text-5xl leading-none mb-1">❤️</span><span class="text-xl" data-t="tTensi"></span></button>
             </div>
         </section>
 
-        <!-- 二之一、細項 -->
-        <section id="step2b" class="step bg-white p-4 space-y-3 hidden">
-            <p class="here text-2xl font-black text-sky-700">⬇️ DI SINI</p>
-            <h2 class="text-2xl font-black">3️⃣ APA?</h2>
+        <!-- 三、細項 -->
+        <section id="step2b" class="step bg-white p-4 pt-6 space-y-3 hidden">
+            <div class="stepnum">3</div>
+            <h2 class="text-2xl font-black text-center">🤔 <span data-t="s3"></span></h2>
 
             <!-- a. 吃進去的 -->
             <div id="panel-makan" class="space-y-3 hidden">
                 <div class="grid grid-cols-2 gap-3">
-                    <button type="button" onclick="pickItem('air')"   id="item-air"   class="bigbtn item-btn rounded-2xl border-4 border-gray-800 font-black text-xl py-4">💧<br>AIR PUTIH</button>
-                    <button type="button" onclick="pickItem('obat')"  id="item-obat"  class="bigbtn item-btn rounded-2xl border-4 border-gray-800 font-black text-xl py-4">💊<br>AIR OBAT</button>
-                    <button type="button" onclick="pickItem('susu')"  id="item-susu"  class="bigbtn item-btn rounded-2xl border-4 border-gray-800 font-black text-xl py-4">🥛<br>SUSU</button>
-                    <button type="button" onclick="pickItem('food')"  id="item-food"  class="bigbtn item-btn rounded-2xl border-4 border-gray-800 font-black text-xl py-4">🍮<br>MAKANAN<br>BERAIR</button>
+                    <button type="button" onclick="pickItem('air')"  id="item-air"  class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">💧</span><span class="text-lg" data-t="iAir"></span></button>
+                    <button type="button" onclick="pickItem('obat')" id="item-obat" class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">💊</span><span class="text-lg" data-t="iObat"></span></button>
+                    <button type="button" onclick="pickItem('susu')" id="item-susu" class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">🥛</span><span class="text-lg" data-t="iSusu"></span></button>
+                    <button type="button" onclick="pickItem('food')" id="item-food" class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">🥣</span><span class="text-lg" data-t="iFood"></span></button>
                 </div>
                 <div id="quick-susu" class="grid grid-cols-2 gap-3 hidden">
-                    <button type="button" onclick="setAmount(120)" class="bigbtn rounded-2xl border-4 border-green-700 bg-green-100 font-black text-xl py-3">½ KALENG<br>120 cc</button>
-                    <button type="button" onclick="setAmount(240)" class="bigbtn rounded-2xl border-4 border-green-700 bg-green-100 font-black text-xl py-3">1 KALENG<br>240 cc</button>
+                    <button type="button" onclick="setAmount(120)" class="bigbtn rounded-2xl border-4 font-black text-xl py-3" style="border-color: var(--accent); background: var(--accent-soft)" data-t="halfCan"></button>
+                    <button type="button" onclick="setAmount(240)" class="bigbtn rounded-2xl border-4 font-black text-xl py-3" style="border-color: var(--accent); background: var(--accent-soft)" data-t="fullCan"></button>
                 </div>
+                <!-- 湯湯水水（羅馬拼音）：buding 預設 135cc；其餘由照顧者填 cc -->
                 <div id="quick-food" class="hidden space-y-2">
-                    <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="pickFood('布丁 / Puding', 135)" class="food-btn bigbtn rounded-2xl border-4 border-amber-600 bg-amber-100 font-black text-xl py-3">🍮 PUDING</button>
-                        <button type="button" onclick="pickFood('仙草 / Cincau', 135)" class="food-btn bigbtn rounded-2xl border-4 border-amber-600 bg-amber-100 font-black text-xl py-3">🖤 CINCAU</button>
-                        <button type="button" onclick="pickFood('愛玉 / Jeli Aiyu', 135)" class="food-btn bigbtn rounded-2xl border-4 border-amber-600 bg-amber-100 font-black text-xl py-3">🍋 AIYU</button>
-                        <button type="button" onclick="pickFood('豆花 / Kembang Tahu', 135)" class="food-btn bigbtn rounded-2xl border-4 border-amber-600 bg-amber-100 font-black text-xl py-3">🥣 KEMBANG TAHU</button>
-                        <button type="button" onclick="pickFood('稀飯 / Bubur', null)" class="food-btn bigbtn rounded-2xl border-4 border-amber-600 bg-white font-black text-xl py-3">🍚 BUBUR</button>
-                        <button type="button" onclick="pickFood('LAINNYA', null)" class="food-btn bigbtn rounded-2xl border-4 border-gray-800 bg-white font-black text-xl py-3">✏️ LAINNYA</button>
-                    </div>
-                    <input id="food-other" type="text" placeholder="Tulis nama makanan" class="hidden w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-2xl font-black">
+                    <div id="food-grid" class="grid grid-cols-2 gap-2"></div>
+                    <input id="food-other" type="text" class="w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-2xl font-black">
                 </div>
                 <div id="amount-row">
-                    <p class="text-2xl font-black">BERAPA cc?</p>
+                    <p class="text-2xl font-black" data-t="howMuch"></p>
                     <div class="flex items-center gap-2">
                         <input id="input-amount" type="number" min="1" class="flex-1 w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
                         <span class="text-3xl font-black">cc</span>
@@ -98,109 +173,123 @@
                 </div>
             </div>
 
-            <!-- b. 排出來的 -->
+            <!-- b. 排出來的（尿液改用 🚽，與飲水 💧 區隔） -->
             <div id="panel-keluar" class="space-y-3 hidden">
                 <div class="grid grid-cols-2 gap-3">
-                    <button type="button" onclick="pickItem('pipis')" id="item-pipis" class="bigbtn item-btn rounded-2xl border-4 border-gray-800 font-black text-2xl py-4">💧<br>PIPIS</button>
-                    <button type="button" onclick="pickItem('pup')"   id="item-pup"   class="bigbtn item-btn rounded-2xl border-4 border-gray-800 font-black text-2xl py-4">💩<br>PUP</button>
+                    <button type="button" onclick="pickItem('pipis')" id="item-pipis" class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">🚽</span><span class="text-xl" data-t="iPipis"></span></button>
+                    <button type="button" onclick="pickItem('pup')"   id="item-pup"   class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">💩</span><span class="text-xl" data-t="iPup"></span></button>
                 </div>
                 <div id="pipis-extra" class="hidden space-y-2">
-                    <p class="text-2xl font-black">BERAPA cc?</p>
+                    <p class="text-2xl font-black" data-t="howMuch"></p>
                     <div class="flex items-center gap-2">
                         <input id="pipis-amount" type="number" min="1" class="flex-1 w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
                         <span class="text-3xl font-black">cc</span>
                     </div>
-                    <p class="text-2xl font-black">WARNA?</p>
+                    <p class="text-2xl font-black">🎨 <span data-t="color"></span></p>
                     <div class="grid grid-cols-3 gap-2">
-                        <button type="button" onclick="pickColor(this,'淡紅色 / Merah Muda')" class="color-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" style="background:#fda4af">MERAH<br>MUDA</button>
-                        <button type="button" onclick="pickColor(this,'深黃色 / Kuning Tua')" class="color-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" style="background:#f59e0b">KUNING<br>TUA</button>
-                        <button type="button" onclick="pickColor(this,'正常淺黃 / Kuning Muda')" class="color-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" style="background:#fde68a">KUNING<br>MUDA</button>
+                        <button type="button" onclick="pickColor(this,'淡紅色 / Merah Muda')"   class="color-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" style="background:#fda4af" data-t="cPink"></button>
+                        <button type="button" onclick="pickColor(this,'深黃色 / Kuning Tua')"   class="color-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" style="background:#f59e0b" data-t="cDark"></button>
+                        <button type="button" onclick="pickColor(this,'正常淺黃 / Kuning Muda')" class="color-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" style="background:#fde68a" data-t="cLight"></button>
                     </div>
                 </div>
                 <div id="pup-extra" class="hidden space-y-2">
-                    <p class="text-2xl font-black">PUP-NYA GIMANA?</p>
+                    <p class="text-2xl font-black" data-t="pupHow"></p>
                     <div class="grid grid-cols-3 gap-2">
-                        <button type="button" onclick="pickStatus(this,'稀便 / feses encer')" class="status-btn bigbtn rounded-2xl border-4 border-gray-800 bg-orange-100 font-black text-xl py-3">ENCER 💦</button>
-                        <button type="button" onclick="pickStatus(this,'大便乾硬 / Kering dan keras')" class="status-btn bigbtn rounded-2xl border-4 border-gray-800 bg-red-100 font-black text-xl py-3">KERAS 🪨</button>
-                        <button type="button" onclick="pickStatus(this,'正常 / Normal')" class="status-btn bigbtn rounded-2xl border-4 border-gray-800 bg-green-100 font-black text-xl py-3">NORMAL 👍</button>
+                        <button type="button" onclick="pickStatus(this,'稀便 / feses encer')"        class="status-btn bigbtn rounded-2xl border-4 border-gray-800 bg-orange-100 font-black text-xl py-3" data-t="pEncer"></button>
+                        <button type="button" onclick="pickStatus(this,'大便乾硬 / Kering dan keras')" class="status-btn bigbtn rounded-2xl border-4 border-gray-800 bg-amber-100 font-black text-xl py-3" data-t="pKeras"></button>
+                        <button type="button" onclick="pickStatus(this,'正常 / Normal')"             class="status-btn bigbtn rounded-2xl border-4 border-gray-800 bg-green-100 font-black text-xl py-3" data-t="pNormal"></button>
                     </div>
-                    <p class="text-2xl font-black">PAKAI OBAT GLISERIN?</p>
+                    <p class="text-2xl font-black" data-t="glis"></p>
                     <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="pickGliserin(this,true)"  class="glis-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-3">YA 💉</button>
-                        <button type="button" onclick="pickGliserin(this,false)" class="glis-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-3">TIDAK</button>
+                        <button type="button" onclick="pickGliserin(this,true)"  class="glis-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-3" data-t="yes"></button>
+                        <button type="button" onclick="pickGliserin(this,false)" class="glis-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-3" data-t="no"></button>
                     </div>
                 </div>
             </div>
 
-            <!-- c. 運動 -->
-            <div id="panel-latihan" class="grid grid-cols-2 gap-3 hidden">
-                <button type="button" onclick="pickItem('kaki')"   id="item-kaki"   class="bigbtn item-btn rounded-2xl border-4 border-gray-800 font-black text-xl py-4">🦵<br>ANGKAT<br>KAKI</button>
-                <button type="button" onclick="pickItem('popok')"  id="item-popok"  class="bigbtn item-btn rounded-2xl border-4 border-gray-800 font-black text-xl py-4">🩲<br>JEPIT<br>POPOK</button>
-                <button type="button" onclick="pickItem('pantat')" id="item-pantat" class="bigbtn item-btn rounded-2xl border-4 border-gray-800 font-black text-xl py-4">🍑<br>ANGKAT<br>PANTAT</button>
-                <button type="button" onclick="pickItem('diri')"   id="item-diri"   class="bigbtn item-btn rounded-2xl border-4 border-gray-800 font-black text-xl py-4">🧍<br>BERDIRI</button>
+            <!-- c. 運動（實照＋圖示，做完填次數） -->
+            <div id="panel-latihan" class="space-y-3 hidden">
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" onclick="pickItem('kaki')"   id="item-kaki"   class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/legraise-1.jpg"  loading="lazy" alt="" class="w-full h-24 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-3xl align-middle">🦵</span> <span class="text-lg" data-t="iKaki"></span></button>
+                    <button type="button" onclick="pickItem('popok')"  id="item-popok"  class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/adduction-1.jpg" loading="lazy" alt="" class="w-full h-24 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-3xl align-middle">🩲</span> <span class="text-lg" data-t="iPopok"></span></button>
+                    <button type="button" onclick="pickItem('pantat')" id="item-pantat" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/bridge-1.jpg"    loading="lazy" alt="" class="w-full h-24 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-3xl align-middle">🍑</span> <span class="text-lg" data-t="iPantat"></span></button>
+                    <button type="button" onclick="pickItem('diri')"   id="item-diri"   class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-2.jpg"     loading="lazy" alt="" class="w-full h-24 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-3xl align-middle">🧍</span> <span class="text-lg" data-t="iDiri"></span></button>
+                </div>
+                <!-- 四項復健都要能填數值（次數） -->
+                <div id="ex-extra" class="hidden space-y-2">
+                    <p class="text-2xl font-black">🔢 <span data-t="howMany"></span></p>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button type="button" onclick="setExAmount(1)"  class="ex-chip chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-2">1</button>
+                        <button type="button" onclick="setExAmount(5)"  class="ex-chip chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-2">5</button>
+                        <button type="button" onclick="setExAmount(10)" class="ex-chip chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-2">10</button>
+                        <button type="button" onclick="setExAmount(15)" class="ex-chip chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-2">15</button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input id="ex-amount" type="number" min="1" class="flex-1 w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
+                        <span class="text-3xl font-black" data-t="times"></span>
+                    </div>
+                </div>
             </div>
 
             <!-- d. 血壓 -->
             <div id="panel-tensi" class="space-y-2 hidden">
-                <p class="text-2xl font-black">ATAS <span class="text-base">(angka besar)</span></p>
+                <p class="text-2xl font-black">⬆️ <span data-t="bpSys"></span></p>
                 <input id="bp-sys" type="number" class="w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
-                <p class="text-2xl font-black">BAWAH <span class="text-base">(angka kecil)</span></p>
+                <p class="text-2xl font-black">⬇️ <span data-t="bpDia"></span></p>
                 <input id="bp-dia" type="number" class="w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
-                <p class="text-2xl font-black">JANTUNG 💓</p>
+                <p class="text-2xl font-black">💓 <span data-t="bpHr"></span></p>
                 <input id="bp-hr" type="number" class="w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
             </div>
 
-            <p id="need-hint" class="hidden text-2xl font-black text-red-600 text-center">⛔ BELUM LENGKAP!</p>
+            <p id="need-hint" class="hidden text-2xl font-black text-center" style="color: var(--danger)" data-t="incomplete"></p>
         </section>
 
-        <!-- 三、存檔 -->
+        <!-- 存檔（填好才出現，跟著引導框） -->
         <section id="step3" class="step bg-white p-4 hidden">
-            <p class="here text-2xl font-black text-sky-700">⬇️ DI SINI</p>
-            <button id="btn-save" type="button" onclick="save()" class="bigbtn w-full bg-green-700 text-white rounded-2xl text-4xl font-black py-5 active:scale-95">💾 SIMPAN</button>
+            <button id="btn-save" type="button" onclick="save()" class="bigbtn w-full bg-green-700 text-white rounded-2xl text-4xl font-black py-5" data-t="save"></button>
         </section>
 
         <!-- 四、今日紀錄 -->
-        <section id="step4" class="step bg-white p-4 space-y-2 hidden">
-            <h2 class="text-2xl font-black">4️⃣ CATATAN HARI INI</h2>
+        <section id="step4" class="step bg-white p-4 pt-6 space-y-2 hidden">
+            <div class="stepnum">4</div>
+            <h2 class="text-2xl font-black text-center">📖 <span data-t="s4"></span></h2>
             <div id="rec-list" class="space-y-2"></div>
         </section>
-
-        <p class="text-center"><a href="index.html" class="text-base font-bold text-gray-500 underline">← halaman dewasa</a></p>
     </div>
 
-    <!-- 刪除確認 -->
+    <!-- 刪除確認：中性色（紅色保留給緊急狀況） -->
     <div id="del-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl border-4 border-red-600 p-5 w-full max-w-sm text-center space-y-4">
-            <p class="text-3xl font-black">HAPUS? ❌</p>
+        <div class="modal-card bg-white rounded-3xl border-4 border-gray-700 p-5 w-full max-w-sm text-center space-y-4">
+            <p class="text-3xl font-black">🗑️ <span data-t="delAsk"></span></p>
             <div class="grid grid-cols-2 gap-3">
-                <button type="button" onclick="doDelete()" class="bigbtn bg-red-600 text-white rounded-2xl text-3xl font-black py-3">YA</button>
-                <button type="button" onclick="closeDel()" class="bigbtn bg-gray-200 rounded-2xl text-3xl font-black py-3">TIDAK</button>
+                <button type="button" onclick="doDelete()" class="bigbtn bg-gray-800 text-white rounded-2xl text-3xl font-black py-3" data-t="delYes"></button>
+                <button type="button" onclick="closeDel()" class="bigbtn bg-gray-200 rounded-2xl text-3xl font-black py-3" data-t="delNo"></button>
             </div>
         </div>
     </div>
 
-    <!-- 血壓警告 -->
+    <!-- 血壓警告（緊急＝紅色＋動態） -->
     <div id="bp-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl border-8 border-red-600 p-5 w-full max-w-sm text-center space-y-3">
-            <p class="text-5xl">⚠️</p>
-            <p class="text-3xl font-black text-red-700 leading-tight">PANGGIL ORANG DEWASA!</p>
-            <p class="text-xl font-black">Perhatikan kondisi Nenek!</p>
+        <div class="modal-card danger bg-white rounded-3xl border-8 p-5 w-full max-w-sm text-center space-y-3" style="border-color: var(--danger)">
+            <p class="text-6xl bounce-big">⚠️</p>
+            <p class="text-3xl font-black leading-tight" style="color: var(--danger)" data-t="bpTitle"></p>
+            <p class="text-xl font-black" data-t="bpSub"></p>
             <div id="bp-modal-body" class="space-y-2 text-left"></div>
-            <button type="button" onclick="document.getElementById('bp-modal').classList.add('hidden')" class="bigbtn w-full bg-red-600 text-white rounded-2xl text-2xl font-black py-3">OK, SUDAH PANGGIL</button>
+            <button type="button" onclick="document.getElementById('bp-modal').classList.add('hidden')" class="bigbtn w-full text-white rounded-2xl text-2xl font-black py-3" style="background: var(--danger)" data-t="okCalled"></button>
         </div>
     </div>
 
-    <!-- 一般警示（喝太多/尿太多）：兒童版大彈窗 -->
+    <!-- 一般警示（喝太多/尿太多）：大彈窗＋動態 -->
     <div id="warn-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl border-8 border-red-600 p-5 w-full max-w-sm text-center space-y-3">
-            <p class="text-5xl">🚨</p>
+        <div class="modal-card danger bg-white rounded-3xl border-8 p-5 w-full max-w-sm text-center space-y-3" style="border-color: var(--danger)">
+            <p class="text-6xl bounce-big">🚨</p>
             <div id="warn-modal-body" class="space-y-2"></div>
-            <p class="text-2xl font-black">PANGGIL ORANG DEWASA! 🧑</p>
-            <button type="button" onclick="document.getElementById('warn-modal').classList.add('hidden')" class="bigbtn w-full bg-red-600 text-white rounded-2xl text-2xl font-black py-3">OK, SUDAH PANGGIL</button>
+            <p class="text-2xl font-black" data-t="callAdult"></p>
+            <button type="button" onclick="document.getElementById('warn-modal').classList.add('hidden')" class="bigbtn w-full text-white rounded-2xl text-2xl font-black py-3" style="background: var(--danger)" data-t="okCalled"></button>
         </div>
     </div>
 
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-2xl font-black py-4 px-8 rounded-full transition-all duration-300 opacity-0 z-50 pointer-events-none">…</div>
+    <div id="toast" class="fixed bottom-6 left-1/2 bg-gray-900 text-white text-2xl font-black py-4 px-8 rounded-full opacity-0 z-50 pointer-events-none">…</div>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycby-3Q--z4t03yOtgtMpkbhYccmxD9dqvmrqQdX4sg4vZNBfjgyuKYuL6HZuHkro7p0o/exec";
@@ -219,58 +308,192 @@ const ITEM_MAP = {
     pantat:{ type:'運動', category:'橋式抬臀' },
     diri:  { type:'運動', category:'站立' }
 };
-const CAT_EMOJI = { '飲水量':'💧','服藥飲水':'💊','營養飲品':'🥛','進食':'🍮','尿液':'💧','排便':'💩','仰臥抬腿':'🦵','大腿內收':'🩲','橋式抬臀':'🍑','站立':'🧍' };
+/* 尿液用 🚽 與飲水 💧 區隔；進食（湯湯水水）用 🥣 */
+const CAT_EMOJI = { '飲水量':'💧','服藥飲水':'💊','營養飲品':'🥛','進食':'🥣','尿液':'🚽','排便':'💩','仰臥抬腿':'🦵','大腿內收':'🩲','橋式抬臀':'🍑','站立':'🧍' };
+
+/* 湯湯水水（羅馬拼音）：buding 固定預設 135cc，其餘由照顧者填寫容量。
+ * 備註一律存「中文 / 拼音」雙語，管理者總表與報表都讀得懂 */
+const FOODS = [
+    { key:'buding',   zh:'布丁', rom:'Buding',   emoji:'🍮', cc:135 },
+    { key:'siancao',  zh:'仙草', rom:'Siancao',  emoji:'🖤', cc:null },
+    { key:'douhua',   zh:'豆花', rom:'Douhua',   emoji:'🤍', cc:null },
+    { key:'tangmian', zh:'湯麵', rom:'Tangmian', emoji:'🍜', cc:null },
+    { key:'ganmian',  zh:'乾麵', rom:'Ganmian',  emoji:'🍝', cc:null },
+    { key:'sifan',    zh:'稀飯', rom:'Sifan',    emoji:'🍚', cc:null },
+    { key:'biandang', zh:'便當', rom:'Biandang', emoji:'🍱', cc:null }
+];
+
+/* ===== 雙語字典（繁中 / 印尼文），畫面文字全部走這裡 ===== */
+const T = {
+    title:    { zh:'奶奶日誌',       id:'CATATAN NENEK' },
+    s1:       { zh:'日期・時間',     id:'TANGGAL & JAM' },
+    s2:       { zh:'選一個',         id:'PILIH SATU' },
+    s3:       { zh:'是什麼？',       id:'APA?' },
+    s4:       { zh:'今天的紀錄',     id:'CATATAN HARI INI' },
+    ok:       { zh:'好了 ✓',         id:'OK ✓' },
+    tMakan:   { zh:'吃・喝',         id:'MAKAN MINUM' },
+    tKeluar:  { zh:'尿・便',         id:'PIPIS & PUP' },
+    tLatihan: { zh:'運動',           id:'LATIHAN' },
+    tTensi:   { zh:'血壓',           id:'TENSI' },
+    iAir:     { zh:'開水',           id:'AIR PUTIH' },
+    iObat:    { zh:'藥水',           id:'AIR OBAT' },
+    iSusu:    { zh:'牛奶',           id:'SUSU' },
+    iFood:    { zh:'湯湯水水',       id:'MAKANAN BERAIR' },
+    iPipis:   { zh:'尿尿',           id:'PIPIS' },
+    iPup:     { zh:'大便',           id:'PUP' },
+    iKaki:    { zh:'抬腿',           id:'ANGKAT KAKI' },
+    iPopok:   { zh:'夾腿',           id:'JEPIT POPOK' },
+    iPantat:  { zh:'抬屁股',         id:'ANGKAT PANTAT' },
+    iDiri:    { zh:'站立',           id:'BERDIRI' },
+    halfCan:  { zh:'半罐<br>120 cc', id:'½ KALENG<br>120 cc' },
+    fullCan:  { zh:'1 罐<br>240 cc', id:'1 KALENG<br>240 cc' },
+    otherFood:{ zh:'✏️ 寫別的食物…', id:'✏️ Tulis makanan lain…' },
+    howMuch:  { zh:'🥤 多少 cc？',   id:'🥤 BERAPA cc?' },
+    color:    { zh:'顏色？',         id:'WARNA?' },
+    cPink:    { zh:'粉紅',           id:'MERAH<br>MUDA' },
+    cDark:    { zh:'深黃',           id:'KUNING<br>TUA' },
+    cLight:   { zh:'淺黃',           id:'KUNING<br>MUDA' },
+    pupHow:   { zh:'大便怎麼樣？',   id:'PUP-NYA GIMANA?' },
+    pEncer:   { zh:'稀稀 💦',        id:'ENCER 💦' },
+    pKeras:   { zh:'硬硬 🪨',        id:'KERAS 🪨' },
+    pNormal:  { zh:'正常 👍',        id:'NORMAL 👍' },
+    glis:     { zh:'有用甘油球嗎？💉', id:'PAKAI OBAT GLISERIN?' },
+    yes:      { zh:'有 💉',          id:'YA 💉' },
+    no:       { zh:'沒有',           id:'TIDAK' },
+    howMany:  { zh:'做了幾次？',     id:'BERAPA KALI?' },
+    times:    { zh:'次',             id:'x' },
+    bpSys:    { zh:'上面（大數字）', id:'ATAS (angka besar)' },
+    bpDia:    { zh:'下面（小數字）', id:'BAWAH (angka kecil)' },
+    bpHr:     { zh:'心跳',           id:'JANTUNG' },
+    save:     { zh:'💾 儲存',        id:'💾 SIMPAN' },
+    saved:    { zh:'已儲存 ✓',       id:'TERSIMPAN ✓' },
+    deleted:  { zh:'已刪除 ✓',       id:'DIHAPUS ✓' },
+    failed:   { zh:'失敗！再試一次', id:'GAGAL! COBA LAGI' },
+    syncFail: { zh:'同步失敗',       id:'Sinkronisasi gagal' },
+    incomplete:{ zh:'⛔ 還沒填完！', id:'⛔ BELUM LENGKAP!' },
+    noRec:    { zh:'還沒有紀錄',     id:'Belum ada catatan' },
+    delAsk:   { zh:'要刪除嗎？',     id:'HAPUS?' },
+    delYes:   { zh:'刪除',           id:'YA' },
+    delNo:    { zh:'不要',           id:'TIDAK' },
+    callAdult:{ zh:'快叫大人來！🧑', id:'PANGGIL ORANG DEWASA! 🧑' },
+    bpTitle:  { zh:'快叫大人來！',   id:'PANGGIL ORANG DEWASA!' },
+    bpSub:    { zh:'注意奶奶的狀況！', id:'Perhatikan kondisi Nenek!' },
+    okCalled: { zh:'好，我叫了',     id:'OK, SUDAH PANGGIL' },
+    normalRange:{ zh:'正常',         id:'Wajar' },
+    warnDrink:{ zh:'🛑 停！喝太多了！', id:'🛑 STOP! Minum TERLALU BANYAK!' },
+    warnPipis:{ zh:'🛑 尿尿太多了！',  id:'🛑 Pipis TERLALU BANYAK!' }
+};
+let LANG = (function(){ const s = localStorage.getItem('anak_lang'); return (s === 'id' || s === 'zh') ? s : 'zh'; })();
+function t(key){ return (T[key] && T[key][LANG]) || ''; }
 
 let S = { step1:false, type:null, item:null, color:null, status:null, gliserin:null, food:null };
 let records = [], goals = {};
 
 function $(id){ return document.getElementById(id); }
-function toast(msg, err){ const t=$('toast'); t.innerText=msg; t.style.background=err?'#dc2626':'#111827'; t.classList.remove('opacity-0'); setTimeout(()=>t.classList.add('opacity-0'), 3000); }
+function toast(msg, err){
+    const el = $('toast'); el.innerText = msg;
+    el.style.background = err ? '#b91c1c' : '#111827';
+    el.classList.remove('opacity-0'); el.classList.add('show');
+    setTimeout(() => { el.classList.add('opacity-0'); el.classList.remove('show'); }, 3000);
+}
+
+/* ===== 12 小時制顯示：00–12 ☀️ 白天、13–00 🌙 夜晚（內部與 sheet 仍存 24 小時制） ===== */
+function hourIcon(h){ return (h >= 1 && h <= 12) ? '☀️' : '🌙'; }
+function hour12(h){ return (h % 12 === 0) ? 12 : (h % 12); }
+function hourLabel(h){ return `${hourIcon(h)} ${hour12(h)}`; }
+function fmt12(hhmm){
+    const h = parseInt(hhmm.slice(0,2), 10), m = hhmm.slice(3,5);
+    return `${hourIcon(h)} ${hour12(h)}:${m}`;
+}
+function updateDayNight(){ $('daynight').innerText = hourIcon(parseInt($('sel-hour').value, 10)); }
+
+/* ===== 語言切換 ===== */
+function applyLang(){
+    document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = t(el.dataset.t); });
+    $('food-other').placeholder = t('otherFood').replace('✏️ ', '');
+    renderFoodGrid();
+    renderLangSwitch();
+    renderAll();
+}
+function setLang(m){ LANG = m; localStorage.setItem('anak_lang', m); applyLang(); }
+function renderLangSwitch(){
+    $('lang-switch').innerHTML = [['zh','中文'],['id','ID']].map(([m,lbl]) =>
+        `<button type="button" onclick="setLang('${m}')" class="px-3 py-1.5 rounded-full text-sm font-black border-2 ${LANG===m ? 'text-white border-transparent' : 'bg-white text-gray-500 border-gray-300'}" ${LANG===m ? 'style="background:var(--accent)"' : ''}>${lbl}</button>`).join('');
+}
 
 /* ===== 一、日期時間 ===== */
 function initClock(){
-    const opts = n => Array.from({length:n},(_,i)=>{const s=String(i).padStart(2,'0');return `<option value="${s}">${s}</option>`;}).join('');
-    $('sel-hour').innerHTML = opts(24); $('sel-min').innerHTML = opts(60);
-    const now = new Date();
+    $('sel-hour').innerHTML = Array.from({length:24}, (_,h) => `<option value="${String(h).padStart(2,'0')}">${hourLabel(h)}</option>`).join('');
+    $('sel-min').innerHTML = Array.from({length:60}, (_,i) => { const s = String(i).padStart(2,'0'); return `<option value="${s}">${s}</option>`; }).join('');
     $('input-date').value = careTodayStr();
+    setNowTime();
+    $('input-date').addEventListener('change', () => { showDate(); loadDay(); });
+    $('sel-hour').addEventListener('change', updateDayNight);
+    showDate();
+}
+function setNowTime(){
+    const now = new Date();
     $('sel-hour').value = String(now.getHours()).padStart(2,'0');
     $('sel-min').value = String(now.getMinutes()).padStart(2,'0');
-    $('input-date').addEventListener('change', () => { showDate(); loadDay(); });
-    showDate();
+    updateDayNight();
 }
 function showDate(){ $('date-display').innerText = ($('input-date').value || '').replace(/-/g,'/'); }
 function curTime(){ return $('sel-hour').value + ':' + $('sel-min').value; }
 function okStep1(){ S.step1 = true; refresh(); focusStep('step2'); }
 
 /* ===== 二、選類別 ===== */
-function pickType(t){
-    S.type = t; S.item = null; S.color = null; S.status = null; S.gliserin = null; S.food = null;
-    $('input-amount').value = ''; $('pipis-amount').value = ''; $('food-other').value = '';
+function pickType(tp){
+    S.type = tp; S.item = null; S.color = null; S.status = null; S.gliserin = null; S.food = null;
+    $('input-amount').value = ''; $('pipis-amount').value = ''; $('food-other').value = ''; $('ex-amount').value = '';
     ['bp-sys','bp-dia','bp-hr'].forEach(id => $(id).value = '');
-    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('bg-sky-700','text-white'));
-    $('type-' + t).classList.add('bg-sky-700','text-white');
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+    $('type-' + tp).classList.add('selected');
     refresh(); focusStep('step2b');
 }
-/* ===== 二之一、選細項 ===== */
+/* ===== 三、選細項 ===== */
 function pickItem(k){
     S.item = k; S.food = null;
-    document.querySelectorAll('.item-btn').forEach(b => b.classList.remove('bg-sky-700','text-white'));
-    $('item-' + k).classList.add('bg-sky-700','text-white');
-    if (k !== 'food') $('food-other').classList.add('hidden');
+    document.querySelectorAll('.item-btn').forEach(b => b.classList.remove('selected'));
+    $('item-' + k).classList.add('selected');
+    if (k !== 'food') $('food-other').value = '';
     refresh();
 }
 function setAmount(v){ $('input-amount').value = v; refresh(); }
-function pickFood(note, amount){
-    S.food = note;
-    document.querySelectorAll('.food-btn').forEach(b => b.classList.remove('ring-8','ring-sky-500'));
-    if (typeof event !== 'undefined' && event.target) event.target.closest('button').classList.add('ring-8','ring-sky-500');
-    $('food-other').classList.toggle('hidden', note !== 'LAINNYA');
-    if (amount) $('input-amount').value = amount; else $('input-amount').value = '';
+function setExAmount(v){
+    $('ex-amount').value = v;
+    document.querySelectorAll('.ex-chip').forEach(b => b.classList.toggle('selected', parseInt(b.innerText,10) === v));
     refresh();
 }
-function pickColor(btn, v){ S.color = v; document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('ring-8','ring-sky-500')); btn.classList.add('ring-8','ring-sky-500'); refresh(); }
-function pickStatus(btn, v){ S.status = v; document.querySelectorAll('.status-btn').forEach(b=>b.classList.remove('ring-8','ring-sky-500')); btn.classList.add('ring-8','ring-sky-500'); refresh(); }
-function pickGliserin(btn, v){ S.gliserin = v; document.querySelectorAll('.glis-btn').forEach(b=>b.classList.remove('ring-8','ring-sky-500')); btn.classList.add('ring-8','ring-sky-500'); refresh(); }
+function renderFoodGrid(){
+    $('food-grid').innerHTML = FOODS.map(f =>
+        `<button type="button" onclick="pickFood('${f.key}', this)" data-food="${f.key}" class="food-btn bigbtn rounded-2xl border-4 border-amber-600 bg-amber-50 font-black text-xl py-3">
+            <span class="block text-4xl leading-none mb-1">${f.emoji}</span>${LANG==='zh' ? f.zh : f.rom}${f.cc ? `<span class="block text-sm font-bold text-amber-700">${f.cc} cc</span>` : ''}
+        </button>`).join('');
+    // 重新套用已選狀態
+    if (S.food && S.food !== 'LAINNYA') {
+        const btn = document.querySelector(`.food-btn[data-food="${S.food}"]`);
+        if (btn) btn.classList.add('ringed');
+    }
+}
+function pickFood(key, btn){
+    S.food = key;
+    $('food-other').value = '';
+    document.querySelectorAll('.food-btn').forEach(b => b.classList.remove('ringed'));
+    if (btn) btn.classList.add('ringed');
+    const f = FOODS.find(x => x.key === key);
+    $('input-amount').value = (f && f.cc) ? f.cc : '';
+    refresh();
+}
+function onFoodOther(){
+    if ($('food-other').value.trim()) {
+        S.food = 'LAINNYA';
+        document.querySelectorAll('.food-btn').forEach(b => b.classList.remove('ringed'));
+    } else if (S.food === 'LAINNYA') { S.food = null; }
+    refresh();
+}
+function pickColor(btn, v){ S.color = v; document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('ringed')); btn.classList.add('ringed'); refresh(); }
+function pickStatus(btn, v){ S.status = v; document.querySelectorAll('.status-btn').forEach(b=>b.classList.remove('ringed')); btn.classList.add('ringed'); refresh(); }
+function pickGliserin(btn, v){ S.gliserin = v; document.querySelectorAll('.glis-btn').forEach(b=>b.classList.remove('ringed')); btn.classList.add('ringed'); refresh(); }
 
 /* ===== 組 payload（category 名稱與 sheet 相同） ===== */
 function buildPayload(){
@@ -290,8 +513,8 @@ function buildPayload(){
         if (!amount || amount < 1) return null;
         if (S.item === 'food') {
             if (!S.food) return null;
-            note = S.food === 'LAINNYA' ? $('food-other').value.trim() : S.food;
-            if (!note) return null;
+            if (S.food === 'LAINNYA') { note = $('food-other').value.trim(); if (!note) return null; }
+            else { const f = FOODS.find(x => x.key === S.food); note = f ? `${f.zh} / ${f.rom}` : ''; if (!note) return null; }
         }
     } else if (S.item === 'pipis') {
         amount = parseInt($('pipis-amount').value, 10);
@@ -302,17 +525,19 @@ function buildPayload(){
         amount = 1;
         note = S.status + (S.gliserin ? ' [浣腸 / Supositoria gliserin]' : '');
     } else {
-        amount = 1;   // 運動固定 1 次
+        // 運動：四項復健都要填實際完成次數
+        amount = parseInt($('ex-amount').value, 10);
+        if (!amount || amount < 1) return null;
     }
     note = (note ? note + ' ' : '') + '👤U' + CARE_USER;
     return { action:'insert', type:m.type, category:m.category, date, time, amount, note, recordId: rid };
 }
 
-/* ===== 漸進揭露（一→二→二之一→三→四，不可逆） ===== */
+/* ===== 漸進揭露（一→二→三→存檔→四） ===== */
 function refresh(){
-    $('step2').classList.toggle('hidden', !S.step1);
-    $('step2b').classList.toggle('hidden', !(S.step1 && S.type));
-    ['makan','keluar','latihan','tensi'].forEach(t => $('panel-' + t).classList.toggle('hidden', S.type !== t));
+    toggleSection('step2', S.step1);
+    toggleSection('step2b', S.step1 && !!S.type);
+    ['makan','keluar','latihan','tensi'].forEach(tp => $('panel-' + tp).classList.toggle('hidden', S.type !== tp));
     if (S.type === 'makan') {
         $('quick-susu').classList.toggle('hidden', S.item !== 'susu');
         $('quick-food').classList.toggle('hidden', S.item !== 'food');
@@ -322,12 +547,21 @@ function refresh(){
         $('pipis-extra').classList.toggle('hidden', S.item !== 'pipis');
         $('pup-extra').classList.toggle('hidden', S.item !== 'pup');
     }
+    if (S.type === 'latihan') {
+        $('ex-extra').classList.toggle('hidden', !S.item);
+    }
     const ok = !!buildPayload();
     const step3WasHidden = $('step3').classList.contains('hidden');
-    $('step3').classList.toggle('hidden', !(S.step1 && S.type && ok));
+    toggleSection('step3', S.step1 && !!S.type && ok);
     $('need-hint').classList.toggle('hidden', !(S.step1 && S.type) || ok);
     if (ok && step3WasHidden) focusStep('step3');   // 只在剛出現時捲動，打字中不亂跳
     $('step4').classList.toggle('hidden', records.length === 0);
+}
+function toggleSection(id, show){
+    const el = $(id);
+    const wasHidden = el.classList.contains('hidden');
+    el.classList.toggle('hidden', !show);
+    if (show && wasHidden) { el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); }
 }
 function focusStep(id){
     document.querySelectorAll('.step').forEach(s => s.classList.remove('now'));
@@ -344,8 +578,8 @@ function save(){
         if (chk.violations.length) {
             $('bp-modal-body').innerHTML = chk.violations.map(v =>
                 `<div class="bg-red-100 border-4 border-red-500 rounded-2xl p-3">
-                    <p class="text-2xl font-black text-red-700">${v.id}: ${v.val}</p>
-                    <p class="text-xl font-black">Wajar: ${v.lo}–${v.hi}</p>
+                    <p class="text-2xl font-black text-red-700">${LANG==='zh' ? v.zh : v.id}: ${v.val}</p>
+                    <p class="text-xl font-black">${t('normalRange')}: ${v.lo}–${v.hi}</p>
                 </div>`).join('');
             $('bp-modal').classList.remove('hidden');
         }
@@ -356,18 +590,23 @@ function save(){
     renderAll();
     fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(p) })
         .then(r => r.json())
-        .then(() => { toast('TERSIMPAN ✓'); resetPick(); setTimeout(loadDay, 1500); })
-        .catch(() => { records = records.filter(r => r.recordId !== p.recordId); renderAll(); toast('GAGAL! COBA LAGI', true); })
-        .finally(() => { $('btn-save').disabled = false; $('btn-save').innerText = '💾 SIMPAN'; });
+        .then(() => { toast(t('saved')); resetToStart(); setTimeout(loadDay, 1500); })
+        .catch(() => { records = records.filter(r => r.recordId !== p.recordId); renderAll(); toast(t('failed'), true); })
+        .finally(() => { $('btn-save').disabled = false; $('btn-save').innerHTML = t('save'); });
 }
-function resetPick(){
-    S.type = null; S.item = null; S.color = null; S.status = null; S.gliserin = null; S.food = null;
-    document.querySelectorAll('.type-btn,.item-btn').forEach(b => b.classList.remove('bg-sky-700','text-white'));
-    document.querySelectorAll('.food-btn,.color-btn,.status-btn,.glis-btn').forEach(b => b.classList.remove('ring-8','ring-sky-500'));
-    refresh(); focusStep('step2');
+/* 儲存後：頁面回復成只出現「步驟 1 ＋ 步驟 4（今日紀錄）」，時間重設為現在 */
+function resetToStart(){
+    S = { step1:false, type:null, item:null, color:null, status:null, gliserin:null, food:null };
+    $('input-amount').value = ''; $('pipis-amount').value = ''; $('food-other').value = ''; $('ex-amount').value = '';
+    ['bp-sys','bp-dia','bp-hr'].forEach(id => $(id).value = '');
+    document.querySelectorAll('.type-btn,.item-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.food-btn,.color-btn,.status-btn,.glis-btn').forEach(b => b.classList.remove('ringed'));
+    document.querySelectorAll('.ex-chip').forEach(b => b.classList.remove('selected'));
+    setNowTime();
+    refresh(); focusStep('step1');
 }
 
-/* ===== 四、今日全部紀錄＋❌ ===== */
+/* ===== 四、今日全部紀錄＋刪除（外框灰色鈕，紅色留給緊急） ===== */
 let delId = null;
 function askDelete(id){ delId = id; $('del-modal').classList.remove('hidden'); }
 function closeDel(){ delId = null; $('del-modal').classList.add('hidden'); }
@@ -376,38 +615,42 @@ function doDelete(){
     records = records.filter(r => r.recordId !== id);
     renderAll();
     fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'markError', recordId:id }) })
-        .then(r => r.json()).then(() => { toast('DIHAPUS ✓'); setTimeout(loadDay, 1200); })
-        .catch(() => { toast('GAGAL!', true); loadDay(); });
+        .then(r => r.json()).then(() => { toast(t('deleted')); setTimeout(loadDay, 1200); })
+        .catch(() => { toast(t('failed'), true); loadDay(); });
 }
 function renderAll(){
-    // 目標列：應紀錄目標＝雲端現值（與 7/8 相同來源）；Sudah＝全部人（U1–U5）攝入總和
+    // 目標列：應紀錄目標＝雲端現值；✅＝全部人（U1–U5）攝入總和。純圖示，不用文字
     const goal = goals['goal_總攝入水量'] || '…';
     const sudah = records.filter(r => ['飲水量','服藥飲水','營養飲品','進食'].includes(r.category)).reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
-    $('target-strip').innerText = `🎯 Target: ${goal} cc　|　Sudah: ${sudah} cc`;
-    // 紀錄列
-    // 依時段分框（同管理者總表：凌晨/早上/中午/下午/睡前/深夜），版面不雜亂
+    $('target-strip').innerText = `🎯 ${goal} cc ｜ ✅ ${sudah} cc`;
+    const g = parseFloat(goal);
+    const pct = (isFinite(g) && g > 0) ? Math.min(100, Math.round(sudah / g * 100)) : 0;
+    const bar = $('strip-bar');
+    bar.style.width = pct + '%';
+    bar.style.background = sudah > 1200 ? 'var(--danger)' : 'var(--accent)';
+    // 紀錄列：依時段分框（同管理者總表），時間一律 12 小時制＋☀️/🌙
     const SLOT_EMOJI = { dawn:'🌙', morning:'🌅', midday:'☀️', evening:'🌇', night:'🛏️', late:'💤' };
     const recRow = r => {
         const isBP = (r.category || '').includes('血壓');
         const emoji = isBP ? '❤️' : (CAT_EMOJI[r.category] || '📝');
-        const unit = isBP ? '' : (['排便','仰臥抬腿','大腿內收','橋式抬臀','站立'].includes(r.category) ? 'x' : ' cc');
-        const note = careNoteDisplay(r.note || '', 'id');
+        const unit = isBP ? '' : (['排便','仰臥抬腿','大腿內收','橋式抬臀','站立'].includes(r.category) ? t('times') : ' cc');
+        const note = careNoteDisplay(r.note || '', LANG);
         return `<div class="flex items-center gap-2 border-[3px] border-gray-400 rounded-2xl p-3 bg-white">
             <div class="flex-1 min-w-0">
-                <p class="text-2xl font-black">${r.time} ${emoji} ${r.amount}${unit}</p>
+                <p class="text-2xl font-black">${fmt12(r.time)} ${emoji} ${r.amount}${unit}</p>
                 ${note ? `<p class="text-base font-bold text-gray-600 truncate">${note}</p>` : ''}
             </div>
-            <button type="button" onclick="askDelete('${r.recordId}')" class="shrink-0 w-16 h-16 rounded-2xl bg-red-600 text-white text-3xl font-black active:scale-95">❌</button>
+            <button type="button" onclick="askDelete('${r.recordId}')" class="shrink-0 w-16 h-16 rounded-2xl bg-white border-[3px] border-gray-400 text-gray-500 text-4xl font-black bigbtn leading-none">✕</button>
         </div>`;
     };
     const list = $('rec-list');
-    if (records.length === 0) { list.innerHTML = '<p class="text-xl font-black text-gray-500 text-center py-4">Belum ada catatan</p>'; }
+    if (records.length === 0) { list.innerHTML = `<p class="text-xl font-black text-gray-500 text-center py-4">${t('noRec')}</p>`; }
     else {
         list.innerHTML = CARE_SLOTS.map(s => {
             const recs = records.filter(r => r.time >= s.start && (s.end === '24:00' || r.time < s.end)).sort((a,b) => a.time.localeCompare(b.time));
             if (recs.length === 0) return '';
-            return `<div class="border-4 border-sky-700 rounded-3xl p-2 space-y-2 bg-sky-50">
-                <p class="text-2xl font-black text-sky-900 px-1">${SLOT_EMOJI[s.key] || ''} ${s.id} <span class="text-base text-sky-700">${s.start}-${s.end}</span></p>
+            return `<div class="border-4 border-gray-700 rounded-3xl p-2 space-y-2 bg-stone-50">
+                <p class="text-2xl font-black text-gray-800 px-1">${SLOT_EMOJI[s.key] || ''} ${LANG==='zh' ? s.zh : s.id} <span class="text-base text-gray-500">${fmt12(s.start)}–${fmt12(s.end === '24:00' ? '00:00' : s.end)}</span></p>
                 ${recs.map(recRow).join('')}
             </div>`;
         }).join('');
@@ -417,21 +660,21 @@ function renderAll(){
 }
 
 /* ===== 兒童版警示（跟大人版同規則，用小朋友看得懂的話）：
- * 喝太多(>1200cc)、尿太多(>正常上限=喝的×1.1，吃利尿藥×1.5) → 大紅橫幅＋每天每種跳一次大彈窗 ===== */
+ * 喝太多(>1200cc)、尿太多(>正常上限=喝的×1.1，吃利尿藥×1.5) → 動態大紅橫幅＋每天每種跳一次大彈窗 ===== */
 function checkWarnings(){
     const intake = records.filter(r => ['飲水量','服藥飲水','營養飲品','進食'].includes(r.category)).reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
     const urine = records.filter(r => r.category === '尿液').reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
     const cfg = careConfig(goals);
     const uMax = cfg.diuretic ? Math.round(intake * 1.5) : Math.round(intake * 1.1);
     const warns = [];
-    if (intake > 1200) warns.push({ key:'minum', text:'🛑 STOP! Nenek minum TERLALU BANYAK!' });
-    if (urine > 0 && uMax > 0 && urine > uMax) warns.push({ key:'pipis', text:'🛑 Nenek pipis TERLALU BANYAK!' });
+    if (intake > 1200) warns.push({ key:'minum', text:t('warnDrink') });
+    if (urine > 0 && uMax > 0 && urine > uMax) warns.push({ key:'pipis', text:t('warnPipis') });
     $('warn-box').innerHTML = warns.map(w =>
-        `<div class="border-8 border-red-700 bg-red-100 rounded-3xl p-3 text-2xl font-black text-red-700">${w.text}<br><span class="text-xl">PANGGIL ORANG DEWASA! 🧑</span></div>`).join('');
+        `<div class="alert-banner border-8 bg-red-100 rounded-3xl p-3 text-2xl font-black" style="border-color: var(--danger); color: var(--danger)"><span class="bounce-big">🚨</span> ${w.text}<br><span class="text-xl">${t('callAdult')}</span></div>`).join('');
     const date = $('input-date').value || careTodayStr();
     const fresh = warns.filter(w => !localStorage.getItem('anak_warn_' + date + '_' + w.key));
     if (fresh.length) {
-        $('warn-modal-body').innerHTML = fresh.map(w => `<p class="text-3xl font-black text-red-700">${w.text}</p>`).join('');
+        $('warn-modal-body').innerHTML = fresh.map(w => `<p class="text-3xl font-black" style="color: var(--danger)">${w.text}</p>`).join('');
         $('warn-modal').classList.remove('hidden');
         fresh.forEach(w => localStorage.setItem('anak_warn_' + date + '_' + w.key, '1'));
     }
@@ -440,8 +683,8 @@ function checkWarnings(){
 /* ===== 同步：快取先渲染，背景刷新（不擋操作） ===== */
 function fetchWithTimeout(url, ms){
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), ms);
-    return fetch(url, { cache:'no-store', signal: ctrl.signal }).finally(() => clearTimeout(t));
+    const tm = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { cache:'no-store', signal: ctrl.signal }).finally(() => clearTimeout(tm));
 }
 function loadDay(){
     const date = $('input-date').value || careTodayStr();
@@ -458,14 +701,16 @@ function loadDay(){
             try { localStorage.setItem(key, JSON.stringify({ records, goals, ts:Date.now() })); } catch(e) {}
             renderAll();
         })
-        .catch(() => toast('Sinkronisasi gagal', true))
+        .catch(() => toast(t('syncFail'), true))
         .finally(() => $('sync-icon').classList.remove('animate-spin-slow'));
 }
 
 window.onload = function(){
     initClock();
-    // 手動輸入的欄位（BUBUR/LAINNYA 的量、血壓三格）也要即時重算，SIMPAN 才會出現
-    ['input-amount','pipis-amount','food-other','bp-sys','bp-dia','bp-hr'].forEach(id => $(id).addEventListener('input', refresh));
+    applyLang();
+    // 手動輸入的欄位（cc/次數/血壓三格/自填食物）也要即時重算，儲存鈕才會出現
+    ['input-amount','pipis-amount','ex-amount','bp-sys','bp-dia','bp-hr'].forEach(id => $(id).addEventListener('input', refresh));
+    $('food-other').addEventListener('input', onFoodOther);
     refresh();
     focusStep('step1');
     loadDay();
