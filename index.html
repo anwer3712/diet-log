@@ -397,7 +397,7 @@
             const ls = document.getElementById('lang-switch');
             ls.innerHTML = [['zh','中文'],['id','ID']].map(([m,lbl]) =>
                 `<button type="button" onclick="switchLang('${m}')" class="px-2.5 py-1.5 rounded-full text-[10px] font-black border ${LANG_MODE===m?'bg-sky-400 text-white border-sky-400':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
-            ).join('');
+            ).join('') + `<a href="trends.html" title="${LTXT('健康趨勢分析','Analisis tren')}" class="px-2.5 py-1.5 rounded-full text-[10px] font-black border bg-emerald-50 text-emerald-600 border-emerald-300">📈</a>`;
         }
         // 換身分需管理者密碼（照顧者不能自行切到別人的介面）；👤U4 開放身分，任何人可直接使用
         window.switchUser = function(u){
