@@ -95,7 +95,9 @@ function shiftDate(days){
 }
 
 function loadReport(){
-    const date = document.getElementById('report-date').value;
+    const rawDate = document.getElementById('report-date').value;
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : careTodayStr();
+    if (rawDate !== date) document.getElementById('report-date').value = date;
     const url = new URL(location); url.searchParams.set('date', date); history.replaceState(null,'',url);
     document.getElementById('loading').classList.remove('hidden');
     fetch(`${GAS_URL}?date=${date}&t=${Date.now()}`, { cache:'no-store' })
