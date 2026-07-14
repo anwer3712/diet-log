@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理者總表 — 奶奶照護日誌</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=7"></script>
+    <script src="care-tasks.js?v=8"></script>
     <style>
         body { background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 45%, #fff1f2 100%); }
         .animate-spin-slow { animation: spin 3s linear infinite; }
@@ -95,15 +95,18 @@ function goalsTableHtml(records){
     const sum = cats => records.filter(r => cats.includes(r.category)).reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
     const cnt = cat => records.filter(r => r.category === cat).length;
     const g = k => cachedGoals['goal_' + k];
-    const cfg = careConfig(cachedGoals);
     const intake = sum(['飲水量', '服藥飲水', '營養飲品', '進食']);
     const urine = sum(['尿液']);
-    const uMin = Math.round(intake * 1.1), uMax = cfg.diuretic ? Math.round(intake * 1.5) : Math.round(intake * 1.1);
+    // 尿液目標＝已達攝入 ×0.9；利尿藥物（輔助）×1.1；利尿藥物 ×1.3。排便目標＝1 次；利便藥物 2 顆以上＝顆數
+    const med = careMedFromRecords(records);
+    const uGoal = careUrineGoal(intake, med.diuretic);
+    const uLabel = med.diuretic === 'full' ? '（利尿藥物 ×1.3）' : med.diuretic === 'aux' ? '（利尿藥物(輔助) ×1.1）' : '（×0.9）';
+    const sGoal = careStoolGoal(med.laxPills);
     // [名稱, 目標顯示, 達成顯示, 超標?, 可編輯目標的 category（null＝不可編輯）]
     const rows = [
         ['💧 總攝入水量', (g('總攝入水量') || '—') + ' cc', intake + ' cc', intake > 1200, '總攝入水量'],
-        ['🚽 尿液', (intake ? uMin + (cfg.diuretic ? '～' + uMax : '') : '—') + ' cc', urine + ' cc', urine > 0 && uMax > 0 && urine > uMax, null],
-        ['💩 排便', (g('排便') || '—') + ' 次', cnt('排便') + ' 次', false, '排便']
+        ['🚽 尿液', (intake ? uGoal + ' cc ' + uLabel : '—'), urine + ' cc', urine > 0 && uGoal > 0 && urine > uGoal, null],
+        ['💩 排便', sGoal + ' 次' + (med.laxPills > 0 ? `（利便藥物${med.laxPills}顆）` : ''), cnt('排便') + ' 次', false, null]
     ].concat(CARE_EX_TYPES.map(ex => ['💪 ' + ex, (g(ex) || '—') + ' 次', sum([ex]) + ' 次（' + cnt(ex) + ' 筆）', false, ex]));
     return `<div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="px-3 py-2 text-[10px] font-black text-gray-400 border-b border-gray-100">🎯 預計目標 vs 達成總數（U1–U5 合計）｜點 ✏️ 設定目標</div>
@@ -191,7 +194,7 @@ function render(){
     let bodyRows = '';
     CARE_SLOTS.forEach(slot => {
         const recs = show
-            .filter(r => r.time >= slot.start && (slot.end === '24:00' || r.time < slot.end))
+            .filter(r => careInSlot(r.time, slot))
             .sort((a,b) => a.time.localeCompare(b.time));
         const missed = FILTER === 'all' ? tasks.filter(t => t.slot === slot.key && t.state === 'missed') : [];
         const n = recs.length + missed.length;
