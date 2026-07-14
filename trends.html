@@ -6,7 +6,7 @@
 <title>健康趨勢分析 — 奶奶照護日誌 / Analisis Tren Kesehatan</title>
 <!-- Chart.js 4.4.1（本地 vendor，無 CDN 依賴；MIT 授權見 vendor/chart.LICENSE.md） -->
 <script src="vendor/chart.umd.min.js"></script>
-<script src="care-tasks.js?v=7"></script>
+<script src="care-tasks.js?v=8"></script>
 <style>
 /* ============ 自足式樣式（本頁不依賴 Tailwind CDN，離線快取後仍可完整顯示） ============
  * 色彩依 dataviz 檢核色盤（已通過 CVD ΔE≥12 與亮度帶驗證）：
@@ -262,8 +262,8 @@ const rnd = v => v == null ? null : Math.round(v);
 function summarizeDay(dateStr, records){
   const d = {
     date: dateStr, has: false, failed: records === null,
-    intake: null, urine: null, stool: null, net: null, urMin: null, urMax: null, diuretic: false,
-    stoolMarks: { hard: false, loose: false, enema: false, lax: false }, stoolNotes: [],
+    intake: null, urine: null, stool: null, net: null, urMin: null, urMax: null, diuretic: false, diureticAux: false,
+    stoolMarks: { hard: false, loose: false, enema: false, lax: false }, laxPills: 0, stoolGoal: null, stoolNotes: [],
     ex: {}, exPct: {}, overallPct: null, distalPct: null, load: null,
     am: null, pm: null, ppAm: null, ppPm: null, rppAm: null, rppPm: null, dHr: null
   };
@@ -278,13 +278,20 @@ function summarizeDay(dateStr, records){
     const amt = parseFloat(r.amount) || 0;
     const note = r.note || '';
     if (INTAKE_CATS.includes(r.category)) intake += amt;
-    else if (r.category === '尿液') { urine += amt; if (note.includes('利尿藥物')) d.diuretic = true; }
+    else if (r.category === '尿液') {
+      urine += amt;
+      if (/利尿藥物\s*[（(]輔助[）)]/.test(note)) d.diureticAux = true;
+      else if (note.includes('利尿藥物')) d.diuretic = true;
+    }
     else if (r.category === '排便') {
       stool += 1;
       if (/乾硬|keras/i.test(note)) d.stoolMarks.hard = true;
       if (/稀便|水便|encer|diare/i.test(note)) d.stoolMarks.loose = true;
       if (/浣腸|supositoria/i.test(note)) d.stoolMarks.enema = true;
       if (note.includes('利便藥物')) d.stoolMarks.lax = true;
+      const mLax = /利便藥物\s*(\d+)\s*顆/.exec(note);
+      if (mLax) d.laxPills = Math.max(d.laxPills, parseInt(mLax[1], 10));
+      else if (d.stoolMarks.lax) d.laxPills = Math.max(d.laxPills, 1);
       const txt = careNoteDisplay(note, LANG);
       if (txt) d.stoolNotes.push((r.time || '') + ' ' + txt);
     }
@@ -299,8 +306,9 @@ function summarizeDay(dateStr, records){
   d.urine = Math.round(urine);
   d.stool = stool;
   d.net = d.intake - d.urine;
-  d.urMin = Math.round(intake * 1.1);                       // index.html 尿量演算法
-  d.urMax = d.diuretic ? Math.round(intake * 1.5) : d.urMin;
+  // 尿量演算法（care-tasks.js 共用）：已達攝入 ×0.9；利尿藥物（輔助）×1.1；利尿藥物 ×1.3
+  d.urMin = d.urMax = careUrineGoal(intake, d.diuretic ? 'full' : (d.diureticAux ? 'aux' : null));
+  d.stoolGoal = careStoolGoal(d.laxPills);
 
   ['am', 'pm'].forEach(k => {
     if (bp[k].length) d[k] = {
@@ -691,8 +699,9 @@ function buildC1(){
             const d = DAYS[its[0].dataIndex];
             if (!d.has) return '';
             const lines = [L('淨平衡', 'Selisih') + ' ' + (d.net > 0 ? '+' : '') + fmtCC(d.net)];
-            if (d.intake > 0) lines.push(L('目標尿量', 'Target urine') + ' ' + (d.urMax > d.urMin ? d.urMin.toLocaleString() + '–' + d.urMax.toLocaleString() + ' cc' : '≥ ' + fmtCC(d.urMin)));
+            if (d.intake > 0) lines.push(L('目標尿量', 'Target urine') + ' ' + fmtCC(d.urMin));
             if (d.diuretic) lines.push(L('💊 當日有利尿藥物', '💊 Ada diuretik'));
+            else if (d.diureticAux) lines.push(L('💊 當日有利尿藥物（輔助）', '💊 Ada diuretik (bantu)'));
             return lines;
           }
         }},
@@ -705,12 +714,12 @@ function buildC1(){
     }
   });
   document.getElementById('c1-note').innerHTML =
-    L('綠色虛線帶＝當日目標尿量（攝入×1.1，有利尿藥物時上修至 ×1.5）。<b>攝入柱超過紅線 1,200 cc、或尿量長期低於綠帶</b>，請提高警覺並回報醫師。',
-      'Pita hijau putus-putus = target urine harian (asupan ×1,1; dengan diuretik ×1,5). <b>Asupan di atas garis merah 1.200 cc atau urine di bawah pita hijau</b> → waspada & lapor dokter.');
+    L('綠色虛線＝當日目標尿量（已達攝入×0.9；利尿藥物（輔助）×1.1；利尿藥物×1.3）。<b>攝入柱超過紅線 1,200 cc、或尿量長期低於綠線</b>，請提高警覺並回報醫師。',
+      'Garis hijau putus-putus = target urine harian (asupan tercapai ×0,9; diuretik (bantu) ×1,1; diuretik ×1,3). <b>Asupan di atas garis merah 1.200 cc atau urine terus di bawah garis hijau</b> → waspada & lapor dokter.');
   fillTable('c1',
     [L('日期', 'Tanggal'), L('總攝入 cc', 'Asupan cc'), L('尿液 cc', 'Urine cc'), L('目標尿量 cc', 'Target urine cc'), L('淨平衡 cc', 'Selisih cc')],
     DAYS.map(d => [dayLabel(d.date), d.has ? fmtN(d.intake) : null, d.has ? fmtN(d.urine) : null,
-      d.has && d.intake > 0 ? (d.urMax > d.urMin ? fmtN(d.urMin) + '–' + fmtN(d.urMax) : '≥' + fmtN(d.urMin)) : null,
+      d.has && d.intake > 0 ? fmtN(d.urMin) : null,
       d.has ? (d.net > 0 ? '+' : '') + fmtN(d.net) : null]));
 }
 
@@ -857,7 +866,8 @@ function buildC4(){
 /* ===================== ⑤ 腸道與藥物 ===================== */
 function buildC5(){
   if (!DAYS.some(d => d.has)) return showEmpty('c5-box', 'c5');
-  const goal = parseFloat(cloudGoals['goal_排便']) || 0;
+  const goal = 1;   // 每日排便目標＝1 次；當日利便藥物 2 顆（含）以上→目標＝顆數（逐日顯示於 tooltip/表格）
+  const goalMax = Math.max(goal, ...DAYS.map(d => d.stoolGoal || goal));
   const mark = (flag, off) => DAYS.map(d => (d.has && d.stoolMarks[flag]) ? d.stool + off : null);
   mkChart('c5', {
     type: 'bar',
@@ -875,29 +885,29 @@ function buildC5(){
       interaction: { mode: 'index', intersect: false },
       scales: {
         x: { grid: { display: false }, ticks: xTicks() },
-        y: { beginAtZero: true, suggestedMax: Math.max(3, goal + 1.6), grid: gridY(), title: axisTitle(L('次', 'kali')), ticks: { stepSize: 1 } }
+        y: { beginAtZero: true, suggestedMax: Math.max(3, goalMax + 1.6), grid: gridY(), title: axisTitle(L('次', 'kali')), ticks: { stepSize: 1 } }
       },
       plugins: {
         tooltip: { filter: it => it.datasetIndex === 0, callbacks: {
           title: ttTitle,
-          label: it => ' ' + fmtN(it.parsed.y) + ' ' + L('次', 'kali') + (goal ? '／' + L('目標', 'target') + ' ' + goal : ''),
+          label: it => { const d = DAYS[it.dataIndex]; return ' ' + fmtN(it.parsed.y) + ' ' + L('次', 'kali') + '／' + L('目標', 'target') + ' ' + (d.stoolGoal || goal); },
           afterBody: its => {
             const d = DAYS[its[0].dataIndex];
             const out = d.stoolNotes.slice(0, 4);
-            if (d.stoolMarks.lax) out.push(L('💊 當日有利便藥物', '💊 Ada obat pencahar'));
+            if (d.laxPills > 0) out.push(L('💊 當日利便藥物 ' + d.laxPills + ' 顆', '💊 Obat pencahar ' + d.laxPills + ' butir'));
             return out;
           }
         }},
-        hlines: { lines: goal ? [ { y: goal, color: C.axis, label: L('目標 ', 'Target ') + goal } ] : [] }
+        hlines: { lines: [ { y: goal, color: C.axis, label: L('目標 ', 'Target ') + goal } ] }
       }
     }
   });
   document.getElementById('c5-note').innerHTML =
-    L('▲ 乾硬（利尿劑過度吸走腸道水分的訊號）、▼ 稀便/水便（軟便劑劑量偏重的訊號）、✚ 當日使用浣腸。<b>60–72 小時未排便</b>時記錄頁會啟動便秘警報。',
-      '▲ keras (tanda diuretik menyerap air usus berlebih), ▼ encer (tanda pencahar terlalu kuat), ✚ supositoria. Alarm sembelit aktif bila <b>60–72 jam</b> tanpa BAB.');
+    L('每日排便目標 1 次；當日利便藥物 2 顆（含）以上→目標＝顆數。▲ 乾硬（利尿劑過度吸走腸道水分的訊號）、▼ 稀便/水便（軟便劑劑量偏重的訊號）、✚ 當日使用浣腸。<b>60–72 小時未排便</b>時記錄頁會啟動便秘警報。',
+      'Target BAB 1 kali/hari; obat pencahar ≥2 butir → target = jumlah butir. ▲ keras (tanda diuretik menyerap air usus berlebih), ▼ encer (tanda pencahar terlalu kuat), ✚ supositoria. Alarm sembelit aktif bila <b>60–72 jam</b> tanpa BAB.');
   fillTable('c5',
     [L('日期', 'Tanggal'), L('次數', 'Kali'), L('目標', 'Target'), L('狀態', 'Status')],
-    DAYS.map(d => [dayLabel(d.date), d.has ? d.stool : null, goal || null,
+    DAYS.map(d => [dayLabel(d.date), d.has ? d.stool : null, d.has ? (d.stoolGoal || goal) : null,
       d.has ? [d.stoolMarks.hard ? L('乾硬', 'keras') : '', d.stoolMarks.loose ? L('稀便', 'encer') : '', d.stoolMarks.enema ? L('浣腸', 'supositoria') : '', d.stoolMarks.lax ? L('利便藥', 'pencahar') : ''].filter(Boolean).join('、') || L('正常', 'normal') : null]));
 }
 

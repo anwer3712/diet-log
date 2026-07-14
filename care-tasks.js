@@ -7,14 +7,17 @@
 /* 管理者密碼：改這裡（僅家庭內部防誤觸用，非高強度保密） */
 const CARE_PIN = '3712';
 
+/* 2026-07-14 時段調整：早上 05:00-10:00、中午 10:01-15:00、晚上 15:01-17:00、睡前 17:01-21:00
+ * start/end 皆為「含」（inclusive），各頁一律用 careInSlot() 判斷紀錄歸屬時段 */
 const CARE_SLOTS = [
-    { key:'dawn',    start:'00:00', end:'07:00', zh:'凌晨', id:'Dini hari' },
-    { key:'morning', start:'07:00', end:'10:30', zh:'早上', id:'Pagi' },
-    { key:'midday',  start:'10:30', end:'16:30', zh:'中午', id:'Siang' },
-    { key:'evening', start:'16:30', end:'19:00', zh:'下午', id:'Sore' },
-    { key:'night',   start:'19:00', end:'22:00', zh:'睡前', id:'Sblm tidur' },
-    { key:'late',    start:'22:00', end:'24:00', zh:'深夜', id:'Larut' }
+    { key:'dawn',    start:'00:00', end:'04:59', zh:'凌晨', id:'Dini hari' },
+    { key:'morning', start:'05:00', end:'10:00', zh:'早上', id:'Pagi' },
+    { key:'midday',  start:'10:01', end:'15:00', zh:'中午', id:'Siang' },
+    { key:'evening', start:'15:01', end:'17:00', zh:'晚上', id:'Sore' },
+    { key:'night',   start:'17:01', end:'21:00', zh:'睡前', id:'Sblm tidur' },
+    { key:'late',    start:'21:01', end:'23:59', zh:'深夜', id:'Larut' }
 ];
+function careInSlot(time, slot){ return time >= slot.start && time <= slot.end; }
 
 /* 2026-07-05 復健項目換新（舊資料保留顯示：雙手舉水瓶/腳底板抬壓/膝蓋彎伸 仍認得，只是不再列入任務） */
 const CARE_EX_TYPES = ['仰臥抬腿','大腿內收','橋式抬臀','站立'];
@@ -24,8 +27,8 @@ const careIsBP = r => r.category && r.category.includes('血壓/心跳');
 /* 應完成任務：
  * - 四項復健（抬腿/內收/橋式/站立）每天各完成一次
  *   → 19:00 前完成為準時，19:00 後未做顯示為「未做」
- * - 血壓：早上一次、睡前累計兩次
- * - 尿液：22:00 後量測今日最後一次 */
+ * - 血壓：早上一次、睡前（21:00 前）累計兩次
+ * - 尿液：21:01 後（深夜時段）量測今日最後一次 */
 function careTaskDefs(){
     const nth = (records, filter, n) => {
         const s = records.filter(filter).sort((a,b)=>a.time.localeCompare(b.time));
@@ -33,7 +36,7 @@ function careTaskDefs(){
     };
     const defs = [];
 
-    defs.push({ slot:'morning', deadline:'10:30', order:0, zh:'早壓', id:'Tensi', full_zh:'起床後測量血壓', full_id:'Ukur tensi pagi',
+    defs.push({ slot:'morning', deadline:'10:00', order:0, zh:'早壓', id:'Tensi', full_zh:'起床後測量血壓', full_id:'Ukur tensi pagi',
         need:(rs,t)=> rs.filter(r=>careIsBP(r)&&r.time<t).length>=1, rec:rs=>nth(rs,careIsBP,1) });
 
     CARE_EX_TYPES.forEach((ex, ti) => {
@@ -44,11 +47,11 @@ function careTaskDefs(){
             rec:rs=>{ const s=rs.filter(r=>r.category===ex).sort((a,b)=>a.time.localeCompare(b.time)); return s.length>0?s[0]:null; } });
     });
 
-        defs.push({ slot:'night', deadline:'22:00', order:0, zh:'晚壓', id:'Tensi', full_zh:'睡前測量血壓', full_id:'Ukur tensi sebelum tidur',
+        defs.push({ slot:'night', deadline:'21:00', order:0, zh:'晚壓', id:'Tensi', full_zh:'睡前測量血壓', full_id:'Ukur tensi sebelum tidur',
         need:(rs,t)=> rs.filter(r=>careIsBP(r)&&r.time<t).length>=2, rec:rs=>nth(rs,careIsBP,2) });
 
-    defs.push({ slot:'late', deadline:'24:00', order:0, zh:'尿量', id:'Urine', full_zh:'睡前量測今日最後一次尿液', full_id:'Ukur urine terakhir',
-        need:(rs)=> rs.some(r=>r.category==='尿液' && r.time>='22:00'), rec:()=>null });
+    defs.push({ slot:'late', deadline:'23:59', order:0, zh:'尿量', id:'Urine', full_zh:'睡前量測今日最後一次尿液', full_id:'Ukur urine terakhir',
+        need:(rs)=> rs.some(r=>r.category==='尿液' && r.time>='21:01'), rec:()=>null });
 
     // 時段內排序：血壓在前、四項運動照序
     defs.sort((a,b)=>{
@@ -180,6 +183,29 @@ function careUserOfNote(note){
 }
 function careStripUserTag(note){ return (note || '').replace(/\s*👤U[12345A]/g, '').trim(); }
 
+/* ===== 2026-07-14 尿液/排便每日目標演算法（index/anak/admin/trends 共用） =====
+ * 尿液目標 = 今日已達飲水量 ×0.9；當日有利尿藥物（輔助）×1.1；有利尿藥物 ×1.3
+ * 排便目標 = 1 次；當日利便藥物達 2 顆（含）以上 → 目標 = 顆數
+ * 藥物由「當天紀錄備註」判讀：[當日附加: 利尿藥物(輔助)] / [當日附加: 利尿藥物] / [當日附加: 利便藥物N顆]
+ * （舊資料 [當日附加: 利便藥物] 無顆數視為 1 顆；[當日附加: 利尿藥物] 視為利尿藥物） */
+function careMedFromRecords(records){
+    let diuretic = null;   // null=無 | 'aux'=利尿藥物（輔助） | 'full'=利尿藥物
+    let laxPills = 0;      // 利便藥物顆數
+    (records || []).forEach(r => {
+        const n = r.note || '';
+        if (!n) return;
+        if (/利尿藥物\s*[（(]輔助[）)]/.test(n)) { if (diuretic !== 'full') diuretic = 'aux'; }
+        else if (n.includes('利尿藥物')) diuretic = 'full';
+        const m = /利便藥物\s*(\d+)\s*顆/.exec(n);
+        if (m) laxPills = Math.max(laxPills, parseInt(m[1], 10));
+        else if (n.includes('利便藥物')) laxPills = Math.max(laxPills, 1);
+    });
+    return { diuretic, laxPills };
+}
+function careUrineFactor(diuretic){ return diuretic === 'full' ? 1.3 : (diuretic === 'aux' ? 1.1 : 0.9); }
+function careUrineGoal(intake, diuretic){ return Math.round((parseFloat(intake) || 0) * careUrineFactor(diuretic)); }
+function careStoolGoal(laxPills){ return Math.max(1, parseInt(laxPills, 10) || 0); }
+
 /* ===== 血壓/心跳合理控制區間（index.html／anak.html 共用；超出→彈窗提醒，不擋存檔） ===== */
 const CARE_BP_RANGES = {
     '早': { sys:[130,150], dia:[70,90], hr:[65,85] },   // 晨間（服藥前）
@@ -203,8 +229,13 @@ function careBpViolations(category, sys, dia, hr){
 /* 備註單語化：把「中文 / 外文」對與已知標籤依語言取單側 */
 function careNoteDisplay(note, lang){
     let t = careStripUserTag(note);
+    t = t.replace(/\[當日附加:\s*利尿藥物\s*[（(]輔助[）)]\]/g, lang==='id' ? '[Diuretik (bantu)]' : '[利尿藥物（輔助）]');
     t = t.replace(/\[當日附加:\s*利尿藥物\]/g, lang==='id' ? '[Diuretik]' : '[利尿藥物]');
+    t = t.replace(/\[當日附加:\s*利便藥物\s*(\d+)\s*顆\]/g, (m,n)=> lang==='id' ? `[Obat pencahar ${n} butir]` : `[利便藥物${n}顆]`);
     t = t.replace(/\[當日附加:\s*利便藥物\]/g, lang==='id' ? '[Obat pencahar]' : '[利便藥物]');
+    t = t.replace(/\[胃口:\s*好\]/g,   lang==='id' ? '[Nafsu makan: Baik]'   : '[胃口好]');
+    t = t.replace(/\[胃口:\s*普通\]/g, lang==='id' ? '[Nafsu makan: Biasa]'  : '[胃口普通]');
+    t = t.replace(/\[胃口:\s*差\]/g,   lang==='id' ? '[Nafsu makan: Kurang]' : '[胃口差]');
     t = t.replace(/\[浣腸\s*\/\s*Supositoria gliserin\]/g, lang==='id' ? '[Supositoria gliserin]' : '[浣腸]');
     t = t.replace(/([一-鿿][^\/\[\]]*?)\s*\/\s*([A-Za-z][^\/\[\]]*)/g, (m,zh,id)=> (lang==='id' ? id : zh).trim());
     return t.trim();

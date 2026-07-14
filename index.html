@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>奶奶照護日誌 / Catatan Perawatan Nenek</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=7"></script>
+    <script src="care-tasks.js?v=8"></script>
     <style>
         body.mode-zh .lang-id, body.mode-zh .lang-sep, body.mode-zh br.lang-br { display: none; }
         body.mode-id .lang-zh, body.mode-id .lang-sep, body.mode-id br.lang-br { display: none; }
@@ -130,13 +130,6 @@
                 <span id="urine-range-text"></span>
             </div>
 
-            <div id="med-section" class="mt-3 pt-3 border-t border-gray-100 hidden">
-                <label class="block text-[11px] font-bold text-gray-500 mb-2">💊 服用藥物 / Mengonsumsi obat：</label>
-                <div class="flex gap-4">
-                    <label class="flex items-center gap-1.5 text-xs font-bold text-gray-600"><input type="checkbox" id="med-diuretic" class="w-4 h-4 text-[#F4726B] rounded"> 利尿藥物 / Diuretik</label>
-                    <label class="flex items-center gap-1.5 text-xs font-bold text-gray-600"><input type="checkbox" id="med-laxative" class="w-4 h-4 text-[#F4726B] rounded"> 利便藥物 / Obat pencahar</label>
-                </div>
-            </div>
         </div>
 
         <form id="log-form" class="space-y-4" novalidate>
@@ -244,6 +237,13 @@
                         <button type="button" onclick="setStoolStatus('大便乾硬 / Kering dan keras')" class="bg-red-50 border border-red-100 text-red-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all leading-tight">乾硬 / Kering dan keras</button>
                         <button type="button" onclick="setStoolStatus('正常 / Normal')" class="bg-green-50 border border-green-100 text-green-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all leading-tight">正常 / Normal</button>
                     </div>
+                    <label class="block text-[11px] font-bold text-gray-400 pt-1">💊 <span class="lang-zh">當日利便藥物 (可選):</span><span class="lang-id">Obat pencahar hari ini (Opsional):</span></label>
+                    <div id="stool-lax-btns" class="grid grid-cols-4 gap-1.5">
+                        <button type="button" data-lax="0" onclick="setStoolLax(0)"><span class="lang-zh">無</span><span class="lang-id">Tidak</span></button>
+                        <button type="button" data-lax="1" onclick="setStoolLax(1)">1 <span class="lang-zh">顆</span><span class="lang-id">butir</span></button>
+                        <button type="button" data-lax="2" onclick="setStoolLax(2)">2 <span class="lang-zh">顆</span><span class="lang-id">butir</span></button>
+                        <button type="button" data-lax="3" onclick="setStoolLax(3)">3 <span class="lang-zh">顆</span><span class="lang-id">butir</span></button>
+                    </div>
                     <label class="flex items-center gap-2 text-xs font-bold text-gray-700 pt-1 cursor-pointer"><input type="checkbox" id="enema-check" class="w-4 h-4 text-gray-500 rounded" onchange="toggleEnemaWarning()"> 💉 <span class="lang-zh">使用浣腸</span><span class="lang-id">Memakai Supositoria gliserin</span> <span class="text-[10px] text-gray-400 font-medium"><span class="lang-zh">(選填)</span><span class="lang-id">(Opsional)</span></span></label>
                     <div id="enema-warning" class="hidden bg-red-50 border border-red-200 rounded-2xl p-2.5 text-red-700 font-bold text-[11px] space-y-1.5">
                         <p>🚫 未排便達三日以上，才允許使用浣腸 / Supositoria gliserin。<br><span class="text-[10px] text-red-500 font-medium">Enema / supositoria gliserin hanya diperbolehkan jika tidak terjadi buang air besar pada hari ketiga.</span></p>
@@ -257,6 +257,21 @@
                         <button type="button" onclick="setUrineColor('淡紅色 / Merah Muda')" class="bg-stone-50 text-rose-600 rounded-2xl py-2 text-xs font-bold leading-tight">淡紅色 / Merah Muda</button>
                         <button type="button" onclick="setUrineColor('深黃色 / Kuning Tua')" class="bg-yellow-100 text-yellow-700 rounded-2xl py-2 text-xs font-bold leading-tight">深黃 / Kuning Tua</button>
                         <button type="button" onclick="setUrineColor('正常淺黃 / Kuning Muda')" class="bg-yellow-50 text-yellow-600 rounded-2xl py-2 text-xs font-bold leading-tight">淺黃 / Kuning Muda</button>
+                    </div>
+                    <label class="block text-[11px] font-bold text-gray-400 pt-1">💊 <span class="lang-zh">當日利尿藥物 (可選):</span><span class="lang-id">Diuretik hari ini (Opsional):</span></label>
+                    <div id="urine-med-btns" class="grid grid-cols-3 gap-1.5">
+                        <button type="button" data-med="" onclick="setUrineMed('')"><span class="lang-zh">無</span><span class="lang-id">Tidak</span></button>
+                        <button type="button" data-med="aux" onclick="setUrineMed('aux')"><span class="lang-zh">利尿藥物（輔助）</span><span class="lang-id">Diuretik (bantu)</span></button>
+                        <button type="button" data-med="full" onclick="setUrineMed('full')"><span class="lang-zh">利尿藥物</span><span class="lang-id">Diuretik</span></button>
+                    </div>
+                </div>
+
+                <div id="appetite-shortcut" class="hidden space-y-1.5">
+                    <label class="block text-[11px] font-bold text-gray-400">😋 <span class="lang-zh">胃口 (必選):</span><span class="lang-id">Nafsu makan (Wajib):</span></label>
+                    <div id="appetite-btns" class="grid grid-cols-3 gap-1.5">
+                        <button type="button" data-app="好" onclick="setAppetite('好')">😋 <span class="lang-zh">好</span><span class="lang-id">Baik</span></button>
+                        <button type="button" data-app="普通" onclick="setAppetite('普通')">😐 <span class="lang-zh">普通</span><span class="lang-id">Biasa</span></button>
+                        <button type="button" data-app="差" onclick="setAppetite('差')">😞 <span class="lang-zh">差</span><span class="lang-id">Kurang</span></button>
                     </div>
                 </div>
 
@@ -348,6 +363,31 @@
         let currentActiveId = null;
         const stoolStatuses = ['稀便 / feses encer', '大便乾硬 / Kering dan keras', '正常 / Normal'];
         const urineColors = ['淡紅色 / Merah Muda', '深黃色 / Kuning Tua', '正常淺黃 / Kuning Muda'];
+
+        // ===== 當日藥物選擇（尿液/排便項目內、可選）＋進食胃口（必選） =====
+        // urineMedSel: ''=無 | 'aux'=利尿藥物（輔助） | 'full'=利尿藥物；stoolLaxSel: 利便藥物顆數
+        let urineMedSel = '', stoolLaxSel = 0, appetiteSel = '';
+        let medSelTouched = false;   // 使用者手動選過藥物後，背景同步不再覆蓋
+        window.setUrineMed = function(v){ urineMedSel = v; medSelTouched = true; paintMedSelectors(); updateTargetPanel(); };
+        window.setStoolLax = function(n){ stoolLaxSel = n; medSelTouched = true; paintMedSelectors(); updateTargetPanel(); };
+        window.setAppetite = function(v){ appetiteSel = v; paintMedSelectors(); };
+        function medBtnCls(on){
+            return 'rounded-2xl py-2 px-1 text-xs font-bold leading-tight border-2 transition-all active:scale-95 ' +
+                (on ? 'bg-[#F4726B] text-white border-[#F4726B]' : 'bg-white text-gray-600 border-gray-300');
+        }
+        function paintMedSelectors(){
+            document.querySelectorAll('#urine-med-btns button').forEach(b => b.className = medBtnCls((b.dataset.med || '') === urineMedSel));
+            document.querySelectorAll('#stool-lax-btns button').forEach(b => b.className = medBtnCls(parseInt(b.dataset.lax, 10) === stoolLaxSel));
+            document.querySelectorAll('#appetite-btns button').forEach(b => b.className = medBtnCls(appetiteSel !== '' && b.dataset.app === appetiteSel));
+        }
+        // 當天已有紀錄標記過藥物 → 表單預選同狀態（藥物是「當日」狀態，跨紀錄共用）
+        function syncMedSelFromRecords(){
+            if (medSelTouched) return;
+            const med = careMedFromRecords(cloudRecords);
+            urineMedSel = med.diuretic || '';
+            stoolLaxSel = med.laxPills || 0;
+            paintMedSelectors();
+        }
         // 今日目標不使用固定預設值：一律抓取「前一次」設定的數值（雲端 → 本機快取的上次數值）
         function getLastGoals() { try { return JSON.parse(localStorage.getItem('last_goals') || '{}'); } catch(e) { return {}; } }
         function saveLastGoal(item, val) {
@@ -518,10 +558,8 @@
             standardGroup.classList.remove('hidden'); targetDashboard.classList.remove('hidden');
 
             const viewSheetWrap = document.getElementById('view-sheet-wrap');
-            const medSection = document.getElementById('med-section');
             const catheterNote = document.getElementById('catheter-note');
             if (viewSheetWrap) viewSheetWrap.classList.add('hidden');
-            if (medSection) medSection.classList.add('hidden');
             if (catheterNote) catheterNote.classList.add('hidden');
 
             if (selectedType === '攝入') {
@@ -531,7 +569,6 @@
             } else if (selectedType === '排出') {
                 outputGroup.classList.remove('hidden');
                 document.querySelector('#output-group input[name="category"]').checked = true;
-                if (medSection) medSection.classList.remove('hidden');
                 if (catheterNote) catheterNote.classList.remove('hidden');
             } else if (selectedType === '運動') {
                 exerciseGroup.classList.remove('hidden');
@@ -573,7 +610,7 @@
             if (selectedType === '運動') { guideField('#amount-field'); return; }
             if (checkedCategory && checkedCategory.value === '排便') { guideField('#stool-shortcut'); return; }
             if (checkedCategory && checkedCategory.value === '尿液') { guideField('#amount-field, #urine-color-shortcut'); return; }
-            if (checkedCategory && checkedCategory.value === '進食') { guideField('#amount-field, #input-note'); return; }
+            if (checkedCategory && checkedCategory.value === '進食') { guideField('#amount-field, #appetite-shortcut, #input-note'); return; }
             guideField('#amount-field');
         }
         // 步驟2：點類型後→一般類型引導到「選擇項目」；血壓無子項則直接到輸入欄
@@ -599,6 +636,7 @@ function checkBpTime() {
             const checkedCategory = document.querySelector('input[name="category"]:checked');
             const stoolShortcut = document.getElementById('stool-shortcut');
             const urineColorShortcut = document.getElementById('urine-color-shortcut');
+            const appetiteShortcut = document.getElementById('appetite-shortcut');
             const titleZh = document.getElementById('amount-title-zh');
             const amountUnit = document.getElementById('amount-unit');
             const amountInput = document.getElementById('input-amount');
@@ -610,6 +648,7 @@ function checkBpTime() {
 
             stoolShortcut.classList.add('hidden');
             if (urineColorShortcut) urineColorShortcut.classList.add('hidden');
+            if (appetiteShortcut) appetiteShortcut.classList.add('hidden');
             if (standWarning) standWarning.classList.add('hidden');
 
             if (stoolStatuses.includes(noteInput.value) || urineColors.includes(noteInput.value)) noteInput.value = '';
@@ -646,6 +685,11 @@ function checkBpTime() {
                 if (urineColorShortcut) urineColorShortcut.classList.remove('hidden');
                 titleZh.innerText = LTXT('容量', 'Kapasitas'); amountUnit.innerText = 'c.c.';
                 amountInput.placeholder = LTXT('例如：250 c.c.', 'Misalnya: 250 c.c.'); amountInput.min = '1';
+            } else if (checkedCategory && checkedCategory.value === '進食') {
+                // 含水食物：胃口（好/普通/差）必選
+                if (appetiteShortcut) appetiteShortcut.classList.remove('hidden');
+                titleZh.innerText = LTXT('容量', 'Kapasitas'); amountUnit.innerText = 'c.c.';
+                amountInput.placeholder = LTXT('例如：250 c.c.', 'Misalnya: 250 c.c.'); amountInput.min = '1';
             } else {
                 titleZh.innerText = LTXT('容量', 'Kapasitas'); amountUnit.innerText = 'c.c.';
                 amountInput.placeholder = LTXT('例如：250 c.c.', 'Misalnya: 250 c.c.'); amountInput.min = '1';
@@ -677,27 +721,37 @@ function checkBpTime() {
             const targetInput = document.getElementById('input-target-val');
             const editBtn = document.getElementById('target-edit-btn');
 
-            // === 尿液目標特殊算法 ===
-            let urineRangeMin = 0, urineRangeMax = 0;
+            // === 尿液/排便目標特殊算法（2026-07-14，公式共用 care-tasks.js） ===
+            // 尿液目標 = 今日已達飲水量 ×0.9；利尿藥物（輔助）×1.1；利尿藥物 ×1.3
+            let urineRangeMax = 0;
             if (currentItem === '尿液') {
                 const intakeAchieved = cloudRecords.filter(item => ['飲水量', '服藥飲水', '營養飲品', '進食'].includes(item.category)).reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
-                const hasDiuretic = document.getElementById('med-diuretic').checked;
-                // 有利尿藥物：正常範圍 = 今日總飲水量 ×1.1 ～ ×1.5；無利尿藥物：正常值 = 今日總飲水量 ×1.1
-                urineRangeMin = Math.round(intakeAchieved * 1.1);
-                urineRangeMax = hasDiuretic ? Math.round(intakeAchieved * 1.5) : urineRangeMin;
-                savedTarget = urineRangeMin;
-                targetInput.value = urineRangeMin;
+                const uGoal = careUrineGoal(intakeAchieved, urineMedSel);
+                urineRangeMax = uGoal;
+                savedTarget = uGoal;
+                targetInput.value = uGoal;
                 targetInput.readOnly = true;
                 targetInput.style.color = '#6b7280';
                 if (editBtn) editBtn.classList.add('hidden');
                 urineRangeInfoEl.classList.remove('hidden');
-                if (hasDiuretic) {
-                    document.getElementById('urine-range-text').innerHTML =
-                        LTXT(`💧 正常範圍：${urineRangeMin} c.c. ～ ${urineRangeMax} c.c.`, `💧 Kisaran normal: ${urineRangeMin} c.c. ~ ${urineRangeMax} c.c.`);
-                } else {
-                    document.getElementById('urine-range-text').innerHTML =
-                        LTXT(`💧 正常範圍：${urineRangeMin} c.c.`, `💧 Kisaran normal: ${urineRangeMin} c.c.`);
-                }
+                const fLabel = urineMedSel === 'full' ? LTXT('有利尿藥物', 'dengan diuretik')
+                    : urineMedSel === 'aux' ? LTXT('有利尿藥物（輔助）', 'dengan diuretik (bantu)')
+                    : LTXT('無利尿藥物', 'tanpa diuretik');
+                document.getElementById('urine-range-text').innerHTML =
+                    LTXT(`💧 今日尿液目標＝今日已達飲水量 ${intakeAchieved} c.c. × ${careUrineFactor(urineMedSel)}（${fLabel}）＝ ${uGoal} c.c.`,
+                         `💧 Target urine hari ini = asupan tercapai ${intakeAchieved} c.c. × ${careUrineFactor(urineMedSel)} (${fLabel}) = ${uGoal} c.c.`);
+            } else if (currentItem === '排便') {
+                // 排便目標 = 1 次；利便藥物 2 顆（含）以上 = 顆數
+                const sGoal = careStoolGoal(stoolLaxSel);
+                savedTarget = sGoal;
+                targetInput.value = sGoal;
+                targetInput.readOnly = true;
+                targetInput.style.color = '#6b7280';
+                if (editBtn) editBtn.classList.add('hidden');
+                urineRangeInfoEl.classList.remove('hidden');
+                document.getElementById('urine-range-text').innerHTML =
+                    LTXT(`💩 今日排便目標＝1 次；利便藥物 2 顆（含）以上＝顆數次（目前 ${stoolLaxSel} 顆 → 目標 ${sGoal} 次）`,
+                         `💩 Target BAB hari ini = 1 kali; obat pencahar ≥2 butir = sesuai jumlah butir (sekarang ${stoolLaxSel} butir → ${sGoal} kali)`);
             } else {
                 targetInput.value = savedTarget;
                 targetInput.readOnly = true;   // 預設鎖定，按鉛筆才能改（防其他照顧者誤觸）
@@ -740,8 +794,7 @@ function checkBpTime() {
             // 尿液超出正常範圍警告（alert 提醒＋下方深紅閃動框與警示卡同步亮起）
             const overUrine = (currentItem === '尿液' && achieved > 0 && urineRangeMax > 0 && achieved > urineRangeMax);
             if (overUrine) {
-                const hasDiuretic = document.getElementById('med-diuretic').checked;
-                const medLabel = hasDiuretic ? '有利尿藥物' : '無藥物';
+                const medLabel = urineMedSel === 'full' ? '有利尿藥物' : urineMedSel === 'aux' ? '有利尿藥物（輔助）' : '無藥物';
                 showCareAlert('尿液超出正常範圍警告<br><span class="text-sm">Volume urine melebihi batas normal</span>',
                     `<p>今日尿液量：<b class="text-red-600">${achieved} c.c.</b><br>正常上限（${medLabel}）：${urineRangeMax} c.c.</p>
                      <p>請注意並告知護理人員。</p>
@@ -775,16 +828,16 @@ function checkBpTime() {
                 const intakeRecs = records.filter(r => ['飲水量','服藥飲水','營養飲品','進食'].includes(r.category));
                 const totalIntake = intakeRecs.reduce((sum, r) => sum + parseFloat(r.amount||0), 0);
                 const intakeTarget = parseFloat(cloudGoals['goal_總攝入水量'] || getLastGoals()['總攝入水量'] || 0);
-                const urineTarget = parseFloat(cloudGoals['goal_尿液'] || getLastGoals()['尿液'] || 0);
+                const urineTarget = careUrineGoal(totalIntake, careMedFromRecords(records).diuretic);
                 const urineAchieved = records.filter(r => r.category === '尿液').reduce((sum, r) => sum + parseFloat(r.amount||0), 0);
-                
+
                 if (intakeTarget > 0 && totalIntake < intakeTarget) {
                     document.getElementById('target-dashboard').classList.add('danger-active');
                     showCareAlert('注意！請檢查今日攝入量<br><span class="text-sm">Periksa asupan hari ini</span>',
                         `<p>今日總攝入 <b class="text-red-600">${totalIntake} c.c.</b> 尚未達到目標 ${intakeTarget} c.c.，請檢查有無漏填。</p>
                          <p class="text-xs text-gray-500">Perhatian! Mohon periksa apakah asupan harian Anda telah dimasukkan dengan benar.</p>`);
                 }
-                if (urineTarget > 0 && urineAchieved > 0 && urineAchieved > urineTarget * 1.5) {
+                if (urineTarget > 0 && urineAchieved > 0 && urineAchieved > urineTarget) {
                     document.getElementById('target-dashboard').classList.add('danger-active');
                 }
             }
@@ -813,10 +866,22 @@ function checkBpTime() {
             if (hourMin >= '19:00' && exDone === 0) missedSet.add('evening_ex');
             else missedSet.delete('evening_ex');
             
-            // === Slot (4): 19:00-22:00 睡前盤點 ===
-            // === Slot (5): 22:00-24:00 睡前最後一次尿液量 ===
-            if (hourMin >= '22:00') {
+            // === 深夜時段 21:01-23:59：睡前最後一次尿液量 ===
+            if (hourMin >= '21:01') {
                 reminders.push(blueGuide(`<p class="font-black text-sm">🚽 睡前量測今日最後一次尿液量<br><span class="text-xs text-gray-500">Ukur volume urine terakhir Anda sebelum tidur.</span></p>`));
+            }
+
+            // === 整日進度格未做提醒（20:00–23:59）：盤點今日進度格尚未完成的項目 ===
+            const viewDate = document.getElementById('input-date').value || todayStr;
+            if (hourMin >= '20:00' && hourMin <= '23:59' && viewDate === todayStr) {
+                const gridTasks = careComputeTasks(records, todayStr).tasks;
+                const undone = gridTasks.filter(t => t.state === 'missed' || t.state === 'pending');
+                if (undone.length > 0) {
+                    reminders.push(redMissed(
+                        '今日進度格未完成：' + undone.map(t => t.full_zh).join('、'),
+                        'Progres hari ini belum selesai: ' + undone.map(t => t.full_id).join(', ')
+                    ));
+                }
             }
 
             // === 極致提醒：紅色警示（以次數判斷補完成，非時段）===
@@ -969,13 +1034,7 @@ function checkBpTime() {
             Object.keys(cloudGoals).forEach(k => {
                 if (k.startsWith('goal_')) saveLastGoal(k.replace('goal_', ''), cloudGoals[k]);
             });
-            if (cloudGoals['last_med']) {
-                try {
-                    const meds = JSON.parse(cloudGoals['last_med']);
-                    document.getElementById('med-diuretic').checked = !!meds.diuretic;
-                    document.getElementById('med-laxative').checked = !!meds.laxative;
-                } catch(e) {}
-            }
+            syncMedSelFromRecords();   // 當日藥物狀態改由當天紀錄備註判讀
             updateTargetPanel();
             renderRecords();
             checkReminders();
@@ -1082,14 +1141,18 @@ function checkBpTime() {
 
             // 必填驗證
             if (category === '進食' && !noteValue) return showToast("⚠️ 進食必須填寫備註（吃了什麼）！\nCatatan wajib diisi untuk Makan!", true);
+            if (category === '進食' && !appetiteSel) return showToast("⚠️ 請先選擇胃口（好/普通/差）！\nPilih nafsu makan (Baik/Biasa/Kurang)!", true);
             if (category === '尿液' && !noteValue) return showToast("⚠️ 請先選擇尿液顏色！\nPilih warna urine terlebih dahulu!", true);
             if (category === '排便' && !noteValue) return showToast("⚠️ 請先選擇糞便狀態！\nPilih status BAB terlebih dahulu!", true);
 
-            if (category === '尿液' && document.getElementById('med-diuretic').checked) {
-                noteValue += (noteValue ? ' ' : '') + '[當日附加: 利尿藥物]';
+            if (category === '進食' && appetiteSel) {
+                noteValue += (noteValue ? ' ' : '') + `[胃口: ${appetiteSel}]`;
             }
-            if (category === '排便' && document.getElementById('med-laxative').checked) {
-                noteValue += (noteValue ? ' ' : '') + '[當日附加: 利便藥物]';
+            if (category === '尿液' && urineMedSel) {
+                noteValue += (noteValue ? ' ' : '') + (urineMedSel === 'full' ? '[當日附加: 利尿藥物]' : '[當日附加: 利尿藥物(輔助)]');
+            }
+            if (category === '排便' && stoolLaxSel > 0) {
+                noteValue += (noteValue ? ' ' : '') + `[當日附加: 利便藥物${stoolLaxSel}顆]`;
             }
             if (category === '排便' && document.getElementById('enema-check').checked) {
                 noteValue += (noteValue ? ' ' : '') + '[浣腸 / Supositoria gliserin]';
@@ -1127,6 +1190,7 @@ function checkBpTime() {
                 showToast("儲存成功！ / Berhasil disimpan!");
                 document.getElementById('input-amount').value = ''; document.getElementById('input-bp-sys').value = ''; document.getElementById('input-bp-dia').value = ''; document.getElementById('input-bp-hr').value = ''; document.getElementById('input-note').value = '';
                 document.getElementById('enema-check').checked = false; toggleEnemaWarning();
+                appetiteSel = ''; paintMedSelectors();   // 胃口屬單筆紀錄，存檔後重置（藥物屬當日狀態，保留）
                 setNow(); updateView();
                 // 背景同步，延遲 1.5 秒不阻塞 UI
                 setTimeout(() => fetchCloudData(), 1500);
@@ -1139,17 +1203,6 @@ function checkBpTime() {
             })
             .finally(() => { btn.disabled = false; btn.innerHTML = `<span>💾 ${LTXT('儲存紀錄','Simpan data ini')}</span>`; });
         });
-
-        function saveMedState() {
-            // last_med 是共用設定 blob（含 names 等），必須合併寫回，不可整包覆蓋
-            const cfg = careConfig(cloudGoals);
-            cfg.diuretic = document.getElementById('med-diuretic').checked;
-            cfg.laxative = document.getElementById('med-laxative').checked;
-            cloudGoals['last_med'] = JSON.stringify(cfg);
-            fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "setMed", val: JSON.stringify(cfg) }) });
-        }
-        document.getElementById('med-diuretic').addEventListener('change', saveMedState);
-        document.getElementById('med-laxative').addEventListener('change', saveMedState);
 
         document.querySelectorAll('input[name="category"]').forEach(radio => radio.addEventListener('change', checkSubCategory));
         // 三階段引導：點類型分頁→引導「選擇項目」；點項目→引導輸入欄（用 click 以涵蓋點選已預設選中的項目）
@@ -1167,8 +1220,8 @@ function checkBpTime() {
             const checkedCategory = document.querySelector('input[name="category"]:checked')?.value;
             let currentItem = checkedCategory;
             if (['飲水量', '服藥飲水', '營養飲品', '進食'].includes(checkedCategory)) currentItem = '總攝入水量';
-            if (currentItem && currentItem !== '尿液') {
-                cloudGoals['goal_' + currentItem] = this.value;   // 樂觀更新，避免重繪時被舊值蓋回
+            if (currentItem && currentItem !== '尿液' && currentItem !== '排便') {
+                cloudGoals['goal_' + currentItem] = this.value;   // 樂觀更新，避免重繪時被舊值蓋回（尿液/排便目標為自動計算）
                 saveLastGoal(currentItem, this.value);            // 記住這次數值，作為之後的「前一次數值」
                 updateTargetPanel(); showToast("今日目標已更新同步！/ Target diperbarui!", false);
                 fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "setGoal", category: currentItem, amount: this.value }) });
@@ -1210,6 +1263,7 @@ function checkBpTime() {
             if (CARE_JOINED) showToast(LTXT('✅ 此裝置已綁定為 👤U' + CARE_JOINED, '✅ Perangkat ini terdaftar sebagai 👤U' + CARE_JOINED));
             document.getElementById('input-note').placeholder = LTXT('輸入額外說明內容...', 'Masukkan catatan tambahan...');
             localizePage();
+            paintMedSelectors();   // 藥物/胃口按鈕初始樣式
             setNow(); updateView(); fetchCloudData();
             setGuide('date');   // 引導起點：日期框閃水藍
         };
