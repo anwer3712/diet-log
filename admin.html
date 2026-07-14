@@ -199,21 +199,24 @@ function render(){
 
         const slotCell = `<td rowspan="${n}" class="align-top py-1.5 px-2 text-[10px] font-black text-gray-500 bg-gray-50/80 whitespace-nowrap border-r border-gray-100">${slot.zh}<div class="text-[8px] text-gray-300">${slot.start}-${slot.end}</div></td>`;
         let first = true;
-        recs.forEach(r => {
-            const late = lateRecIds.has(r.recordId);
-            const c = late ? 'text-amber-600' : 'text-gray-700';
-            const u = careUserOfNote(r.note);
-            const note = careNoteDisplay(r.note, 'zh');
-            const uColor = { '1':'bg-rose-100 text-rose-600', '2':'bg-sky-100 text-sky-600', '3':'bg-green-100 text-green-700', '4':'bg-amber-100 text-amber-700', '5':'bg-indigo-100 text-indigo-600', 'A':'bg-purple-100 text-purple-600' }[u] || 'bg-gray-100 text-gray-400';
-            bodyRows += `<tr class="border-b border-gray-50 ${late?'bg-amber-50/60':''}">
-                ${first ? slotCell : ''}
-                <td class="py-1.5 px-2 text-[11px] font-black whitespace-nowrap ${c}">${r.time}${late?'🟧':''}</td>
-                <td class="py-1.5 px-2"><span class="text-[9px] font-black px-1.5 py-0.5 rounded-md ${uColor}">${u?'U'+u:'—'}</span></td>
-                <td class="py-1.5 px-2 text-[11px] font-bold ${c}">${catShort(r.category)} ${r.amount !== '' && r.amount !== undefined ? r.amount : ''}${unitOf(r.category)}</td>
-                <td class="py-1.5 px-2 text-[10px] ${late ? 'text-amber-500 font-bold' : 'text-gray-400'}">${late ? '補齊' + (note?'｜'+note:'') : (note || '')}</td>
-            </tr>`;
-            first = false;
-        });
+                recs.forEach(r => {
+                                const late = lateRecIds.has(r.recordId);
+                                const c = late ? 'text-amber-600' : 'text-gray-700';
+                                const u = careUserOfNote(r.note);
+                                const note = careEscapeHtml(careNoteDisplay(r.note, 'zh'));
+                                const safeTime = careEscapeHtml(r.time);
+                                const safeCat = careEscapeHtml(catShort(r.category));
+                                const safeAmount = careEscapeHtml(r.amount !== '' && r.amount !== undefined ? r.amount : '');
+                                const uColor = { '1':'bg-rose-100 text-rose-600', '2':'bg-sky-100 text-sky-600', '3':'bg-green-100 text-green-700', '4':'bg-amber-100 text-amber-700', '5':'bg-indigo-100 text-indigo-600', 'A':'bg-purple-100 text-purple-600' }[u] || 'bg-gray-100 text-gray-400';
+                                bodyRows += `<tr class="border-b border-gray-50 ${late?'bg-amber-50/60':''}">
+                                ${first ? slotCell : ''}
+                                <td class="py-1.5 px-2 text-[11px] font-black whitespace-nowrap ${c}">${safeTime}${late?'🟧':''}</td>
+                                <td class="py-1.5 px-2"><span class="text-[9px] font-black px-1.5 py-0.5 rounded-md ${uColor}">${u?'U'+u:'—'}</span></td>
+                                <td class="py-1.5 px-2 text-[11px] font-bold ${c}">${safeCat} ${safeAmount}${unitOf(r.category)}</td>
+                                <td class="py-1.5 px-2 text-[10px] ${late ? 'text-amber-500 font-bold' : 'text-gray-400'}">${late ? '補齊' + (note?'｜'+note:'') : (note || '')}</td>
+                                </tr>`;
+                                first = false;
+                });
         missed.forEach(t => {
             bodyRows += `<tr class="border-b border-gray-50 bg-red-50/60">
                 ${first ? slotCell : ''}
