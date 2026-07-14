@@ -209,3 +209,9 @@ function careNoteDisplay(note, lang){
     t = t.replace(/([一-鿿][^\/\[\]]*?)\s*\/\s*([A-Za-z][^\/\[\]]*)/g, (m,zh,id)=> (lang==='id' ? id : zh).trim());
     return t.trim();
 }
+
+
+/* ===== HTML 逃逸：所有來自後端試算表／使用者輸入的文字，插入 innerHTML 前必須先跳脫 HTML 元字元，防止 DOM XSS ===== */
+function careEscapeHtml(str){
+    return String(str === null || str === undefined ? '' : str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
