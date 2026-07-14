@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理者總表 — 奶奶照護日誌</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=8"></script>
+    <script src="care-tasks.js?v=9"></script>
     <style>
         body { background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 45%, #fff1f2 100%); }
         .animate-spin-slow { animation: spin 3s linear infinite; }
@@ -186,7 +186,7 @@ function render(){
     const records = cachedRecords;
 
     // 進度格＝病患層級（不分記錄者）
-    const { tasks, lateRecIds } = careComputeTasks(records, date);
+    const { tasks, lateRecIds } = careComputeTasks(records, date, cachedGoals);
     careRenderGrid(document.getElementById('progress-grid'), tasks, 'zh');
     document.getElementById('goals-table').innerHTML = goalsTableHtml(records);
 

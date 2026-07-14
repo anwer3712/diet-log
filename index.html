@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>奶奶照護日誌 / Catatan Perawatan Nenek</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=8"></script>
+    <script src="care-tasks.js?v=9"></script>
     <style>
         body.mode-zh .lang-id, body.mode-zh .lang-sep, body.mode-zh br.lang-br { display: none; }
         body.mode-id .lang-zh, body.mode-id .lang-sep, body.mode-id br.lang-br { display: none; }
@@ -230,6 +230,11 @@
                     </div>
                 </div>
 
+                <div id="math-guide-img" class="hidden space-y-1">
+                    <p class="text-[11px] font-bold text-gray-400"><span class="lang-zh">湯湯水水的計量辦法</span><span class="lang-id">Cara ukur makanan berair</span></p>
+                    <img src="math.jpg" class="w-full rounded-2xl border border-gray-200" loading="lazy">
+                </div>
+
                 <div id="stool-shortcut" class="hidden space-y-1.5">
                     <label class="block text-[11px] font-bold text-gray-400">💩 <span class="lang-zh">糞便狀態 (必選):</span><span class="lang-id">Kondisi feses (Wajib):</span></label>
                     <div class="grid grid-cols-3 gap-1.5">
@@ -237,12 +242,14 @@
                         <button type="button" onclick="setStoolStatus('大便乾硬 / Kering dan keras')" class="bg-red-50 border border-red-100 text-red-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all leading-tight">乾硬 / Kering dan keras</button>
                         <button type="button" onclick="setStoolStatus('正常 / Normal')" class="bg-green-50 border border-green-100 text-green-700 rounded-2xl py-2 text-xs font-bold active:scale-95 transition-all leading-tight">正常 / Normal</button>
                     </div>
-                    <label class="block text-[11px] font-bold text-gray-400 pt-1">💊 <span class="lang-zh">當日利便藥物 (可選):</span><span class="lang-id">Obat pencahar hari ini (Opsional):</span></label>
-                    <div id="stool-lax-btns" class="grid grid-cols-4 gap-1.5">
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="block text-[11px] font-bold text-gray-400">💊 <span class="lang-zh">當日利便藥物（管理者鎖定，沿用前次）:</span><span class="lang-id">Obat pencahar hari ini (Dikunci admin):</span></label>
+                        <button type="button" id="med-lock-stool" onclick="requestMedUnlock()" class="shrink-0 text-sm px-1.5 active:scale-90 transition-all">🔒</button>
+                    </div>
+                    <div id="stool-lax-btns" class="grid grid-cols-3 gap-1.5 opacity-60">
                         <button type="button" data-lax="0" onclick="setStoolLax(0)"><span class="lang-zh">無</span><span class="lang-id">Tidak</span></button>
                         <button type="button" data-lax="1" onclick="setStoolLax(1)">1 <span class="lang-zh">顆</span><span class="lang-id">butir</span></button>
                         <button type="button" data-lax="2" onclick="setStoolLax(2)">2 <span class="lang-zh">顆</span><span class="lang-id">butir</span></button>
-                        <button type="button" data-lax="3" onclick="setStoolLax(3)">3 <span class="lang-zh">顆</span><span class="lang-id">butir</span></button>
                     </div>
                     <label class="flex items-center gap-2 text-xs font-bold text-gray-700 pt-1 cursor-pointer"><input type="checkbox" id="enema-check" class="w-4 h-4 text-gray-500 rounded" onchange="toggleEnemaWarning()"> 💉 <span class="lang-zh">使用浣腸</span><span class="lang-id">Memakai Supositoria gliserin</span> <span class="text-[10px] text-gray-400 font-medium"><span class="lang-zh">(選填)</span><span class="lang-id">(Opsional)</span></span></label>
                     <div id="enema-warning" class="hidden bg-red-50 border border-red-200 rounded-2xl p-2.5 text-red-700 font-bold text-[11px] space-y-1.5">
@@ -258,8 +265,11 @@
                         <button type="button" onclick="setUrineColor('深黃色 / Kuning Tua')" class="bg-yellow-100 text-yellow-700 rounded-2xl py-2 text-xs font-bold leading-tight">深黃 / Kuning Tua</button>
                         <button type="button" onclick="setUrineColor('正常淺黃 / Kuning Muda')" class="bg-yellow-50 text-yellow-600 rounded-2xl py-2 text-xs font-bold leading-tight">淺黃 / Kuning Muda</button>
                     </div>
-                    <label class="block text-[11px] font-bold text-gray-400 pt-1">💊 <span class="lang-zh">當日利尿藥物 (可選):</span><span class="lang-id">Diuretik hari ini (Opsional):</span></label>
-                    <div id="urine-med-btns" class="grid grid-cols-3 gap-1.5">
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="block text-[11px] font-bold text-gray-400">💊 <span class="lang-zh">當日利尿藥物（管理者鎖定，沿用前次）:</span><span class="lang-id">Diuretik hari ini (Dikunci admin):</span></label>
+                        <button type="button" id="med-lock-urine" onclick="requestMedUnlock()" class="shrink-0 text-sm px-1.5 active:scale-90 transition-all">🔒</button>
+                    </div>
+                    <div id="urine-med-btns" class="grid grid-cols-3 gap-1.5 opacity-60">
                         <button type="button" data-med="" onclick="setUrineMed('')"><span class="lang-zh">無</span><span class="lang-id">Tidak</span></button>
                         <button type="button" data-med="aux" onclick="setUrineMed('aux')"><span class="lang-zh">利尿藥物（輔助）</span><span class="lang-id">Diuretik (bantu)</span></button>
                         <button type="button" data-med="full" onclick="setUrineMed('full')"><span class="lang-zh">利尿藥物</span><span class="lang-id">Diuretik</span></button>
@@ -364,12 +374,45 @@
         const stoolStatuses = ['稀便 / feses encer', '大便乾硬 / Kering dan keras', '正常 / Normal'];
         const urineColors = ['淡紅色 / Merah Muda', '深黃色 / Kuning Tua', '正常淺黃 / Kuning Muda'];
 
-        // ===== 當日藥物選擇（尿液/排便項目內、可選）＋進食胃口（必選） =====
-        // urineMedSel: ''=無 | 'aux'=利尿藥物（輔助） | 'full'=利尿藥物；stoolLaxSel: 利便藥物顆數
-        let urineMedSel = '', stoolLaxSel = 0, appetiteSel = '';
+        // ===== 當日藥物選擇（尿液/排便項目內、管理者鎖定）＋進食胃口（必選） =====
+        // urineMedSel: ''=無 | 'aux'=利尿藥物（輔助） | 'full'=利尿藥物；stoolLaxSel: 利便藥物顆數（預設2顆）
+        let urineMedSel = '', stoolLaxSel = 2, appetiteSel = '';
         let medSelTouched = false;   // 使用者手動選過藥物後，背景同步不再覆蓋
-        window.setUrineMed = function(v){ urineMedSel = v; medSelTouched = true; paintMedSelectors(); updateTargetPanel(); };
-        window.setStoolLax = function(n){ stoolLaxSel = n; medSelTouched = true; paintMedSelectors(); updateTargetPanel(); };
+
+        // ===== 藥物鎖定：預設唯讀，管理者 PIN 解鎖後整個 session 記住 =====
+        function medUnlocked(){ return sessionStorage.getItem('care_admin_ok') === '1'; }
+        function paintMedLock(){
+            const locked = !medUnlocked();
+            ['urine-med-btns', 'stool-lax-btns'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('opacity-60', locked); });
+            ['med-lock-urine', 'med-lock-stool'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = locked ? '🔒' : '🔓'; });
+        }
+        function ensureMedUnlocked(){
+            if (medUnlocked()) return true;
+            if (careAskPin(LTXT('修改藥物設定需要管理者密碼：', 'Ubah pengaturan obat perlu PIN admin:'))) {
+                sessionStorage.setItem('care_admin_ok', '1');
+                paintMedLock();
+                return true;
+            }
+            showToast(LTXT('密碼錯誤，無法修改', 'PIN salah'), true);
+            return false;
+        }
+        window.requestMedUnlock = function(){ ensureMedUnlocked(); };
+        // 管理者解鎖後改藥物 → merge 進 last_med blob，上雲同步（care-tasks.js careSaveDailyMed）
+        function saveDailyMed(patch){
+            const json = careSaveDailyMed(cloudGoals, patch);
+            fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'setMed', val: json }) })
+                .catch(() => showToast(LTXT('藥物設定同步失敗', 'Sinkronisasi pengaturan obat gagal'), true));
+        }
+        window.setUrineMed = function(v){
+            if (!ensureMedUnlocked()) return;   // 未解鎖：只要求 PIN，不改值
+            urineMedSel = v; medSelTouched = true; paintMedSelectors(); updateTargetPanel();
+            saveDailyMed({ diuretic: v });
+        };
+        window.setStoolLax = function(n){
+            if (!ensureMedUnlocked()) return;   // 未解鎖：只要求 PIN，不改值
+            stoolLaxSel = n; medSelTouched = true; paintMedSelectors(); updateTargetPanel();
+            saveDailyMed({ laxPills: n });
+        };
         window.setAppetite = function(v){ appetiteSel = v; paintMedSelectors(); };
         function medBtnCls(on){
             return 'rounded-2xl py-2 px-1 text-xs font-bold leading-tight border-2 transition-all active:scale-95 ' +
@@ -380,13 +423,14 @@
             document.querySelectorAll('#stool-lax-btns button').forEach(b => b.className = medBtnCls(parseInt(b.dataset.lax, 10) === stoolLaxSel));
             document.querySelectorAll('#appetite-btns button').forEach(b => b.className = medBtnCls(appetiteSel !== '' && b.dataset.app === appetiteSel));
         }
-        // 當天已有紀錄標記過藥物 → 表單預選同狀態（藥物是「當日」狀態，跨紀錄共用）
+        // 每日藥物預設（管理者鎖定、沿用前一次選擇）→ 表單預選同狀態；careMedFromRecords 仍留給目標演算法使用
         function syncMedSelFromRecords(){
             if (medSelTouched) return;
-            const med = careMedFromRecords(cloudRecords);
-            urineMedSel = med.diuretic || '';
-            stoolLaxSel = med.laxPills || 0;
+            const med = careDailyMed(cloudGoals);
+            urineMedSel = med.diuretic;
+            stoolLaxSel = med.laxPills;
             paintMedSelectors();
+            paintMedLock();
         }
         // 今日目標不使用固定預設值：一律抓取「前一次」設定的數值（雲端 → 本機快取的上次數值）
         function getLastGoals() { try { return JSON.parse(localStorage.getItem('last_goals') || '{}'); } catch(e) { return {}; } }
@@ -452,7 +496,7 @@
         // 今日完成進度格（時段/項目/方格），每次紀錄變動後重繪
         function updateProgressGrid(){
             const dateStr = document.getElementById('input-date').value || careTodayStr();
-            const { tasks } = careComputeTasks(cloudRecords || [], dateStr);
+            const { tasks } = careComputeTasks(cloudRecords || [], dateStr, cloudGoals);
             careRenderGrid(document.getElementById('progress-grid'), tasks, LANG_MODE);
         }
 
@@ -646,10 +690,12 @@ function checkBpTime() {
             if (selectedType === '血壓') amountInput.required = false;
             else amountInput.required = true;
 
+            const mathGuideImg = document.getElementById('math-guide-img');
             stoolShortcut.classList.add('hidden');
             if (urineColorShortcut) urineColorShortcut.classList.add('hidden');
             if (appetiteShortcut) appetiteShortcut.classList.add('hidden');
             if (standWarning) standWarning.classList.add('hidden');
+            if (mathGuideImg) mathGuideImg.classList.add('hidden');
 
             if (stoolStatuses.includes(noteInput.value) || urineColors.includes(noteInput.value)) noteInput.value = '';
 
@@ -686,8 +732,9 @@ function checkBpTime() {
                 titleZh.innerText = LTXT('容量', 'Kapasitas'); amountUnit.innerText = 'c.c.';
                 amountInput.placeholder = LTXT('例如：250 c.c.', 'Misalnya: 250 c.c.'); amountInput.min = '1';
             } else if (checkedCategory && checkedCategory.value === '進食') {
-                // 含水食物：胃口（好/普通/差）必選
+                // 含水食物：胃口（好/普通/差）必選；附計量說明圖
                 if (appetiteShortcut) appetiteShortcut.classList.remove('hidden');
+                if (mathGuideImg) mathGuideImg.classList.remove('hidden');
                 titleZh.innerText = LTXT('容量', 'Kapasitas'); amountUnit.innerText = 'c.c.';
                 amountInput.placeholder = LTXT('例如：250 c.c.', 'Misalnya: 250 c.c.'); amountInput.min = '1';
             } else {
@@ -874,7 +921,7 @@ function checkBpTime() {
             // === 整日進度格未做提醒（20:00–23:59）：盤點今日進度格尚未完成的項目 ===
             const viewDate = document.getElementById('input-date').value || todayStr;
             if (hourMin >= '20:00' && hourMin <= '23:59' && viewDate === todayStr) {
-                const gridTasks = careComputeTasks(records, todayStr).tasks;
+                const gridTasks = careComputeTasks(records, todayStr, cloudGoals).tasks;
                 const undone = gridTasks.filter(t => t.state === 'missed' || t.state === 'pending');
                 if (undone.length > 0) {
                     reminders.push(redMissed(
@@ -1034,7 +1081,7 @@ function checkBpTime() {
             Object.keys(cloudGoals).forEach(k => {
                 if (k.startsWith('goal_')) saveLastGoal(k.replace('goal_', ''), cloudGoals[k]);
             });
-            syncMedSelFromRecords();   // 當日藥物狀態改由當天紀錄備註判讀
+            syncMedSelFromRecords();   // 當日藥物狀態改由雲端 last_med（管理者鎖定值）帶入
             updateTargetPanel();
             renderRecords();
             checkReminders();
@@ -1264,6 +1311,7 @@ function checkBpTime() {
             document.getElementById('input-note').placeholder = LTXT('輸入額外說明內容...', 'Masukkan catatan tambahan...');
             localizePage();
             paintMedSelectors();   // 藥物/胃口按鈕初始樣式
+            paintMedLock();        // 藥物鎖定視覺初始狀態
             setNow(); updateView(); fetchCloudData();
             setGuide('date');   // 引導起點：日期框閃水藍
         };
@@ -1306,7 +1354,7 @@ function checkBpTime() {
             },
             '大腿內收': {
                 title: '仰臥大腿內收 / Adduksi Paha Telentang',
-                images: ['rehab-img/adduction-1.jpg', 'rehab-img/adduction-2.jpg', 'rehab-img/adduction-3.jpg'],
+                images: ['rehab-img/adduction-1.jpg', 'rehab-img/adduction-2.jpg'],
                 steps: [
                     ['平躺準備：病患平躺床上，雙腿伸直放鬆。', 'Persiapan: Pasien berbaring telentang di tempat tidur dengan kedua kaki lurus dan rileks.'],
                     ['單腳屈膝：彎曲單一膝蓋向上立起，使腳掌穩定平貼於床面。', 'Latihan menekuk lutut satu kaki: Tekuk satu lutut dan angkat ke atas, jaga agar telapak kaki tetap rata dan stabil di permukaan tempat tidur.'],
@@ -1343,6 +1391,25 @@ function checkBpTime() {
             }
         };
 
+        // 錯誤示範／運動間隔按摩：四項復健動作共用同一組圖，DRY 用常數陣列 map 產生
+        const REHAB_WARN_ITEMS = [
+            { img: 'rehab-img/error-posture-1.jpg', bad: true, zh: '錯誤姿勢：應頭挺胸，勿駝背翹屁股', id: 'Postur salah: Kepala harus tegak, dada membusung, jangan bungkuk & pinggul menonjol' },
+            { img: 'rehab-img/error-posture-2.jpg', bad: true, zh: '錯誤姿勢：雙腳應與肩同寬，膝蓋彎曲小於90度並稍內收', id: 'Postur salah: Kaki selebar bahu, lutut tertekuk kurang dari 90° dan sedikit ke dalam' },
+            { img: 'rehab-img/error-behavior-1.jpg', bad: true, zh: '錯誤行為：床圍欄放下時，禁止離開病患1公尺遠', id: 'Perilaku salah: Dilarang menjauh lebih dari 1 meter dari pasien saat pagar tempat tidur diturunkan' },
+            { img: 'rehab-img/massage-1.jpg', bad: false, zh: '運動間隔按摩', id: 'Pijat di sela latihan' },
+            { img: 'rehab-img/massage-2.jpg', bad: false, zh: '運動間隔按摩', id: 'Pijat di sela latihan' }
+        ];
+        function rehabWarnHtml() {
+            return `<div class="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                <p class="text-sm font-black text-red-600">⚠️ <span class="lang-zh">錯誤示範／運動間隔按摩</span><span class="lang-id">Contoh salah / Pijat di sela latihan</span></p>
+                ${REHAB_WARN_ITEMS.map(w => `
+                <div>
+                    <img src="${w.img}" alt="${w.zh}" loading="lazy" class="w-full rounded-2xl border border-gray-200 shadow-sm">
+                    <p class="text-[11px] font-bold mt-1 ${w.bad ? 'text-red-600' : 'text-emerald-600'}">${w.bad ? '❌' : '💆'} <span class="lang-zh">${w.zh}</span><span class="lang-id">${w.id}</span></p>
+                </div>`).join('')}
+            </div>`;
+        }
+
         function openRehabGuide(key) {
             const g = REHAB_GUIDE[key];
             if (!g) return;
@@ -1360,7 +1427,7 @@ function checkBpTime() {
                 </div>`
             ).join('');
             document.getElementById('rehab-modal-body').innerHTML =
-                `<div class="space-y-2.5 mb-4">${imgHtml}</div><div class="space-y-3">${stepHtml}</div>`;
+                `<div class="space-y-2.5 mb-4">${imgHtml}</div><div class="space-y-3">${stepHtml}</div>${rehabWarnHtml()}`;
             const modal = document.getElementById('rehab-modal');
             modal.classList.remove('hidden');
             modal.querySelector('.rehab-modal-scroll').scrollTop = 0;

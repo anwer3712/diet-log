@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>奶奶日誌 — 兒童版 / Catatan Nenek — Anak</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=8"></script>
+    <script src="care-tasks.js?v=9"></script>
     <style>
         /* ============================================================
          * 兒童＋先天遠視設計原則：超大字、白底高對比、粗實心框、
@@ -34,12 +34,12 @@
             border: 4px solid #fff; box-shadow: 0 3px 10px rgba(0,0,0,.25);
             z-index: 10;
         }
-        /* 目前步驟：深紫粗框動態引導（取代 DI SINI 文字） */
-        .step.now { border-color: var(--guide); animation: guide-step 1.1s infinite ease-in-out; }
+        /* 目前步驟：深紫粗框動態引導（取代 DI SINI 文字）；加粗 6px＋大光暈，遠視兒童看得清楚 */
+        .step.now { border-color: var(--guide); border-width: 6px; animation: guide-step 1.1s infinite ease-in-out; }
         .step.now .stepnum { background: var(--guide); animation: badge-pulse 1.1s infinite ease-in-out; }
         @keyframes guide-step {
-            0%, 100% { border-color: var(--guide);  box-shadow: 0 0 0 2px rgba(109,40,217,.45); }
-            50%      { border-color: var(--guide2); box-shadow: 0 0 0 8px rgba(109,40,217,.30); }
+            0%, 100% { border-color: var(--guide);  box-shadow: 0 0 0 4px rgba(109,40,217,.5); }
+            50%      { border-color: var(--guide2); box-shadow: 0 0 0 14px rgba(109,40,217,.32); }
         }
         @keyframes badge-pulse {
             0%, 100% { transform: scale(1); }
@@ -147,6 +147,7 @@
                 <button type="button" onclick="pickType('latihan')" id="type-latihan" class="bigbtn type-btn choice py-4"><span class="block text-5xl leading-none mb-1">💪</span><span class="text-xl" data-t="tLatihan"></span></button>
                 <button type="button" onclick="pickType('tensi')"   id="type-tensi"   class="bigbtn type-btn choice py-4"><span class="block text-5xl leading-none mb-1">❤️</span><span class="text-xl" data-t="tTensi"></span></button>
             </div>
+            <button id="step2-ok" type="button" onclick="confirmStep2()" class="bigbtn w-full text-white rounded-2xl text-3xl font-black py-3 hidden" style="background: var(--accent)" data-t="ok"></button>
         </section>
 
         <!-- 三、細項 -->
@@ -168,6 +169,8 @@
                 </div>
                 <!-- 湯湯水水（羅馬拼音）：buding 預設 135cc；其餘由照顧者填 cc -->
                 <div id="quick-food" class="hidden space-y-2">
+                    <p class="text-lg font-black text-center text-gray-600" data-t="foodMeasure"></p>
+                    <img src="math.jpg" alt="" loading="lazy" class="w-full rounded-2xl border">
                     <div id="food-grid" class="grid grid-cols-2 gap-2"></div>
                     <input id="food-other" type="text" class="w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-2xl font-black">
                     <!-- 胃口（必選）：好/普通/差 -->
@@ -205,9 +208,9 @@
                         <button type="button" onclick="pickColor(this,'深黃色 / Kuning Tua')"   class="color-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" style="background:#f59e0b" data-t="cDark"></button>
                         <button type="button" onclick="pickColor(this,'正常淺黃 / Kuning Muda')" class="color-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" style="background:#fde68a" data-t="cLight"></button>
                     </div>
-                    <!-- 當日利尿藥物（可選）：無 / 利尿藥物（輔助） / 利尿藥物 -->
-                    <p class="text-2xl font-black">💊 <span data-t="umed"></span> <span class="text-base text-gray-500" data-t="opt"></span></p>
-                    <div id="umed-grid" class="grid grid-cols-3 gap-2">
+                    <!-- 當日利尿藥物（可選，預設鎖定沿用前一次，管理者 PIN 解鎖才能改）：無 / 利尿藥物（輔助） / 利尿藥物 -->
+                    <p class="text-2xl font-black">💊 <span data-t="umed"></span> <span class="text-base text-gray-500" data-t="opt"></span> <span id="umed-lock" class="text-xl">🔒</span></p>
+                    <div id="umed-grid" class="grid grid-cols-3 gap-2 opacity-60" onclick="tryUnlockMed()">
                         <button type="button" data-med=""     onclick="pickUmed('')"     class="umed-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" data-t="mNone"></button>
                         <button type="button" data-med="aux"  onclick="pickUmed('aux')"  class="umed-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-base py-3 leading-tight" data-t="mAux"></button>
                         <button type="button" data-med="full" onclick="pickUmed('full')" class="umed-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-base py-3 leading-tight" data-t="mFull"></button>
@@ -225,13 +228,12 @@
                         <button type="button" onclick="pickGliserin(this,true)"  class="glis-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-3" data-t="yes"></button>
                         <button type="button" onclick="pickGliserin(this,false)" class="glis-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-3" data-t="no"></button>
                     </div>
-                    <!-- 當日利便藥物（可選）：無 / 1顆 / 2顆 / 3顆 -->
-                    <p class="text-2xl font-black">💊 <span data-t="lax"></span> <span class="text-base text-gray-500" data-t="opt"></span></p>
-                    <div id="lax-grid" class="grid grid-cols-4 gap-2">
+                    <!-- 當日利便藥物（可選，預設鎖定沿用前一次，管理者 PIN 解鎖才能改）：無 / 1顆 / 2顆 -->
+                    <p class="text-2xl font-black">💊 <span data-t="lax"></span> <span class="text-base text-gray-500" data-t="opt"></span> <span id="lax-lock" class="text-xl">🔒</span></p>
+                    <div id="lax-grid" class="grid grid-cols-3 gap-2 opacity-60" onclick="tryUnlockMed()">
                         <button type="button" data-lax="0" onclick="pickLax(0)" class="lax-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" data-t="mNone"></button>
                         <button type="button" data-lax="1" onclick="pickLax(1)" class="lax-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3">1<span class="block text-sm leading-none" data-t="pill"></span></button>
                         <button type="button" data-lax="2" onclick="pickLax(2)" class="lax-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3">2<span class="block text-sm leading-none" data-t="pill"></span></button>
-                        <button type="button" data-lax="3" onclick="pickLax(3)" class="lax-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3">3<span class="block text-sm leading-none" data-t="pill"></span></button>
                     </div>
                 </div>
             </div>
@@ -377,6 +379,7 @@ const T = {
     halfCan:  { zh:'半罐<br>120 cc', id:'½ KALENG<br>120 cc' },
     fullCan:  { zh:'1 罐<br>240 cc', id:'1 KALENG<br>240 cc' },
     otherFood:{ zh:'✏️ 寫別的食物…', id:'✏️ Tulis makanan lain…' },
+    foodMeasure:{ zh:'湯湯水水怎麼量？', id:'Cara ukur makanan berair' },
     howMuch:  { zh:'🥤 多少 cc？',   id:'🥤 BERAPA cc?' },
     color:    { zh:'顏色？',         id:'WARNA?' },
     cPink:    { zh:'粉紅',           id:'MERAH<br>MUDA' },
@@ -428,7 +431,7 @@ const T = {
 let LANG = (function(){ const s = localStorage.getItem('anak_lang'); return (s === 'id' || s === 'zh') ? s : 'zh'; })();
 function t(key){ return (T[key] && T[key][LANG]) || ''; }
 
-let S = { step1:false, type:null, item:null, color:null, status:null, gliserin:null, food:null, appetite:null, umed:null, lax:null };
+let S = { step1:false, type:null, item:null, color:null, status:null, gliserin:null, food:null, appetite:null, umed:null, lax:null, typeConfirmed:false };
 let records = [], goals = {};
 
 function $(id){ return document.getElementById(id); }
@@ -486,33 +489,59 @@ function okStep1(){ S.step1 = true; refresh(); focusStep('step2'); }
 /* ===== 二、選類別 ===== */
 function pickType(tp){
     S.type = tp; S.item = null; S.color = null; S.status = null; S.gliserin = null; S.food = null;
-    S.appetite = null; S.umed = null; S.lax = null;
+    S.appetite = null; S.umed = null; S.lax = null; S.typeConfirmed = false;
     $('input-amount').value = ''; $('pipis-amount').value = ''; $('food-other').value = ''; $('ex-amount').value = '';
     ['bp-sys','bp-dia','bp-hr'].forEach(id => $(id).value = '');
     document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
     $('type-' + tp).classList.add('selected');
     paintAnakMed();
-    refresh(); focusStep('step2b');
+    refresh(); focusStep('step2');
 }
+function confirmStep2(){ S.typeConfirmed = true; refresh(); focusStep('step2b'); }
 /* ===== 三、選細項 ===== */
 function pickItem(k){
     S.item = k; S.food = null;
     document.querySelectorAll('.item-btn').forEach(b => b.classList.remove('selected'));
     $('item-' + k).classList.add('selected');
     if (k !== 'food') $('food-other').value = '';
-    // 藥物是「當日」狀態：今天紀錄裡已標記過 → 預選同狀態（仍可改，可選項不擋存檔）
-    if (k === 'pipis' && S.umed === null) { S.umed = careMedFromRecords(records).diuretic || ''; paintAnakMed(); }
-    if (k === 'pup'   && S.lax  === null) { S.lax  = careMedFromRecords(records).laxPills || 0;  paintAnakMed(); }
+    // 藥物預設沿用「前一次」設定（管理者鎖定唯讀，見 careDailyMed／careSaveDailyMed）
+    if (k === 'pipis' && S.umed === null) { S.umed = careDailyMed(goals).diuretic; paintAnakMed(); }
+    if (k === 'pup'   && S.lax  === null) { S.lax  = careDailyMed(goals).laxPills;  paintAnakMed(); }
     refresh();
 }
-/* ===== 當日藥物（可選）與胃口（必選） ===== */
-function pickUmed(v){ S.umed = v; paintAnakMed(); refresh(); }
-function pickLax(n){ S.lax = n; paintAnakMed(); refresh(); }
+/* ===== 當日藥物（鎖定，管理者 PIN 解鎖才能改）與胃口（必選） ===== */
+function careMedLocked(){ return sessionStorage.getItem('care_admin_ok') !== '1'; }
+function tryUnlockMed(){
+    if (!careMedLocked()) return;
+    if (careAskPin()) { sessionStorage.setItem('care_admin_ok', '1'); paintAnakMed(); }
+}
+function saveMedToCloud(patch){
+    const json = careSaveDailyMed(goals, patch);
+    fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'setMed', val: json }) })
+        .catch(() => toast(t('failed'), true));
+}
+function pickUmed(v){
+    if (careMedLocked()) { tryUnlockMed(); return; }
+    S.umed = v; paintAnakMed(); refresh();
+    saveMedToCloud({ diuretic: v });
+}
+function pickLax(n){
+    if (careMedLocked()) { tryUnlockMed(); return; }
+    S.lax = n; paintAnakMed(); refresh();
+    saveMedToCloud({ laxPills: n });
+}
 function pickAppetite(v){ S.appetite = v; paintAnakMed(); refresh(); }
 function paintAnakMed(){
     document.querySelectorAll('.umed-btn').forEach(b => b.classList.toggle('selected', S.umed !== null && (b.dataset.med || '') === S.umed));
     document.querySelectorAll('.lax-btn').forEach(b => b.classList.toggle('selected', S.lax !== null && parseInt(b.dataset.lax, 10) === S.lax));
     document.querySelectorAll('.app-btn').forEach(b => b.classList.toggle('selected', !!S.appetite && b.dataset.app === S.appetite));
+    const locked = careMedLocked();
+    [$('umed-grid'), $('lax-grid')].forEach(g => {
+        g.classList.toggle('opacity-60', locked);
+        g.querySelectorAll('button').forEach(b => b.style.pointerEvents = locked ? 'none' : '');
+    });
+    $('umed-lock').classList.toggle('hidden', !locked);
+    $('lax-lock').classList.toggle('hidden', !locked);
 }
 function setAmount(v){ $('input-amount').value = v; refresh(); }
 function setExAmount(v){
@@ -594,7 +623,8 @@ function buildPayload(){
 /* ===== 漸進揭露（一→二→三→存檔→四） ===== */
 function refresh(){
     toggleSection('step2', S.step1);
-    toggleSection('step2b', S.step1 && !!S.type);
+    toggleSection('step2-ok', !!S.type);
+    toggleSection('step2b', S.step1 && S.typeConfirmed);
     ['makan','keluar','latihan','tensi'].forEach(tp => $('panel-' + tp).classList.toggle('hidden', S.type !== tp));
     if (S.type === 'makan') {
         $('quick-susu').classList.toggle('hidden', S.item !== 'susu');
@@ -610,45 +640,71 @@ function refresh(){
     }
     const ok = !!buildPayload();
     const step3WasHidden = $('step3').classList.contains('hidden');
-    toggleSection('step3', S.step1 && !!S.type && ok);
-    $('need-hint').classList.toggle('hidden', !(S.step1 && S.type) || ok);
+    toggleSection('step3', S.step1 && S.typeConfirmed && ok);
+    $('need-hint').classList.toggle('hidden', !(S.step1 && S.typeConfirmed) || ok);
     if (ok && step3WasHidden) focusStep('step3');   // 只在剛出現時捲動，打字中不亂跳
     $('step4').classList.toggle('hidden', records.length === 0);
     updateGuide();
 }
-/* ===== 藍色閃動引導：指向「現在要填/要按」的欄位（紫色大框標步驟、藍框標欄位） ===== */
+/* ===== 藍色閃動引導：依填寫順序逐步，「這一刻要閃哪些元素」可以是多個
+ * （紫色大框標「目前步驟」、藍框標「現在要填/要按」）。
+ * 規則：一路走過各欄位；已完成的「選項群組」把選中的那顆留在閃爍清單裡累積續閃、
+ * 同組其他選項回黑；第一個還沒完成的欄位（整組全閃，或單一輸入框閃）閃完就停止往下走；
+ * 全部完成 → 只剩 #btn-save 閃（利尿/利便藥物欄位跳過，不列入順序）。 ===== */
 function updateGuide(){
     document.querySelectorAll('.guide-flash').forEach(el => el.classList.remove('guide-flash'));
-    let target = null;
-    if (!S.step1) target = 'step1-ok';
-    else if (!S.type) target = 'type-grid';
-    else if (S.type === 'tensi') {
-        if (!$('bp-sys').value) target = 'bp-sys';
-        else if (!$('bp-dia').value) target = 'bp-dia';
-        else if (!$('bp-hr').value) target = 'bp-hr';
-        else target = 'btn-save';
-    } else if (!S.item) target = 'item-grid-' + S.type;
-    else if (S.type === 'makan') {
-        if (S.item === 'food' && !S.food) target = 'food-grid';
-        else if (!$('input-amount').value) target = 'input-amount';
-        else if (S.item === 'food' && !S.appetite) target = 'appetite-grid';
-        else target = 'btn-save';
+    const flashEls = els => els.forEach(el => { if (el && !el.closest('.hidden')) el.classList.add('guide-flash'); });
+
+    if (!S.step1) { flashEls([$('date-display'), $('sel-hour'), $('sel-min')]); return; }
+
+    if (!S.typeConfirmed) {
+        if (!S.type) flashEls(Array.from(document.querySelectorAll('.type-btn')));
+        else flashEls([$('type-' + S.type), $('step2-ok')]);
+        return;
+    }
+
+    const grp = (all, selected, okFn) => {
+        const sel = document.querySelector(selected);
+        return { kind:'g', all: Array.from(document.querySelectorAll(all)), sel, ok: okFn ? okFn() : !!sel };
+    };
+    const inp = id => ({ kind:'i', el: $(id), ok: !!$(id).value });
+
+    let steps = [];
+    if (S.type === 'tensi') {
+        steps = [inp('bp-sys'), inp('bp-dia'), inp('bp-hr')];
+    } else if (S.type === 'makan') {
+        steps.push(grp('#item-grid-makan .item-btn', '#item-grid-makan .item-btn.selected'));
+        // food-grid：自填食物（LAINNYA）沒有按鈕可續閃，但仍算完成，靠 okFn 用 S.food 判斷
+        if (S.item === 'food') steps.push(grp('.food-btn', '.food-btn.ringed', () => !!S.food));
+        steps.push(inp('input-amount'));
+        if (S.item === 'food') steps.push(grp('.app-btn', '.app-btn.selected'));
     } else if (S.type === 'keluar') {
+        steps.push(grp('#item-grid-keluar .item-btn', '#item-grid-keluar .item-btn.selected'));
         if (S.item === 'pipis') {
-            if (!$('pipis-amount').value) target = 'pipis-amount';
-            else if (!S.color) target = 'color-grid';
-            else target = 'btn-save';
-        } else {
-            if (!S.status) target = 'status-grid';
-            else if (S.gliserin === null) target = 'glis-grid';
-            else target = 'btn-save';
+            steps.push(inp('pipis-amount'));
+            steps.push(grp('.color-btn', '.color-btn.ringed'));
+        } else if (S.item === 'pup') {
+            steps.push(grp('.status-btn', '.status-btn.ringed'));
+            steps.push(grp('.glis-btn', '.glis-btn.ringed'));
         }
     } else if (S.type === 'latihan') {
-        target = $('ex-amount').value ? 'btn-save' : 'ex-amount';
+        steps.push(grp('#item-grid-latihan .item-btn', '#item-grid-latihan .item-btn.selected'));
+        steps.push(inp('ex-amount'));
     }
-    if (!target) return;
-    const el = $(target);
-    if (el && !el.closest('.hidden')) el.classList.add('guide-flash');
+
+    const acc = [];
+    for (const step of steps) {
+        if (step.kind === 'g') {
+            if (step.ok) { if (step.sel) acc.push(step.sel); continue; }
+            flashEls(acc.concat(step.all));
+            return;
+        } else {
+            if (step.ok) continue;
+            flashEls(acc.concat([step.el]));
+            return;
+        }
+    }
+    flashEls([$('btn-save')]);
 }
 function toggleSection(id, show){
     const el = $(id);
@@ -689,7 +745,7 @@ function save(){
 }
 /* 儲存後：頁面回復成只出現「步驟 1 ＋ 步驟 4（今日紀錄）」，時間重設為現在 */
 function resetToStart(){
-    S = { step1:false, type:null, item:null, color:null, status:null, gliserin:null, food:null, appetite:null, umed:null, lax:null };
+    S = { step1:false, type:null, item:null, color:null, status:null, gliserin:null, food:null, appetite:null, umed:null, lax:null, typeConfirmed:false };
     $('input-amount').value = ''; $('pipis-amount').value = ''; $('food-other').value = ''; $('ex-amount').value = '';
     ['bp-sys','bp-dia','bp-hr'].forEach(id => $(id).value = '');
     document.querySelectorAll('.type-btn,.item-btn').forEach(b => b.classList.remove('selected'));

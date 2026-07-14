@@ -29,7 +29,7 @@ const careIsBP = r => r.category && r.category.includes('血壓/心跳');
  *   → 19:00 前完成為準時，19:00 後未做顯示為「未做」
  * - 血壓：早上一次、睡前（21:00 前）累計兩次
  * - 尿液：21:01 後（深夜時段）量測今日最後一次 */
-function careTaskDefs(){
+function careTaskDefs(goals){
     const nth = (records, filter, n) => {
         const s = records.filter(filter).sort((a,b)=>a.time.localeCompare(b.time));
         return s.length >= n ? s[n-1] : null;
@@ -39,12 +39,23 @@ function careTaskDefs(){
     defs.push({ slot:'morning', deadline:'10:00', order:0, zh:'早壓', id:'Tensi', full_zh:'起床後測量血壓', full_id:'Ukur tensi pagi',
         need:(rs,t)=> rs.filter(r=>careIsBP(r)&&r.time<t).length>=1, rec:rs=>nth(rs,careIsBP,1) });
 
+    /* 2026-07-14 復健判定改為「累計次數」：睡前若未達今日目標次數→視為未完成(missed)。
+     * 目標取 goals['goal_<項目>']；未設定目標時退回舊規則「有做即算」。 */
     CARE_EX_TYPES.forEach((ex, ti) => {
         const sh = CARE_EX_SHORT[ex];
+        const goalN = goals ? (parseFloat(goals['goal_' + ex]) || 0) : 0;
+        const sumEx = (rs, before) => rs
+            .filter(r => r.category === ex && (!before || r.time < before))
+            .reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
         defs.push({ slot:'night', deadline:'19:00', order:ti+1, zh:sh[0], id:sh[1],
             full_zh:`睡前${ex}`, full_id:`${sh[1]} (Sblm tidur)`,
-            need:(rs,t)=> rs.some(r=>r.category===ex && r.time<t),
-            rec:rs=>{ const s=rs.filter(r=>r.category===ex).sort((a,b)=>a.time.localeCompare(b.time)); return s.length>0?s[0]:null; } });
+            need:(rs,t)=> goalN > 0 ? sumEx(rs, t) >= goalN : rs.some(r=>r.category===ex && r.time<t),
+            rec:rs=>{
+                const met = goalN > 0 ? sumEx(rs, null) >= goalN : rs.some(r=>r.category===ex);
+                if (!met) return null;   // 未達目標→不算補齊，讓狀態落到 missed
+                const s = rs.filter(r=>r.category===ex).sort((a,b)=>a.time.localeCompare(b.time));
+                return s.length>0 ? s[s.length-1] : null;
+            } });
     });
 
         defs.push({ slot:'night', deadline:'21:00', order:0, zh:'晚壓', id:'Tensi', full_zh:'睡前測量血壓', full_id:'Ukur tensi sebelum tidur',
@@ -67,13 +78,13 @@ function careTodayStr(){
 }
 
 /* 任務狀態：done準時 / late補齊 / missed未完成XX / pending未到期 */
-function careComputeTasks(records, dateStr){
+function careComputeTasks(records, dateStr, goals){
     const valid = records.filter(r => r.status !== '無效');
     const isToday = dateStr === careTodayStr();
     const isFuture = dateStr > careTodayStr();
     const hm = new Date().toTimeString().substring(0,5);
     const lateRecIds = new Set();
-    const tasks = careTaskDefs().map(def => {
+    const tasks = careTaskDefs(goals).map(def => {
         const deadlinePassed = !isFuture && (!isToday || hm >= def.deadline);
         const onTime = def.need(valid, def.deadline);
         const fulfillRec = def.rec ? def.rec(valid) : null;
@@ -150,6 +161,28 @@ function careUserName(goals, u){
     const c = careConfig(goals);
     const n = c.names && c.names[u];
     return (n && String(n).trim()) ? String(n).trim() : 'U' + u;
+}
+
+/* ===== 每日藥物預設（管理者鎖定）=====
+ * 填寫頁（index/anak）的利尿/利便藥物預設鎖定唯讀，須管理者 PIN 才能改；
+ * 值存在 last_med blob 的 dailyMed，全裝置同步、跨日沿用「前一次的選擇」。
+ * 利尿：''=無 | 'aux'=利尿藥物（輔助）| 'full'=利尿藥物（單選）
+ * 利便：顆數，預設 2 顆（無/1顆/2顆） */
+function careDailyMed(goals){
+    const d = (careConfig(goals).dailyMed) || {};
+    return {
+        diuretic: ('diuretic' in d) ? d.diuretic : '',
+        laxPills: ('laxPills' in d) ? d.laxPills : 2
+    };
+}
+/* 存回每日藥物預設（merge-safe，不可整包覆蓋 last_med）。就地更新 goals['last_med']
+ * 並回傳新的 JSON 字串，呼叫端再 POST setMed 上雲。 */
+function careSaveDailyMed(goals, patch){
+    const c = careConfig(goals);
+    c.dailyMed = Object.assign(careDailyMed(goals), patch || {});
+    const json = JSON.stringify(c);
+    if (goals) goals['last_med'] = json;
+    return json;
 }
 
 /* ===== 授權連結：admin 產生、照顧者點開即綁定該裝置身分（免密碼）
