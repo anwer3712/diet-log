@@ -170,8 +170,19 @@ function loadData(){
         .finally(() => document.getElementById('loading').classList.add('hidden'));
 }
 
+function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, ch => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+    }[ch]));
+}
+
 function render(){
     const date = document.getElementById('report-date').value;
+    const safeDate = escapeHtml(date);
     const records = cachedRecords;
 
     // 進度格＝病患層級（不分記錄者）
@@ -239,7 +250,7 @@ function render(){
     document.getElementById('admin-container').innerHTML = `
     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="px-3 py-2 text-[10px] font-black text-gray-400 border-b border-gray-100 flex justify-between">
-            <span>${date}${FILTER!=='all' ? '（篩選：' + (FILTER==='none'?'未標記':'U'+FILTER) + '）' : ''}</span>
+            <span>${safeDate}${FILTER!=='all' ? '（篩選：' + (FILTER==='none'?'未標記':'U'+FILTER) + '）' : ''}</span>
             <span><span class="text-green-600">✓${done}</span>　<span class="text-amber-500">補${late}</span>　<span class="text-red-600">✕${miss}</span>　共${show.length}筆</span>
         </div>
         <table class="w-full text-left">
