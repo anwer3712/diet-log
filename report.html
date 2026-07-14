@@ -123,18 +123,19 @@ function render(date, records){
         let first = true;
 
         recs.forEach(r => {
-            const late = lateRecIds.has(r.recordId);
-            const c = late ? 'text-amber-600' : 'text-gray-700';
-            const who = careUserOfNote(r.note);
-            const note = careStripUserTag(r.note);
-            const ev = `${catShort(r.category)} ${r.amount !== '' && r.amount !== undefined ? r.amount : ''}${unitOf(r.category) ? unitOf(r.category) : ''}`;
-            bodyRows += `<tr class="border-b border-gray-50 ${late?'bg-amber-50/60':''}">
-                ${first ? slotCell : ''}
-                <td class="py-1.5 px-2 text-[11px] font-black whitespace-nowrap ${c}">${r.time}${late?'🟧':''}</td>
-                <td class="py-1.5 px-2 text-[11px] font-bold ${c}">${ev}${who?` <span class="text-[9px] text-gray-300">U${who}</span>`:''}</td>
-                <td class="py-1.5 px-2 text-[10px] ${late ? 'text-amber-500 font-bold' : 'text-gray-400'}">${late ? L('補齊','Terlambat')+(note?'｜'+note:'') : (note || '')}</td>
-            </tr>`;
-            first = false;
+                        const late = lateRecIds.has(r.recordId);
+                        const c = late ? 'text-amber-600' : 'text-gray-700';
+                        const who = careUserOfNote(r.note);
+                        const note = careEscapeHtml(careStripUserTag(r.note));
+                        const safeTime = careEscapeHtml(r.time);
+                        const ev = `${careEscapeHtml(catShort(r.category))} ${careEscapeHtml(r.amount !== '' && r.amount !== undefined ? r.amount : '')}${unitOf(r.category) ? unitOf(r.category) : ''}`;
+                        bodyRows += `<tr class="border-b border-gray-50 ${late?'bg-amber-50/60':''}">
+                                        ${first ? slotCell : ''}
+                                                        <td class="py-1.5 px-2 text-[11px] font-black whitespace-nowrap ${c}">${safeTime}${late?'🟧':''}</td>
+                                                                        <td class="py-1.5 px-2 text-[11px] font-bold ${c}">${ev}${who?` <span class="text-[9px] text-gray-300">U${who}</span>`:''}</td>
+                                                                                        <td class="py-1.5 px-2 text-[10px] ${late ? 'text-amber-500 font-bold' : 'text-gray-400'}">${late ? L('補齊','Terlambat')+(note?'｜'+note:'') : (note || '')}</td>
+                                                                                                    </tr>`;
+                        first = false;
         });
         missed.forEach(t => {
             bodyRows += `<tr class="border-b border-gray-50 bg-red-50/60">
