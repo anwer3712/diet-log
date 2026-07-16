@@ -35,8 +35,9 @@ function careTaskDefs(goals){
         return s.length >= n ? s[n-1] : null;
     };
     const defs = [];
+    const ui = careUI(goals);   // 期限（早壓/復健/晚壓）改讀管理設定，與提醒時段一致
 
-    defs.push({ slot:'morning', deadline:'10:00', order:0, zh:'早壓', id:'Tensi', full_zh:'起床後測量血壓', full_id:'Ukur tensi pagi',
+    defs.push({ slot:'morning', deadline:ui.time.bpMorning, order:0, zh:'早壓', id:'Tensi', full_zh:'起床後測量血壓', full_id:'Ukur tensi pagi',
         need:(rs,t)=> rs.filter(r=>careIsBP(r)&&r.time<t).length>=1, rec:rs=>nth(rs,careIsBP,1) });
 
     /* 2026-07-14 復健判定改為「累計次數」：睡前若未達今日目標次數→視為未完成(missed)。
@@ -47,7 +48,7 @@ function careTaskDefs(goals){
         const sumEx = (rs, before) => rs
             .filter(r => r.category === ex && (!before || r.time < before))
             .reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
-        defs.push({ slot:'night', deadline:'19:00', order:ti+1, zh:sh[0], id:sh[1],
+        defs.push({ slot:'night', deadline:ui.time.rehabDeadline, order:ti+1, zh:sh[0], id:sh[1],
             full_zh:`睡前${ex}`, full_id:`${sh[1]} (Sblm tidur)`,
             need:(rs,t)=> goalN > 0 ? sumEx(rs, t) >= goalN : rs.some(r=>r.category===ex && r.time<t),
             rec:rs=>{
@@ -58,7 +59,7 @@ function careTaskDefs(goals){
             } });
     });
 
-        defs.push({ slot:'night', deadline:'21:00', order:0, zh:'晚壓', id:'Tensi', full_zh:'睡前測量血壓', full_id:'Ukur tensi sebelum tidur',
+        defs.push({ slot:'night', deadline:ui.time.bpNight, order:0, zh:'晚壓', id:'Tensi', full_zh:'睡前測量血壓', full_id:'Ukur tensi sebelum tidur',
         need:(rs,t)=> rs.filter(r=>careIsBP(r)&&r.time<t).length>=2, rec:rs=>nth(rs,careIsBP,2) });
 
     defs.push({ slot:'late', deadline:'23:59', order:0, zh:'尿量', id:'Urine', full_zh:'睡前量測今日最後一次尿液', full_id:'Ukur urine terakhir',
@@ -171,7 +172,8 @@ function careUserName(goals, u){
 function careDailyMed(goals){
     const d = (careConfig(goals).dailyMed) || {};
     return {
-        diuretic: ('diuretic' in d) ? d.diuretic : '',
+        diuretic: ('diuretic' in d) ? d.diuretic : '',            // legacy 單選類別（''/aux/full），沿用於目標演算
+        diureticNames: Array.isArray(d.diureticNames) ? d.diureticNames : [],   // 複選具名藥（新）
         laxPills: ('laxPills' in d) ? d.laxPills : 2
     };
 }
@@ -183,6 +185,103 @@ function careSaveDailyMed(goals, patch){
     const json = JSON.stringify(c);
     if (goals) goals['last_med'] = json;
     return json;
+}
+
+/* ============================================================
+ * 管理設定（顯示/彈窗/時段/數字/血壓區間/記錄模式），全部存在 last_med blob 的 cfg.ui，
+ * 走現成 setMed 全裝置同步——不需改後端。讀取一律 careUI(goals)＝預設 deep-merge 已存值。
+ * 加/改「數字或文字」只要在管理設定頁改存即可，不必動程式碼。
+ * ============================================================ */
+const CARE_UI_DEFAULTS = {
+    urineMode: 'cc',            // 'cc'＝容量CC（現狀）｜'count'＝次數制（比照排便，只記顏色+利尿藥，關閉CC目標/超標）
+    stoolMode: 'status',        // 'status'＝狀態+利便藥（現狀）｜'weight'＝記重量
+    stoolWeightUnit: 'g',
+    diuretics: [                // 利尿藥複選清單；aux:true＝輔助(×uFactorAux) / false＝完整(×uFactorFull)
+        { name: '利尿藥物（輔助）', aux: true },
+        { name: '利尿藥物', aux: false }
+    ],
+    show: {                     // 提示卡/警語 顯示開關（true＝顯示）
+        bedRail: true, catheter: false, bpGuide: true, rehabNote: true,
+        standWarn: true, enemaWarn: true, urineRangeInfo: true
+    },
+    popup: {                    // 彈窗/提醒 開關（true＝會跳）
+        reminder: true, intake21: true, rehabRemind: true, urineRemind: true,
+        gridRemind: true, bowelAlert: true, bpAlert: true, fluidOver: true, urineOver: true
+    },
+    text: {                     // 可編提示文字（雙語）；空字串＝用頁面內建文字
+        bedRail: { zh: '', id: '' }, catheter: { zh: '', id: '' }
+    },
+    notices: [],                // 自訂公告槽：{ on:true, zh:'', id:'', pos:'top'|'output' }
+    time: {
+        intakeCheck: '21:00', rehabFrom: '16:00', rehabDeadline: '19:00',
+        gridFrom: '20:00', urineFrom: '21:01', bpMorning: '10:00', bpNight: '21:00'
+    },
+    num: {
+        fluidMin: 1100, fluidMax: 1500,
+        uFactorNone: 0.9, uFactorAux: 1.1, uFactorFull: 1.3,
+        catheterHours: 3, catheterTimes: 2,
+        bowelMinH: 60, bowelMaxH: 72
+    },
+    bp: {
+        early: { sys: [130,150], dia: [70,90], hr: [65,85] },
+        late:  { sys: [120,140], dia: [70,85], hr: [65,80] }
+    }
+};
+
+/* deep-merge：物件遞迴合併；陣列與純值直接取覆蓋值（利尿清單/公告/血壓區間對＝整組取代） */
+function careUiMerge(base, over){
+    if (over === undefined) return base;
+    if (Array.isArray(base) || Array.isArray(over)) return over;
+    if (typeof base !== 'object' || base === null || typeof over !== 'object' || over === null) return over;
+    const out = {};
+    Object.keys(base).forEach(k => { out[k] = careUiMerge(base[k], over[k]); });
+    Object.keys(over).forEach(k => { if (!(k in out)) out[k] = over[k]; });   // 保留使用者新增鍵（如公告）
+    return out;
+}
+function careUI(goals){ return careUiMerge(CARE_UI_DEFAULTS, (careConfig(goals).ui) || {}); }
+/* 存回 cfg.ui（merge-safe，不覆蓋 last_med 其他欄位）；就地更新 goals 並回傳新 JSON，呼叫端 POST setMed */
+function careSaveUI(goals, uiPatch){
+    const c = careConfig(goals);
+    c.ui = careUiMerge(careUI(goals), uiPatch || {});
+    const json = JSON.stringify(c);
+    if (goals) goals['last_med'] = json;
+    return json;
+}
+/* 利尿藥複選 → 換算類別（倍率取最高）：任一「完整」→'full'；否則任一「輔助」→'aux'；皆無→'' */
+function careDiureticCat(selectedNames, ui){
+    const list = (ui && ui.diuretics) || CARE_UI_DEFAULTS.diuretics;
+    const sel = (selectedNames || []).map(String);
+    let hasAux = false;
+    for (const d of list){
+        if (sel.indexOf(String(d.name)) === -1) continue;
+        if (!d.aux) return 'full';
+        hasAux = true;
+    }
+    return hasAux ? 'aux' : '';
+}
+
+/* 純函式自我檢查（node 手動跑；不自動執行）：合併/倍率取最高/尿量目標/血壓區間覆蓋 */
+function careUiSelfTest(){
+    const A = (c, m) => { if (!c) throw new Error('careUiSelfTest FAIL: ' + m); };
+    const ui1 = careUiMerge(CARE_UI_DEFAULTS, { num: { fluidMax: 1400 } });
+    A(ui1.num.fluidMax === 1400, 'partial num override');
+    A(ui1.num.fluidMin === 1100, 'sibling default kept');
+    A(ui1.num.uFactorFull === 1.3 && ui1.urineMode === 'cc', 'unrelated defaults kept');
+    A(careUrineFactor('full', ui1) === 1.3, 'factor full default');
+    const ui2 = careUiMerge(CARE_UI_DEFAULTS, { num: { uFactorFull: 1.5 } });
+    A(careUrineFactor('full', ui2) === 1.5, 'factor full overridden');
+    A(careUrineGoal(1000, 'aux', ui2) === 1100, 'urine goal aux x1.1');
+    A(careDiureticCat(['利尿藥物（輔助）'], CARE_UI_DEFAULTS) === 'aux', 'aux only');
+    A(careDiureticCat(['利尿藥物（輔助）','利尿藥物'], CARE_UI_DEFAULTS) === 'full', 'max to full');
+    A(careDiureticCat([], CARE_UI_DEFAULTS) === '', 'none selected');
+    const ui3 = careUiMerge(CARE_UI_DEFAULTS, { bp: { early: { sys:[120,140] } } });
+    A(ui3.bp.early.dia[1] === 90, 'bp partial keeps sibling');
+    A(careBpViolations('血壓/心跳(早)', 135, 80, 75, ui3).violations.length === 0, 'bp in range');
+    A(careBpViolations('血壓/心跳(早)', 145, 80, 75, ui3).violations.length === 1, 'bp sys over');
+    return 'careUiSelfTest PASS';
+}
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { careUiMerge, careUI, careSaveUI, careDiureticCat, careUrineFactor, careUrineGoal, careBpViolations, careUiSelfTest, CARE_UI_DEFAULTS };
 }
 
 /* ===== 授權連結：admin 產生、照顧者點開即綁定該裝置身分（免密碼）
@@ -235,8 +334,15 @@ function careMedFromRecords(records){
     });
     return { diuretic, laxPills };
 }
-function careUrineFactor(diuretic){ return diuretic === 'full' ? 1.3 : (diuretic === 'aux' ? 1.1 : 0.9); }
-function careUrineGoal(intake, diuretic){ return Math.round((parseFloat(intake) || 0) * careUrineFactor(diuretic)); }
+/* 倍率／區間預設值可被管理設定（careUI().num）覆蓋；不傳 ui 時退回內建預設，向後相容 */
+function careUrineFactor(diuretic, ui){
+    const n = (ui && ui.num) || {};
+    const full = ('uFactorFull' in n) ? parseFloat(n.uFactorFull) : 1.3;
+    const aux  = ('uFactorAux'  in n) ? parseFloat(n.uFactorAux)  : 1.1;
+    const none = ('uFactorNone' in n) ? parseFloat(n.uFactorNone) : 0.9;
+    return diuretic === 'full' ? full : (diuretic === 'aux' ? aux : none);
+}
+function careUrineGoal(intake, diuretic, ui){ return Math.round((parseFloat(intake) || 0) * careUrineFactor(diuretic, ui)); }
 function careStoolGoal(laxPills){ return Math.max(1, parseInt(laxPills, 10) || 0); }
 
 /* ===== 血壓/心跳合理控制區間（index.html／anak.html 共用；超出→彈窗提醒，不擋存檔） ===== */
@@ -245,9 +351,9 @@ const CARE_BP_RANGES = {
     '晚': { sys:[120,140], dia:[70,85], hr:[65,80] }    // 晚間（睡前）
 };
 /* category 含 (早)/(晚)；回傳 { slot, violations:[{zh,id,val,lo,hi,unit}] }，空陣列＝全部合理 */
-function careBpViolations(category, sys, dia, hr){
+function careBpViolations(category, sys, dia, hr, ui){
     const slot = (category || '').includes('(早)') ? '早' : '晚';
-    const R = CARE_BP_RANGES[slot];
+    const R = (ui && ui.bp && ui.bp.early && ui.bp.late) ? (slot === '早' ? ui.bp.early : ui.bp.late) : CARE_BP_RANGES[slot];
     const out = [];
     const chk = (zh, id, v, lo, hi, unit) => {
         const n = Number(v);

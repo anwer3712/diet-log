@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>奶奶照護日誌 / Catatan Perawatan Nenek</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=9"></script>
+    <script src="care-tasks.js?v=10"></script>
     <style>
         body.mode-zh .lang-id, body.mode-zh .lang-sep, body.mode-zh br.lang-br { display: none; }
         body.mode-id .lang-zh, body.mode-id .lang-sep, body.mode-id br.lang-br { display: none; }
@@ -61,8 +61,7 @@
         #input-bp-sys, #input-bp-dia, #input-bp-hr { font-size: 1.5rem !important; font-weight: 900; padding-top: 0.75rem; padding-bottom: 0.75rem; }
         /* 區塊感：主卡框線加粗加深 */
         #log-form .rounded-3xl.border-2, #target-dashboard { border-width: 3px !important; }
-        /* 全域改1：今日目標VS已達 浮動半透明常駐，不擋視線與選取 */
-        #target-dashboard { position: sticky; top: 6px; z-index: 30; background: rgba(255,255,255,0.86) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 6px 20px rgba(0,0,0,0.10); }
+        /* 今日目標卡不浮動（2026-07-17 依使用者要求取消 sticky，回到一般卡片） */
         #current-achieved-val.below-target { color: #ca8a04; }
         .border-stone-100 { border-color: #9ca3af !important; }
         .border-gray-200 { border-color: #9ca3af !important; }
@@ -96,10 +95,11 @@
             <div id="lang-switch" class="flex gap-1"></div>
         </div>
 
-        <div class="bg-red-600 text-white rounded-2xl px-4 py-3 mb-4 shadow-lg flex items-start gap-2 border-2 border-red-700">
+        <div id="bedrail-banner" class="bg-red-600 text-white rounded-2xl px-4 py-3 mb-4 shadow-lg flex items-start gap-2 border-2 border-red-700">
             <span class="text-xl leading-none">🚨</span>
-            <p class="text-xs font-black leading-snug">床圍欄放下時，照顧者不得離開病患 1 公尺。<br><span class="text-[11px] font-bold text-red-100">Saat pagar tempat tidur diturunkan, perawat tidak boleh meninggalkan pasien lebih dari 1 meter.</span></p>
+            <p class="text-xs font-black leading-snug"><span id="bedrail-text-zh" class="lang-zh">床圍欄放下時，照顧者不得離開病患 1 公尺。</span><br class="lang-br"><span id="bedrail-text-id" class="lang-id text-[11px] font-bold text-red-100">Saat pagar tempat tidur diturunkan, perawat tidak boleh meninggalkan pasien lebih dari 1 meter.</span></p>
         </div>
+        <div id="notice-top" class="space-y-2 mb-4"></div>
 
         <div id="target-dashboard" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-stone-100 mb-4 transition-all">
             <div class="flex items-center justify-between mb-3">
@@ -154,9 +154,10 @@
             </div>
 
             <div id="catheter-note" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-3 text-amber-800 font-bold text-xs space-y-1">
-                <p>🚽 早上、下午各一次訓練尿感：關閉導尿管，每次最多 3 小時。</p>
-                <p class="text-[11px] text-amber-600 font-medium">Latihan sensasi kencing sekali di pagi hari dan sekali di sore hari: tutup kateter, maksimal 3 jam setiap kali.</p>
+                <p id="catheter-text-zh" class="lang-zh">🚽 早上、下午各一次訓練尿感：關閉導尿管，每次最多 3 小時。</p>
+                <p id="catheter-text-id" class="lang-id text-[11px] text-amber-600 font-medium">Latihan sensasi kencing sekali di pagi hari dan sekali di sore hari: tutup kateter, maksimal 3 jam setiap kali.</p>
             </div>
+            <div id="notice-output" class="space-y-2"></div>
 
             <div id="date-time-card" class="bg-white rounded-3xl p-4 shadow-sm border-2 border-stone-100 grid grid-cols-2 gap-3">
                 <div>
@@ -196,7 +197,7 @@
                 </div>
 
                 <div id="exercise-group" class="grid grid-cols-1 gap-2 hidden">
-                    <div class="bg-stone-50 border border-stone-200 rounded-2xl p-3 text-gray-700 font-bold text-[11px] space-y-1">
+                    <div id="rehab-note" class="bg-stone-50 border border-stone-200 rounded-2xl p-3 text-gray-700 font-bold text-[11px] space-y-1">
                         <p>🕒 復健練習 / Latihan rehabilitasi 應於三餐飯前及睡前半小時進行，每日至少四次。若患者因特殊情況無法在規定時間內完成，請另覓時間補做，但勿將四次運動集中於同一時段。</p>
                         <p class="text-[10px] text-gray-500 font-medium">Latihan rehabilitasi sebaiknya dilakukan setengah jam sebelum masing-masing dari tiga waktu makan dan sebelum tidur, setidaknya empat kali sehari. Jika pasien tidak dapat menyelesaikan latihan dalam waktu yang ditentukan karena keadaan khusus, mohon cari waktu lain untuk menggantinya, tetapi jangan menggabungkan keempat latihan tersebut dalam periode yang sama.</p>
                     </div>
@@ -272,11 +273,8 @@
                         <label class="block text-[11px] font-bold text-gray-400">💊 <span class="lang-zh">當日利尿藥物（管理者鎖定，沿用前次）:</span><span class="lang-id">Diuretik hari ini (Dikunci admin):</span></label>
                         <button type="button" id="med-lock-urine" onclick="requestMedUnlock()" class="shrink-0 text-sm px-1.5 active:scale-90 transition-all">🔒</button>
                     </div>
-                    <div id="urine-med-btns" class="grid grid-cols-3 gap-1.5 opacity-60">
-                        <button type="button" data-med="" onclick="setUrineMed('')"><span class="lang-zh">無</span><span class="lang-id">Tidak</span></button>
-                        <button type="button" data-med="aux" onclick="setUrineMed('aux')"><span class="lang-zh">利尿藥物（輔助）</span><span class="lang-id">Diuretik (bantu)</span></button>
-                        <button type="button" data-med="full" onclick="setUrineMed('full')"><span class="lang-zh">利尿藥物</span><span class="lang-id">Diuretik</span></button>
-                    </div>
+                    <!-- 利尿藥物：可複選（管理設定的具名清單），倍率取最高；晶片由 renderUrineMedChips() 動態產生 -->
+                    <div id="urine-med-btns" class="grid grid-cols-3 gap-1.5 opacity-60"></div>
                 </div>
 
                 <div id="appetite-shortcut" class="hidden space-y-1.5">
@@ -373,13 +371,14 @@
 
         let cloudRecords = [];
         let cloudGoals = {};
+        let UI = careUI({});   // 管理設定（顯示/彈窗/數字/記錄模式）；applyCloudData 後以雲端值刷新
         let currentActiveId = null;
         const stoolStatuses = ['稀便 / feses encer', '大便乾硬 / Kering dan keras', '正常 / Normal'];
         const urineColors = ['淡紅色 / Merah Muda', '深黃色 / Kuning Tua', '正常淺黃 / Kuning Muda'];
 
         // ===== 當日藥物選擇（尿液/排便項目內、管理者鎖定）＋進食胃口（必選） =====
-        // urineMedSel: ''=無 | 'aux'=利尿藥物（輔助） | 'full'=利尿藥物；stoolLaxSel: 利便藥物顆數（預設2顆）
-        let urineMedSel = '', stoolLaxSel = 2, appetiteSel = '';
+        // urineMedSel: ''=無 | 'aux'=輔助 | 'full'=完整（換算倍率用，取所選最高）；urineMedNames: 複選具名藥；stoolLaxSel: 利便藥物顆數（預設2顆）
+        let urineMedSel = '', urineMedNames = [], stoolLaxSel = 2, appetiteSel = '';
         let medSelTouched = false;   // 使用者手動選過藥物後，背景同步不再覆蓋
 
         // ===== 藥物鎖定：預設唯讀，管理者 PIN 解鎖後整個 session 記住 =====
@@ -406,10 +405,30 @@
             fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'setMed', val: json }) })
                 .catch(() => showToast(LTXT('藥物設定同步失敗', 'Sinkronisasi pengaturan obat gagal'), true));
         }
-        window.setUrineMed = function(v){
+        // 利尿藥複選晶片：「無」+ 每個具名藥（管理設定 UI.diuretics）；倍率取最高 → urineMedSel
+        function recomputeUrineCat(){ urineMedSel = careDiureticCat(urineMedNames, UI); }
+        window.renderUrineMedChips = function(){
+            const box = document.getElementById('urine-med-btns');
+            if (!box) return;
+            let html = `<button type="button" onclick="clearUrineMed()" class="${medBtnCls(urineMedNames.length === 0)}"><span class="lang-zh">無</span><span class="lang-id">Tidak</span></button>`;
+            (UI.diuretics || []).forEach((d, i) => {
+                const on = urineMedNames.indexOf(d.name) !== -1;
+                html += `<button type="button" onclick="toggleUrineMed(${i})" class="${medBtnCls(on)}">${careEscapeHtml(d.name)}</button>`;
+            });
+            box.innerHTML = html;
+        };
+        window.toggleUrineMed = function(idx){
             if (!ensureMedUnlocked()) return;   // 未解鎖：只要求 PIN，不改值
-            urineMedSel = v; medSelTouched = true; paintMedSelectors(); updateTargetPanel();
-            saveDailyMed({ diuretic: v });
+            const name = (UI.diuretics[idx] || {}).name; if (name == null) return;
+            const i = urineMedNames.indexOf(name);
+            if (i === -1) urineMedNames.push(name); else urineMedNames.splice(i, 1);
+            medSelTouched = true; recomputeUrineCat(); renderUrineMedChips(); updateTargetPanel();
+            saveDailyMed({ diureticNames: urineMedNames.slice(), diuretic: urineMedSel });
+        };
+        window.clearUrineMed = function(){
+            if (!ensureMedUnlocked()) return;
+            urineMedNames = []; medSelTouched = true; recomputeUrineCat(); renderUrineMedChips(); updateTargetPanel();
+            saveDailyMed({ diureticNames: [], diuretic: '' });
         };
         window.setStoolLax = function(n){
             if (!ensureMedUnlocked()) return;   // 未解鎖：只要求 PIN，不改值
@@ -422,7 +441,7 @@
                 (on ? 'bg-[#F4726B] text-white border-[#F4726B]' : 'bg-white text-gray-600 border-gray-300');
         }
         function paintMedSelectors(){
-            document.querySelectorAll('#urine-med-btns button').forEach(b => b.className = medBtnCls((b.dataset.med || '') === urineMedSel));
+            if (window.renderUrineMedChips) renderUrineMedChips();
             document.querySelectorAll('#stool-lax-btns button').forEach(b => b.className = medBtnCls(parseInt(b.dataset.lax, 10) === stoolLaxSel));
             document.querySelectorAll('#appetite-btns button').forEach(b => b.className = medBtnCls(appetiteSel !== '' && b.dataset.app === appetiteSel));
         }
@@ -430,7 +449,12 @@
         function syncMedSelFromRecords(){
             if (medSelTouched) return;
             const med = careDailyMed(cloudGoals);
-            urineMedSel = med.diuretic;
+            urineMedNames = Array.isArray(med.diureticNames) ? med.diureticNames.slice() : [];
+            if (urineMedNames.length === 0 && med.diuretic) {   // 舊資料相容：legacy 類別→清單中同類別第一個藥
+                const d = (UI.diuretics || []).find(x => (med.diuretic === 'full') ? !x.aux : x.aux);
+                if (d) urineMedNames = [d.name];
+            }
+            urineMedSel = careDiureticCat(urineMedNames, UI) || med.diuretic || '';
             stoolLaxSel = med.laxPills;
             paintMedSelectors();
             paintMedLock();
@@ -484,12 +508,13 @@
             const ls = document.getElementById('lang-switch');
             ls.innerHTML = [['zh','中文'],['id','ID']].map(([m,lbl]) =>
                 `<button type="button" onclick="switchLang('${m}')" class="px-2.5 py-1.5 rounded-full text-[10px] font-black border ${LANG_MODE===m?'bg-sky-400 text-white border-sky-400':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
-            ).join('') + `<a href="trends.html" title="${LTXT('健康趨勢分析','Analisis tren')}" class="px-2.5 py-1.5 rounded-full text-[10px] font-black border bg-emerald-50 text-emerald-600 border-emerald-300">📈</a>`;
+            ).join('') + `<a href="trends.html" title="${LTXT('健康趨勢分析','Analisis tren')}" class="px-2.5 py-1.5 rounded-full text-[10px] font-black border bg-emerald-50 text-emerald-600 border-emerald-300">📈</a>`;   /* 內建趨勢保留；砍掉的是 Looker 週趨勢 */
         }
         // 換身分需管理者密碼（照顧者不能自行切到別人的介面）；👤U4 開放身分，任何人可直接使用
         window.switchUser = function(u){
             if (u === CARE_USER) return;
-            if (u !== '4' && !careAskPin(LTXT('切換身分需要管理者密碼：','Ganti pengguna perlu PIN admin:'))) {
+            // 本 session 已用 PIN 授權過（管理頁/藥物解鎖）→ 切身分免重複輸入
+            if (u !== '4' && !medUnlocked() && !careAskPin(LTXT('切換身分需要管理者密碼：','Ganti pengguna perlu PIN admin:'))) {
                 showToast(LTXT('密碼錯誤，無法切換', 'PIN salah'), true); return;
             }
             careSetUser(u); location.reload();
@@ -589,6 +614,36 @@
             setTimeout(() => { try { localizePage(); } finally { i18nScheduled = false; } }, 60);
         }).observe(document.body, { childList: true, subtree: true });
 
+        // ===== 管理設定套用：顯示閘門／自訂文字／公告／利尿晶片（applyCloudData 與 onload 都呼叫） =====
+        function uiText(slot, side){ const t = (UI.text && UI.text[slot]) || {}; return String((t[side] || '')).trim(); }
+        function renderNoticeSlots(){
+            const build = (pos, containerId) => {
+                const box = document.getElementById(containerId);
+                if (!box) return;
+                const items = (UI.notices || []).filter(n => n && n.on && n.pos === pos && (n.zh || n.id));
+                box.innerHTML = items.map(n => {
+                    const zh = n.zh ? `<span class="lang-zh">${careEscapeHtml(n.zh)}</span>` : '';
+                    const id = n.id ? `<span class="lang-id text-[11px] font-medium">${careEscapeHtml(n.id)}</span>` : '';
+                    const sep = (n.zh && n.id) ? '<br class="lang-br">' : '';
+                    return `<div class="bg-sky-50 border border-sky-200 text-sky-800 rounded-2xl px-4 py-2.5 text-xs font-bold leading-snug">${zh}${sep}${id}</div>`;
+                }).join('');
+            };
+            build('top', 'notice-top');
+            build('output', 'notice-output');
+        }
+        function applyUiStatic(){
+            const br = document.getElementById('bedrail-banner');
+            if (br) br.classList.toggle('hidden', !UI.show.bedRail);
+            const brZh = document.getElementById('bedrail-text-zh'), brId = document.getElementById('bedrail-text-id');
+            if (brZh && uiText('bedRail','zh')) brZh.textContent = uiText('bedRail','zh');
+            if (brId && uiText('bedRail','id')) brId.textContent = uiText('bedRail','id');
+            const cZh = document.getElementById('catheter-text-zh'), cId = document.getElementById('catheter-text-id');
+            if (cZh) cZh.textContent = uiText('catheter','zh') || `🚽 早上、下午各一次訓練尿感：關閉導尿管，每次最多 ${UI.num.catheterHours} 小時。`;
+            if (cId) cId.textContent = uiText('catheter','id') || `Latihan sensasi kencing sekali di pagi hari dan sekali di sore hari: tutup kateter, maksimal ${UI.num.catheterHours} jam setiap kali.`;
+            renderNoticeSlots();
+            if (window.renderUrineMedChips) renderUrineMedChips();
+        }
+
         function updateView() {
             const selectedType = document.querySelector('input[name="type"]:checked').value;
             const intakeGroup = document.getElementById('intake-group');
@@ -616,13 +671,14 @@
             } else if (selectedType === '排出') {
                 outputGroup.classList.remove('hidden');
                 document.querySelector('#output-group input[name="category"]').checked = true;
-                if (catheterNote) catheterNote.classList.remove('hidden');
+                if (catheterNote) catheterNote.classList.toggle('hidden', !UI.show.catheter);   // 導尿管拆除→預設關，管理設定可開
             } else if (selectedType === '運動') {
                 exerciseGroup.classList.remove('hidden');
                 document.querySelector('#exercise-group input[name="category"]').checked = true;
+                const rn = document.getElementById('rehab-note'); if (rn) rn.classList.toggle('hidden', !UI.show.rehabNote);
             } else if (selectedType === '血壓') {
                 bpGroup.classList.remove('hidden');
-                if (bpGuideCard) bpGuideCard.classList.remove('hidden');
+                if (bpGuideCard && UI.show.bpGuide) bpGuideCard.classList.remove('hidden');
                 standardGroup.classList.add('hidden');
                 targetDashboard.classList.add('hidden');
                 if (viewSheetWrap) viewSheetWrap.classList.remove('hidden');
@@ -722,18 +778,32 @@ function checkBpTime() {
 
             if (selectedType === '運動') {
                 // 四項復健動作一律以「次數」計量
-                if (checkedCategory && checkedCategory.value === '站立' && standWarning) standWarning.classList.remove('hidden');
+                if (checkedCategory && checkedCategory.value === '站立' && standWarning && UI.show.standWarn) standWarning.classList.remove('hidden');
                 titleZh.innerText = LTXT('次數', 'Frekuensi'); amountUnit.innerText = LTXT('次', 'Kali');
                 amountInput.placeholder = LTXT('獨自完成數量', 'Jumlah item yang diselesaikan secara mandiri'); amountInput.min = '0';
             } else if (checkedCategory && checkedCategory.value === '排便') {
-                // 排便每次固定計 1 次，隱藏單次次數輸入；當日累計由記錄筆數自動加總
                 stoolShortcut.classList.remove('hidden');
-                if (amountField) amountField.classList.add('hidden');
-                amountInput.required = false; amountInput.value = '1'; amountInput.min = '0';
+                if (UI.stoolMode === 'weight') {
+                    // 記重量模式：填重量（g）；每日達成仍以「次數」計（1 筆=1 次）
+                    if (amountField) amountField.classList.remove('hidden');
+                    titleZh.innerText = LTXT('重量', 'Berat'); amountUnit.innerText = UI.stoolWeightUnit || 'g';
+                    amountInput.placeholder = LTXT('例如：100', 'Misalnya: 100'); amountInput.required = true; amountInput.min = '1';
+                } else {
+                    // 現狀：固定計 1 次，隱藏數值輸入；當日累計由記錄筆數自動加總
+                    if (amountField) amountField.classList.add('hidden');
+                    amountInput.required = false; amountInput.value = '1'; amountInput.min = '0';
+                }
             } else if (checkedCategory && checkedCategory.value === '尿液') {
                 if (urineColorShortcut) urineColorShortcut.classList.remove('hidden');
-                titleZh.innerText = LTXT('容量', 'Kapasitas'); amountUnit.innerText = 'c.c.';
-                amountInput.placeholder = LTXT('例如：250 c.c.', 'Misalnya: 250 c.c.'); amountInput.min = '1';
+                if (UI.urineMode === 'count') {
+                    // 次數制：不填 CC，自動計 1 筆（只記顏色＋利尿藥）
+                    if (amountField) amountField.classList.add('hidden');
+                    amountInput.required = false; amountInput.value = '1'; amountInput.min = '0';
+                } else {
+                    if (amountField) amountField.classList.remove('hidden');
+                    titleZh.innerText = LTXT('容量', 'Kapasitas'); amountUnit.innerText = 'c.c.';
+                    amountInput.placeholder = LTXT('例如：250 c.c.', 'Misalnya: 250 c.c.'); amountInput.required = true; amountInput.min = '1';
+                }
             } else if (checkedCategory && checkedCategory.value === '進食') {
                 // 含水食物：胃口（好/普通/差）必選；附計量說明圖
                 if (appetiteShortcut) appetiteShortcut.classList.remove('hidden');
@@ -775,21 +845,32 @@ function checkBpTime() {
             // 尿液目標 = 今日已達飲水量 ×0.9；利尿藥物（輔助）×1.1；利尿藥物 ×1.3
             let urineRangeMax = 0;
             if (currentItem === '尿液') {
-                const intakeAchieved = cloudRecords.filter(item => ['飲水量', '服藥飲水', '營養飲品', '進食'].includes(item.category)).reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
-                const uGoal = careUrineGoal(intakeAchieved, urineMedSel);
-                urineRangeMax = uGoal;
-                savedTarget = uGoal;
-                targetInput.value = uGoal;
-                targetInput.readOnly = true;
-                targetInput.style.color = '#6b7280';
-                if (editBtn) editBtn.classList.add('hidden');
-                urineRangeInfoEl.classList.remove('hidden');
-                const fLabel = urineMedSel === 'full' ? LTXT('有利尿藥物', 'dengan diuretik')
-                    : urineMedSel === 'aux' ? LTXT('有利尿藥物（輔助）', 'dengan diuretik (bantu)')
-                    : LTXT('無利尿藥物', 'tanpa diuretik');
-                document.getElementById('urine-range-text').innerHTML =
-                    LTXT(`💧 今日尿液目標＝今日已達飲水量 ${intakeAchieved} c.c. × ${careUrineFactor(urineMedSel)}（${fLabel}）＝ ${uGoal} c.c.`,
-                         `💧 Target urine hari ini = asupan tercapai ${intakeAchieved} c.c. × ${careUrineFactor(urineMedSel)} (${fLabel}) = ${uGoal} c.c.`);
+                if (UI.urineMode === 'count') {
+                    // 次數制：無 CC 目標，不做超標判斷（urineRangeMax 保持 0）
+                    savedTarget = '';
+                    targetInput.value = '';
+                    targetInput.readOnly = true; targetInput.style.color = '#6b7280';
+                    if (editBtn) editBtn.classList.add('hidden');
+                    urineRangeInfoEl.classList.toggle('hidden', !UI.show.urineRangeInfo);
+                    document.getElementById('urine-range-text').innerHTML =
+                        LTXT('🚽 尿液採「次數制」：只記錄顏色與利尿藥，無 CC 目標。', '🚽 Urine mode hitungan: catat warna & diuretik saja, tanpa target CC.');
+                } else {
+                    const intakeAchieved = cloudRecords.filter(item => ['飲水量', '服藥飲水', '營養飲品', '進食'].includes(item.category)).reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+                    const uGoal = careUrineGoal(intakeAchieved, urineMedSel, UI);
+                    urineRangeMax = uGoal;
+                    savedTarget = uGoal;
+                    targetInput.value = uGoal;
+                    targetInput.readOnly = true;
+                    targetInput.style.color = '#6b7280';
+                    if (editBtn) editBtn.classList.add('hidden');
+                    urineRangeInfoEl.classList.toggle('hidden', !UI.show.urineRangeInfo);
+                    const fLabel = urineMedSel === 'full' ? LTXT('有利尿藥物', 'dengan diuretik')
+                        : urineMedSel === 'aux' ? LTXT('有利尿藥物（輔助）', 'dengan diuretik (bantu)')
+                        : LTXT('無利尿藥物', 'tanpa diuretik');
+                    document.getElementById('urine-range-text').innerHTML =
+                        LTXT(`💧 今日尿液目標＝今日已達飲水量 ${intakeAchieved} c.c. × ${careUrineFactor(urineMedSel, UI)}（${fLabel}）＝ ${uGoal} c.c.`,
+                             `💧 Target urine hari ini = asupan tercapai ${intakeAchieved} c.c. × ${careUrineFactor(urineMedSel, UI)} (${fLabel}) = ${uGoal} c.c.`);
+                }
             } else if (currentItem === '排便') {
                 // 排便目標 = 1 次；利便藥物 2 顆（含）以上 = 顆數
                 const sGoal = careStoolGoal(stoolLaxSel);
@@ -798,7 +879,7 @@ function checkBpTime() {
                 targetInput.readOnly = true;
                 targetInput.style.color = '#6b7280';
                 if (editBtn) editBtn.classList.add('hidden');
-                urineRangeInfoEl.classList.remove('hidden');
+                urineRangeInfoEl.classList.toggle('hidden', !UI.show.urineRangeInfo);
                 document.getElementById('urine-range-text').innerHTML =
                     LTXT(`💩 今日排便目標＝1 次；利便藥物 2 顆（含）以上＝顆數次（目前 ${stoolLaxSel} 顆 → 目標 ${sGoal} 次）`,
                          `💩 Target BAB hari ini = 1 kali; obat pencahar ≥2 butir = sesuai jumlah butir (sekarang ${stoolLaxSel} butir → ${sGoal} kali)`);
@@ -809,9 +890,9 @@ function checkBpTime() {
                 targetInput.classList.remove('border-[#FB8B7A]');
                 if (editBtn) { editBtn.classList.remove('hidden'); editBtn.innerText = '✏️'; }
                 if (currentItem === '總攝入水量') {
-                    urineRangeInfoEl.classList.remove('hidden');
+                    urineRangeInfoEl.classList.toggle('hidden', !UI.show.urineRangeInfo);
                     document.getElementById('urine-range-text').innerHTML =
-                        LTXT(`💧 正常範圍：1100 c.c. ～ 1500 c.c.`, `💧 Kisaran normal: 1100 c.c. ~ 1500 c.c.`);
+                        LTXT(`💧 正常範圍：${UI.num.fluidMin} c.c. ～ ${UI.num.fluidMax} c.c.`, `💧 Kisaran normal: ${UI.num.fluidMin} c.c. ~ ${UI.num.fluidMax} c.c.`);
                 } else {
                     urineRangeInfoEl.classList.add('hidden');
                 }
@@ -820,6 +901,8 @@ function checkBpTime() {
             let achieved = 0;
             if (currentItem === '總攝入水量') {
                 achieved = cloudRecords.filter(item => ['飲水量', '服藥飲水', '營養飲品', '進食'].includes(item.category)).reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+            } else if (currentItem === '排便') {
+                achieved = cloudRecords.filter(item => item.category === '排便').length;   // 排便目標永遠以「次數」計（重量模式 amount 是克，不能加總）
             } else {
                 achieved = cloudRecords.filter(item => item.category === currentItem).reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
             }
@@ -840,10 +923,10 @@ function checkBpTime() {
 
             const warningEl = document.getElementById('fluid-warning');
             const bar = document.getElementById('progress-bar');
-            const overFluid = (currentItem === '總攝入水量' && achieved > 1500);
+            const overFluid = (currentItem === '總攝入水量' && achieved > UI.num.fluidMax && UI.popup.fluidOver);
 
-            // 尿液超出正常範圍警告（alert 提醒＋下方深紅閃動框與警示卡同步亮起）
-            const overUrine = (currentItem === '尿液' && achieved > 0 && urineRangeMax > 0 && achieved > urineRangeMax);
+            // 尿液超出正常範圍警告（alert 提醒＋下方深紅閃動框與警示卡同步亮起）；次數制無 urineRangeMax 故自動不觸發
+            const overUrine = (currentItem === '尿液' && achieved > 0 && urineRangeMax > 0 && achieved > urineRangeMax && UI.popup.urineOver);
             if (overUrine) {
                 const medLabel = urineMedSel === 'full' ? '有利尿藥物' : urineMedSel === 'aux' ? '有利尿藥物（輔助）' : '無藥物';
                 showCareAlert('尿液超出正常範圍警告<br><span class="text-sm">Volume urine melebihi batas normal</span>',
@@ -855,7 +938,7 @@ function checkBpTime() {
             if (overFluid || overUrine) {
                 warningEl.classList.remove('hidden');
                 warningEl.innerHTML = overFluid
-                    ? `🚨 總液體量已超過目標值 (1500 c.c.)！<br><span class="text-[10px] font-medium">Volume cairan melebihi target (1500 c.c.)!</span>`
+                    ? `🚨 總液體量已超過目標值 (${UI.num.fluidMax} c.c.)！<br><span class="text-[10px] font-medium">Volume cairan melebihi target (${UI.num.fluidMax} c.c.)!</span>`
                     : `🚨 尿液量 ${achieved} c.c. 已超過正常上限 (${urineRangeMax} c.c.)！<br><span class="text-[10px] font-medium">Volume urine (${achieved} c.c.) melebihi batas normal (${urineRangeMax} c.c.)!</span>`;
                 targetDashboard.classList.add('danger-active');
                 bar.classList.remove('bg-[#FB8B7A]'); bar.classList.add('bg-red-500');
@@ -874,21 +957,21 @@ function checkBpTime() {
             const hourMin = now.toTimeString().substring(0, 5);
             const todayStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
             const records = cloudRecords || [];
-            // 21:00 檢查：總攝入水量未達目標 + 尿液超出範圍警告
-            if (hourMin >= '21:00') {
+            // 攝入盤點時間：總攝入未達目標 + 尿液超出範圍
+            if (hourMin >= UI.time.intakeCheck) {
                 const intakeRecs = records.filter(r => ['飲水量','服藥飲水','營養飲品','進食'].includes(r.category));
                 const totalIntake = intakeRecs.reduce((sum, r) => sum + parseFloat(r.amount||0), 0);
                 const intakeTarget = parseFloat(cloudGoals['goal_總攝入水量'] || getLastGoals()['總攝入水量'] || 0);
-                const urineTarget = careUrineGoal(totalIntake, careMedFromRecords(records).diuretic);
+                const urineTarget = careUrineGoal(totalIntake, careMedFromRecords(records).diuretic, UI);
                 const urineAchieved = records.filter(r => r.category === '尿液').reduce((sum, r) => sum + parseFloat(r.amount||0), 0);
 
-                if (intakeTarget > 0 && totalIntake < intakeTarget) {
+                if (UI.popup.intake21 && intakeTarget > 0 && totalIntake < intakeTarget) {
                     document.getElementById('target-dashboard').classList.add('danger-active');
                     showCareAlert('注意！請檢查今日攝入量<br><span class="text-sm">Periksa asupan hari ini</span>',
                         `<p>今日總攝入 <b class="text-red-600">${totalIntake} c.c.</b> 尚未達到目標 ${intakeTarget} c.c.，請檢查有無漏填。</p>
                          <p class="text-xs text-gray-500">Perhatian! Mohon periksa apakah asupan harian Anda telah dimasukkan dengan benar.</p>`);
                 }
-                if (urineTarget > 0 && urineAchieved > 0 && urineAchieved > urineTarget) {
+                if (UI.urineMode !== 'count' && UI.popup.urineOver && urineTarget > 0 && urineAchieved > 0 && urineAchieved > urineTarget) {
                     document.getElementById('target-dashboard').classList.add('danger-active');
                 }
             }
@@ -909,22 +992,22 @@ function checkBpTime() {
             let missedSet = new Set();
             try { missedSet = new Set(JSON.parse(localStorage.getItem('missed_items_' + todayStr) || '[]')); } catch(e) {}
 
-            // === 運動提醒：19:00 前尚未完成任何復健項目則提醒 ===
-            if (hourMin >= '16:00' && hourMin < '19:00') {
-                const exDone = records.filter(r => r.type === '運動').length;
-                if (exDone < 1) reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 今日尚未進行復健運動<br><span class="text-xs text-gray-500">Nenek belum melakukan latihan rehabilitasi hari ini</span></p>`));
+            // === 運動提醒：復健期限前尚未完成任何復健項目則提醒 ===
+            if (UI.popup.rehabRemind && hourMin >= UI.time.rehabFrom && hourMin < UI.time.rehabDeadline) {
+                const exDone2 = records.filter(r => r.type === '運動').length;
+                if (exDone2 < 1) reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 今日尚未進行復健運動<br><span class="text-xs text-gray-500">Nenek belum melakukan latihan rehabilitasi hari ini</span></p>`));
             }
-            if (hourMin >= '19:00' && exDone === 0) missedSet.add('evening_ex');
+            if (hourMin >= UI.time.rehabDeadline && exDone === 0) missedSet.add('evening_ex');
             else missedSet.delete('evening_ex');
             
-            // === 深夜時段 21:01-23:59：睡前最後一次尿液量 ===
-            if (hourMin >= '21:01') {
+            // === 睡前最後一次尿液量提醒 ===
+            if (UI.popup.urineRemind && hourMin >= UI.time.urineFrom) {
                 reminders.push(blueGuide(`<p class="font-black text-sm">🚽 睡前量測今日最後一次尿液量<br><span class="text-xs text-gray-500">Ukur volume urine terakhir Anda sebelum tidur.</span></p>`));
             }
 
-            // === 整日進度格未做提醒（20:00–23:59）：盤點今日進度格尚未完成的項目 ===
+            // === 整日進度格未做提醒：盤點今日進度格尚未完成的項目 ===
             const viewDate = document.getElementById('input-date').value || todayStr;
-            if (hourMin >= '20:00' && hourMin <= '23:59' && viewDate === todayStr) {
+            if (UI.popup.gridRemind && hourMin >= UI.time.gridFrom && hourMin <= '23:59' && viewDate === todayStr) {
                 const gridTasks = careComputeTasks(records, todayStr, cloudGoals).tasks;
                 const undone = gridTasks.filter(t => t.state === 'missed' || t.state === 'pending');
                 if (undone.length > 0) {
@@ -963,7 +1046,7 @@ function checkBpTime() {
                 }
             }
 
-            if (reminders.length > 0) {
+            if (UI.popup.reminder && reminders.length > 0) {
                 document.getElementById('reminder-content').innerHTML = reminders.join('');
                 document.getElementById('reminder-modal').classList.remove('hidden');
             }
@@ -974,7 +1057,7 @@ function checkBpTime() {
         function toggleEnemaWarning() {
             const w = document.getElementById('enema-warning');
             const c = document.getElementById('enema-check');
-            if (w) w.classList.toggle('hidden', !(c && c.checked));
+            if (w) w.classList.toggle('hidden', !(c && c.checked && UI.show.enemaWarn));
         }
         // 今日目標數值：預設鎖定，按鉛筆並二次確認才能修改，避免其他照顧者誤觸或破壞畫面
         function toggleTargetEdit() {
@@ -1081,6 +1164,8 @@ function checkBpTime() {
         function applyCloudData(data) {
             cloudRecords = data.records || [];
             cloudGoals = data.goals || {};
+            UI = careUI(cloudGoals);   // 先更新設定，後面 syncMedSel/updateView/checkReminders 都吃它
+            applyUiStatic();
             // 把雲端目標記到本機，作為下次（例如換日後）顯示用的「前一次數值」
             Object.keys(cloudGoals).forEach(k => {
                 if (k.startsWith('goal_')) saveLastGoal(k.replace('goal_', ''), cloudGoals[k]);
@@ -1175,16 +1260,18 @@ function checkBpTime() {
                 if (!sys || !dia || !hr) return showToast("請完整填寫血壓與心跳數值！", true);
                 amount = `${sys}/${dia} (心跳:${hr})`;
                 // 合理區間檢查（care-tasks.js v7）：超出→彈窗提醒注意奶奶狀況，不擋存檔
-                const bpChk = careBpViolations(category, sys, dia, hr);
-                if (bpChk.violations.length > 0) showBpAlert(bpChk);
+                const bpChk = careBpViolations(category, sys, dia, hr, UI);
+                if (bpChk.violations.length > 0 && UI.popup.bpAlert) showBpAlert(bpChk);
             } else {
                 category = document.querySelector('input[name="category"]:checked').value;
-                if (category === '排便') {
-                    amount = 1;   // 排便每次固定計 1 次；當日累計由記錄筆數自動加總
+                if (category === '排便' && UI.stoolMode !== 'weight') {
+                    amount = 1;   // 現狀：排便固定計 1 次；當日累計由記錄筆數自動加總
+                } else if (category === '尿液' && UI.urineMode === 'count') {
+                    amount = 1;   // 次數制：尿液固定計 1 筆
                 } else {
-                    amount = parseInt(document.getElementById('input-amount').value, 10);
+                    amount = parseInt(document.getElementById('input-amount').value, 10);   // CC 或重量(g)
                     if (isNaN(amount) || amount < 0) return showToast("請輸入正確的數值！", true);
-                    if (amount === 0 && type !== '運動') return showToast("此項目的容量不能為 0！", true);
+                    if (amount === 0 && type !== '運動') return showToast("此項目的數值不能為 0！", true);
                 }
             }
 
@@ -1199,8 +1286,13 @@ function checkBpTime() {
             if (category === '進食' && appetiteSel) {
                 noteValue += (noteValue ? ' ' : '') + `[胃口: ${appetiteSel}]`;
             }
-            if (category === '尿液' && urineMedSel) {
+            if (category === '尿液' && urineMedSel) {   // canonical 倍率標籤：供尿量目標演算與 careMedFromRecords 解讀
                 noteValue += (noteValue ? ' ' : '') + (urineMedSel === 'full' ? '[當日附加: 利尿藥物]' : '[當日附加: 利尿藥物(輔助)]');
+            }
+            if (category === '尿液' && urineMedNames.length) {   // 具名藥：非預設或複選多筆時額外記錄藥名
+                const defaultNames = (CARE_UI_DEFAULTS.diuretics || []).map(d => d.name);
+                const hasCustom = urineMedNames.some(n => defaultNames.indexOf(n) === -1);
+                if (hasCustom || urineMedNames.length > 1) noteValue += (noteValue ? ' ' : '') + '[利尿藥: ' + urineMedNames.join('、') + ']';
             }
             if (category === '排便' && stoolLaxSel > 0) {
                 noteValue += (noteValue ? ' ' : '') + `[當日附加: 利便藥物${stoolLaxSel}顆]`;
@@ -1311,6 +1403,7 @@ function checkBpTime() {
         window.onload = function() {
             initTimeSelects();
             renderTopBar();
+            applyUiStatic();       // 先用預設設定套用顯示/文字/晶片，fetchCloudData 回來再以雲端值刷新
             if (CARE_JOINED) showToast(LTXT('✅ 此裝置已綁定為 👤U' + CARE_JOINED, '✅ Perangkat ini terdaftar sebagai 👤U' + CARE_JOINED));
             document.getElementById('input-note').placeholder = LTXT('輸入額外說明內容...', 'Masukkan catatan tambahan...');
             localizePage();
@@ -1321,6 +1414,7 @@ function checkBpTime() {
         };
 
         function checkBowelMovementAlert() {
+            if (!UI.popup.bowelAlert) return;
             if (typeof cloudRecords === 'undefined' || cloudRecords.length === 0) return;
             const bowelRecords = cloudRecords.filter(r => r.category && r.category.includes('排便') && !r.isDeleted);
             if (bowelRecords.length === 0) return;
@@ -1328,7 +1422,7 @@ function checkBpTime() {
             const lastBowelTime = new Date(`${bowelRecords[0].date}T${bowelRecords[0].time}`).getTime();
             const now = new Date().getTime();
             const diffHours = (now - lastBowelTime) / (1000 * 60 * 60);
-            if (diffHours >= 60 && diffHours <= 72) {
+            if (diffHours >= UI.num.bowelMinH && diffHours <= UI.num.bowelMaxH) {
                 const lastAlertTime = localStorage.getItem('lastBowelAlertTime') || 0;
                 const hoursSinceLastAlert = (now - lastAlertTime) / (1000 * 60 * 60);
                 if (hoursSinceLastAlert >= 2) {
@@ -1338,7 +1432,7 @@ function checkBpTime() {
                          <p class="text-xs text-gray-500">"Tidak buang air besar selama 3 hari berturut-turut" atau "disertai dengan perut kembung parah dan penurunan nafsu makan yang tajam" dianggap sebagai tanda bahaya yang memerlukan perhatian medis segera. Pengasuh dilarang keras membeli dan memberikan enema cair kepada pasien tanpa izin dokter.</p>`);
                     localStorage.setItem('lastBowelAlertTime', now);
                 }
-            } else if (diffHours < 60) {
+            } else if (diffHours < UI.num.bowelMinH) {
                 localStorage.removeItem('lastBowelAlertTime');
             }
         }

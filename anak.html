@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>奶奶日誌 — 兒童版 / Catatan Nenek — Anak</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=9"></script>
+    <script src="care-tasks.js?v=10"></script>
     <style>
         /* ============================================================
          * 兒童＋先天遠視設計原則：超大字、白底高對比、粗實心框、
@@ -119,9 +119,9 @@
             <div id="goal-strips" class="space-y-1 text-left"></div>
             <div id="warn-box" class="space-y-2 text-center"></div>
             <!-- 兒童改4：床欄安全警示（與成人版同規則，兒童大字🚨常駐） -->
-            <div class="border-4 rounded-3xl p-2.5 text-center mt-1" style="border-color: var(--danger); background:#fff1f2; color: var(--danger)">
-                <p class="text-xl font-black leading-snug"><span class="bounce-big">🚨</span> 床圍欄放下時，照顧者不得離開病患 1 公尺</p>
-                <p class="text-sm font-bold leading-snug">Saat pagar tempat tidur diturunkan, jangan tinggalkan pasien lebih dari 1 meter</p>
+            <div id="anak-bedrail" class="border-4 rounded-3xl p-2.5 text-center mt-1" style="border-color: var(--danger); background:#fff1f2; color: var(--danger)">
+                <p class="text-xl font-black leading-snug"><span class="bounce-big">🚨</span> <span id="anak-bedrail-zh">床圍欄放下時，照顧者不得離開病患 1 公尺</span></p>
+                <p id="anak-bedrail-id" class="text-sm font-bold leading-snug">Saat pagar tempat tidur diturunkan, jangan tinggalkan pasien lebih dari 1 meter</p>
             </div>
         </header>
 
@@ -202,10 +202,12 @@
                     <button type="button" onclick="pickItem('pup')"   id="item-pup"   class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">💩</span><span class="text-xl" data-t="iPup"></span></button>
                 </div>
                 <div id="pipis-extra" class="hidden space-y-2">
-                    <p class="text-2xl font-black" data-t="howMuch"></p>
-                    <div class="flex items-center gap-2">
-                        <input id="pipis-amount" type="number" min="1" class="flex-1 w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
-                        <span class="text-3xl font-black">cc</span>
+                    <div id="pipis-amount-row" class="space-y-2">
+                        <p class="text-2xl font-black" data-t="howMuch"></p>
+                        <div class="flex items-center gap-2">
+                            <input id="pipis-amount" type="number" min="1" class="flex-1 w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
+                            <span class="text-3xl font-black">cc</span>
+                        </div>
                     </div>
                     <p class="text-2xl font-black">🎨 <span data-t="color"></span></p>
                     <div id="color-grid" class="grid grid-cols-3 gap-2">
@@ -438,6 +440,7 @@ function t(key){ return (T[key] && T[key][LANG]) || ''; }
 
 let S = { step1:false, type:null, item:null, color:null, status:null, gliserin:null, food:null, appetite:null, umed:null, lax:null, typeConfirmed:false };
 let records = [], goals = {};
+let UI = careUI({});   // 管理設定（顯示/彈窗/數字/記錄模式）；loadDay 後以雲端值刷新
 
 function $(id){ return document.getElementById(id); }
 function toast(msg, err){
@@ -609,8 +612,13 @@ function buildPayload(){
             note += ` [胃口: ${S.appetite}]`;
         }
     } else if (S.item === 'pipis') {
-        amount = parseInt($('pipis-amount').value, 10);
-        if (!amount || amount < 1 || !S.color) return null;
+        if (UI.urineMode === 'count') {
+            if (!S.color) return null;   // 次數制：免填 cc，自動 1 筆，仍需顏色
+            amount = 1;
+        } else {
+            amount = parseInt($('pipis-amount').value, 10);
+            if (!amount || amount < 1 || !S.color) return null;
+        }
         note = S.color + (S.umed ? (S.umed === 'full' ? ' [當日附加: 利尿藥物]' : ' [當日附加: 利尿藥物(輔助)]') : '');
     } else if (S.item === 'pup') {
         if (!S.status || S.gliserin === null) return null;
@@ -639,6 +647,7 @@ function refresh(){
     if (S.type === 'keluar') {
         $('pipis-extra').classList.toggle('hidden', S.item !== 'pipis');
         $('pup-extra').classList.toggle('hidden', S.item !== 'pup');
+        const par = $('pipis-amount-row'); if (par) par.classList.toggle('hidden', UI.urineMode === 'count');   // 次數制免填 cc
     }
     if (S.type === 'latihan') {
         $('ex-extra').classList.toggle('hidden', !S.item);
@@ -687,7 +696,7 @@ function updateGuide(){
     } else if (S.type === 'keluar') {
         steps.push(grp('#item-grid-keluar .item-btn', '#item-grid-keluar .item-btn.selected'));
         if (S.item === 'pipis') {
-            steps.push(inp('pipis-amount'));
+            if (UI.urineMode !== 'count') steps.push(inp('pipis-amount'));
             steps.push(grp('.color-btn', '.color-btn.ringed'));
         } else if (S.item === 'pup') {
             steps.push(grp('.status-btn', '.status-btn.ringed'));
@@ -729,8 +738,8 @@ function save(){
     const p = buildPayload();
     if (!p) { $('need-hint').classList.remove('hidden'); return; }
     if (p._bp) {   // 血壓合理區間：超標→大紅彈窗（不擋存檔）
-        const chk = careBpViolations(p.category, p._bp.sys, p._bp.dia, p._bp.hr);
-        if (chk.violations.length) {
+        const chk = careBpViolations(p.category, p._bp.sys, p._bp.dia, p._bp.hr, UI);
+        if (chk.violations.length && UI.popup.bpAlert) {
             $('bp-modal-body').innerHTML = chk.violations.map(v =>
                 `<div class="bg-red-100 border-4 border-red-500 rounded-2xl p-3">
                     <p class="text-2xl font-black text-red-700">${LANG==='zh' ? v.zh : v.id}: ${v.val}</p>
@@ -782,21 +791,25 @@ function renderAll(){
     const urine = sumCat(['尿液']);
     const stoolN = records.filter(r => r.category === '排便').length;
     const med = careMedFromRecords(records);
-    const uGoal = careUrineGoal(intake, med.diuretic);
+    const uGoal = careUrineGoal(intake, med.diuretic, UI);
     const sGoal = careStoolGoal(med.laxPills);
     const wGoal = parseFloat(goals['goal_總攝入水量']) || 0;
+    // 兩行式：第一行 emoji＋🎯目標＋✅已達（可換行、數字絕不被進度條擠掉），第二行進度條吃滿寬
     const strip = (emoji, goal, done, unit, over) => {
         const pct = goal > 0 ? Math.min(100, Math.round(done / goal * 100)) : 0;
         const col = over ? 'var(--danger)' : 'var(--accent)';
-        return `<div class="flex items-center gap-1.5">
-            <span class="text-2xl w-9 text-center shrink-0">${emoji}</span>
-            <span class="text-base font-black shrink-0 text-gray-700">🎯${goal > 0 ? goal : '…'}${unit}</span>
-            <span class="text-base font-black shrink-0" style="color:${col}">✅${done}${unit}</span>
-            <div class="flex-1 min-w-0 h-3 rounded-full bg-gray-200 overflow-hidden"><div class="h-full rounded-full transition-all duration-700" style="width:${pct}%;background:${col}"></div></div>
+        return `<div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-2xl w-9 text-center shrink-0">${emoji}</span>
+                <span class="text-base font-black text-gray-700 whitespace-nowrap">🎯${goal > 0 ? goal : '…'}${unit}</span>
+                <span class="text-base font-black whitespace-nowrap" style="color:${col}">✅${done}${unit}</span>
+            </div>
+            <div class="h-3 rounded-full bg-gray-200 overflow-hidden mt-0.5"><div class="h-full rounded-full transition-all duration-700" style="width:${pct}%;background:${col}"></div></div>
         </div>`;
     };
-    let strips = strip('💧', wGoal, intake, 'cc', intake > 1500)
-               + strip('🚽', uGoal, urine, 'cc', urine > 0 && uGoal > 0 && urine > uGoal)
+    const uCount = UI.urineMode === 'count';
+    let strips = strip('💧', wGoal, intake, 'cc', UI.popup.fluidOver && intake > UI.num.fluidMax)
+               + strip('🚽', uCount ? 0 : uGoal, uCount ? records.filter(r=>r.category==='尿液').length : urine, uCount ? t('times') : 'cc', !uCount && urine > 0 && uGoal > 0 && urine > uGoal)
                + strip('💩', sGoal, stoolN, t('times'), false);
     strips += `<div class="grid grid-cols-4 gap-1 pt-0.5">` + CARE_EX_TYPES.map(ex => {
         const gEx = parseFloat(goals['goal_' + ex]) || 0;
@@ -842,13 +855,22 @@ function renderAll(){
 /* ===== 兒童版警示（跟大人版同規則，用小朋友看得懂的話）：
  * 喝太多(>1500cc)、尿太多(>今日尿液目標=喝的×0.9；利尿藥物(輔助)×1.1；利尿藥物×1.3)
  * → 動態大紅橫幅＋每天每種跳一次大彈窗 ===== */
+/* ===== 管理設定套用：床圍欄警語 顯示/自訂文字（兒童頁固定雙語，無語言 CSS 閘門） ===== */
+function applyAnakUiStatic(){
+    const br = $('anak-bedrail');
+    if (br) br.classList.toggle('hidden', !UI.show.bedRail);
+    const tz = ((UI.text.bedRail||{}).zh||'').trim(), ti = ((UI.text.bedRail||{}).id||'').trim();
+    const z = $('anak-bedrail-zh'), i = $('anak-bedrail-id');
+    if (z && tz) z.textContent = tz;
+    if (i && ti) i.textContent = ti;
+}
 function checkWarnings(){
     const intake = records.filter(r => ['飲水量','服藥飲水','營養飲品','進食'].includes(r.category)).reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
     const urine = records.filter(r => r.category === '尿液').reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
-    const uMax = careUrineGoal(intake, careMedFromRecords(records).diuretic);
+    const uMax = careUrineGoal(intake, careMedFromRecords(records).diuretic, UI);
     const warns = [];
-    if (intake > 1500) warns.push({ key:'minum', text:t('warnDrink') });
-    if (urine > 0 && uMax > 0 && urine > uMax) warns.push({ key:'pipis', text:t('warnPipis') });
+    if (UI.popup.fluidOver && intake > UI.num.fluidMax) warns.push({ key:'minum', text:t('warnDrink') });
+    if (UI.urineMode !== 'count' && UI.popup.urineOver && urine > 0 && uMax > 0 && urine > uMax) warns.push({ key:'pipis', text:t('warnPipis') });
     $('warn-box').innerHTML = warns.map(w =>
         `<div class="alert-banner border-8 bg-red-100 rounded-3xl p-3 text-2xl font-black" style="border-color: var(--danger); color: var(--danger)"><span class="bounce-big">🚨</span> ${w.text}<br><span class="text-xl">${t('callAdult')}</span></div>`).join('');
     const date = $('input-date').value || careTodayStr();
@@ -869,7 +891,7 @@ function fetchWithTimeout(url, ms){
 function loadDay(){
     const date = $('input-date').value || careTodayStr();
     const key = 'anak_cache_' + date;
-    try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c) { records = c.records; goals = c.goals; renderAll(); } } catch(e) {}
+    try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c) { records = c.records; goals = c.goals; UI = careUI(goals); applyAnakUiStatic(); renderAll(); } } catch(e) {}
     $('sync-icon').classList.add('animate-spin-slow');
     const url = `${GAS_URL}?date=${date}&t=${Date.now()}`;
     fetchWithTimeout(url, 20000)
@@ -878,6 +900,7 @@ function loadDay(){
         .then(data => {
             records = (data.records || []).filter(r => r.status !== '無效');
             goals = data.goals || {};
+            UI = careUI(goals); applyAnakUiStatic();
             try { localStorage.setItem(key, JSON.stringify({ records, goals, ts:Date.now() })); } catch(e) {}
             renderAll();
         })
@@ -888,6 +911,7 @@ function loadDay(){
 window.onload = function(){
     initClock();
     applyLang();
+    applyAnakUiStatic();   // 先用預設設定套用；loadDay 回來再以雲端值刷新
     // 手動輸入的欄位（cc/次數/血壓三格/自填食物）也要即時重算，儲存鈕才會出現
     ['input-amount','pipis-amount','ex-amount','bp-sys','bp-dia','bp-hr'].forEach(id => $(id).addEventListener('input', refresh));
     $('food-other').addEventListener('input', onFoodOther);
