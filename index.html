@@ -61,6 +61,9 @@
         #input-bp-sys, #input-bp-dia, #input-bp-hr { font-size: 1.5rem !important; font-weight: 900; padding-top: 0.75rem; padding-bottom: 0.75rem; }
         /* 區塊感：主卡框線加粗加深 */
         #log-form .rounded-3xl.border-2, #target-dashboard { border-width: 3px !important; }
+        /* 全域改1：今日目標VS已達 浮動半透明常駐，不擋視線與選取 */
+        #target-dashboard { position: sticky; top: 6px; z-index: 30; background: rgba(255,255,255,0.86) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 6px 20px rgba(0,0,0,0.10); }
+        #current-achieved-val.below-target { color: #ca8a04; }
         .border-stone-100 { border-color: #9ca3af !important; }
         .border-gray-200 { border-color: #9ca3af !important; }
 
@@ -825,6 +828,7 @@ function checkBpTime() {
             let finalTarget = parseFloat(savedTarget);
             let percent = finalTarget > 0 ? Math.round((achieved / finalTarget) * 100) : 0;
             document.getElementById('progress-percent').innerText = percent + '%';
+            document.getElementById('current-achieved-val').classList.toggle('below-target', finalTarget > 0 && achieved < finalTarget);
             document.getElementById('progress-bar').style.width = finalTarget <= 0 ? '100%' : Math.min(percent, 100) + '%';
             if (finalTarget <= 0) {
                 document.getElementById('progress-bar').style.background = '#e5e7eb';

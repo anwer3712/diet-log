@@ -118,9 +118,14 @@
             </div>
             <div id="goal-strips" class="space-y-1 text-left"></div>
             <div id="warn-box" class="space-y-2 text-center"></div>
+            <!-- 兒童改4：床欄安全警示（與成人版同規則，兒童大字🚨常駐） -->
+            <div class="border-4 rounded-3xl p-2.5 text-center mt-1" style="border-color: var(--danger); background:#fff1f2; color: var(--danger)">
+                <p class="text-xl font-black leading-snug"><span class="bounce-big">🚨</span> 床圍欄放下時，照顧者不得離開病患 1 公尺</p>
+                <p class="text-sm font-bold leading-snug">Saat pagar tempat tidur diturunkan, jangan tinggalkan pasien lebih dari 1 meter</p>
+            </div>
         </header>
 
-        <!-- 一、日期＋時間（12 小時制：☀️ 白天 00–12、🌙 夜晚 13–00） -->
+        <!-- 一、日期＋時間（12 小時制：☀️ 白天 06–18、🌙 夜晚 18–06） -->
         <section id="step1" class="step now bg-white p-4 pt-6 space-y-3">
             <div class="stepnum">1</div>
             <h2 class="text-2xl font-black text-center">📅 <span data-t="s1"></span></h2>
@@ -443,7 +448,7 @@ function toast(msg, err){
 }
 
 /* ===== 12 小時制顯示：00–12 ☀️ 白天、13–00 🌙 夜晚（內部與 sheet 仍存 24 小時制） ===== */
-function hourIcon(h){ return (h >= 1 && h <= 12) ? '☀️' : '🌙'; }
+function hourIcon(h){ return (h >= 6 && h < 18) ? '☀️' : '🌙'; }  /* 06:00–18:00 太陽／18:00–06:00 月亮 */
 function hour12(h){ return (h % 12 === 0) ? 12 : (h % 12); }
 function hourLabel(h){ return `${hourIcon(h)} ${hour12(h)}`; }
 function fmt12(hhmm){
@@ -676,8 +681,9 @@ function updateGuide(){
         steps.push(grp('#item-grid-makan .item-btn', '#item-grid-makan .item-btn.selected'));
         // food-grid：自填食物（LAINNYA）沒有按鈕可續閃，但仍算完成，靠 okFn 用 S.food 判斷
         if (S.item === 'food') steps.push(grp('.food-btn', '.food-btn.ringed', () => !!S.food));
-        steps.push(inp('input-amount'));
+        // 兒童改3：引導順序 類別 ＞ 胃口 ＞ CC 數 ＞ 儲存（胃口排在容量之前）
         if (S.item === 'food') steps.push(grp('.app-btn', '.app-btn.selected'));
+        steps.push(inp('input-amount'));
     } else if (S.type === 'keluar') {
         steps.push(grp('#item-grid-keluar .item-btn', '#item-grid-keluar .item-btn.selected'));
         if (S.item === 'pipis') {
@@ -820,8 +826,8 @@ function renderAll(){
     const list = $('rec-list');
     if (records.length === 0) { list.innerHTML = `<p class="text-xl font-black text-gray-500 text-center py-4">${t('noRec')}</p>`; }
     else {
-        list.innerHTML = CARE_SLOTS.map(s => {
-            const recs = records.filter(r => careInSlot(r.time, s)).sort((a,b) => a.time.localeCompare(b.time));
+        list.innerHTML = [...CARE_SLOTS].reverse().map(s => {   /* 今日紀錄降冪：最新時段在最上 */
+            const recs = records.filter(r => careInSlot(r.time, s)).sort((a,b) => b.time.localeCompare(a.time));
             if (recs.length === 0) return '';
             return `<div class="border-4 border-gray-700 rounded-3xl p-2 space-y-2 bg-stone-50">
                 <p class="text-2xl font-black text-gray-800 px-1">${SLOT_EMOJI[s.key] || ''} ${LANG==='zh' ? s.zh : s.id} <span class="text-base text-gray-500">${fmt12(s.start)}–${fmt12(s.end)}</span></p>
