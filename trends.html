@@ -6,7 +6,7 @@
 <title>健康趨勢分析 — 奶奶照護日誌 / Analisis Tren Kesehatan</title>
 <!-- Chart.js 4.4.1（本地 vendor，無 CDN 依賴；MIT 授權見 vendor/chart.LICENSE.md） -->
 <script src="vendor/chart.umd.min.js"></script>
-<script src="care-tasks.js?v=9"></script>
+<script src="care-tasks.js?v=10"></script>
 <style>
 /* ============ 自足式樣式（本頁不依賴 Tailwind CDN，離線快取後仍可完整顯示） ============
  * 色彩依 dataviz 檢核色盤（已通過 CVD ΔE≥12 與亮度帶驗證）：
@@ -96,6 +96,7 @@ h1{ text-align:center; font-size:20px; font-weight:900; color:#e11d48; letter-sp
 .ai.lv-serious{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
 .ai.lv-crit{ background:#fef2f2; border-color:#fecaca; color:#991b1b; }
 #synthesis-card{ border:2px solid #ddd6fe; }
+.synth-expl{ font-size:10px; font-weight:600; color:#6b7280; line-height:1.6; margin:4px 0 2px; }
 .synth-item{ font-size:11px; font-weight:700; line-height:1.65; border-radius:14px; padding:9px 12px; margin-top:8px; border:1px solid; }
 .synth-item.lv-good{ background:#f0fdf4; border-color:#bbf7d0; color:#166534; }
 .synth-item.lv-warn{ background:#fffbeb; border-color:#fde68a; color:#92400e; }
@@ -790,8 +791,8 @@ function updateJpHint(){
                           ' | terkait: ' + relV.map(v => L(v.zh, v.idn)).join(', '))
                       : L('｜與本研判關聯較低', ' | kurang terkait');
   }
-  h.innerHTML = L('已加第三變數：<b>' + names + '</b>' + rel + '。逐研判「加 c 後的額外風險」量化重算為 P3；跨圖組合現已可見下方 🔗 綜合研判卡。',
-                  'Variabel ketiga: <b>' + names + '</b>. Perhitungan interaksi per-analisis = tahap P3.');
+  h.innerHTML = L('已加第三變數：<b>' + names + '</b>' + rel + '。相關圖表下方會多出紫色「➕」小卡，固定三行：①變動（兩組平均差多少）②影響（本圖判讀因此要注意什麼）③建議（照護上怎麼做）。跨圖組合另見下方 🔗 綜合研判卡。',
+                  'Variabel ketiga: <b>' + names + '</b>' + rel + '. Kartu ungu "➕" muncul di bawah grafik terkait: ①Perubahan ②Dampak ③Saran.');
 }
 
 function renderSkeleton(){
@@ -1740,9 +1741,26 @@ function tvRiskNote(k, A, B){
   }
   return null;
 }
+/* 每個第三變數的固定「③建議」（照護行動層，非醫療處方；劑量類一律導向醫師） */
+const TV_ADVICE = {
+  diur:  ['利尿藥有無/劑量由醫師決定；照顧者只要每天照實勾選。若「有藥的日子」指標仍異常（滯留高/尿量沒增加），把這張圖帶去回診。', 'Dosis diuretik urusan dokter; catat jujur tiap hari. Bila hari berobat tetap abnormal, bawa grafik ini saat kontrol.'],
+  lax:   ['利便藥顆數照醫囑；若有藥仍連日 0 排便，先檢查攝入與進食量，回診討論，不自行加藥。', 'Butir pencahar sesuai resep; bila tetap tak BAB, cek asupan dulu & diskusikan dengan dokter.'],
+  slot:  ['血壓固定「晨起後、睡前」量，其他時段的數字不要拿來互相比較。', 'Ukur tensi pada waktu tetap (pagi bangun & sebelum tidur); angka di luar itu jangan dibandingkan.'],
+  stool: ['持續乾硬→先看攝入是否貼近下限；持續稀水→回報醫師，並注意脫水。', 'Feses keras terus → cek asupan; encer terus → lapor dokter, waspada dehidrasi.'],
+  foodw: ['湯湯水水占比高的日子，記得把食物含水全算進攝入，帳面才不會少算。', 'Hari makanan berair tinggi: hitung airnya ke total asupan.'],
+  medw:  ['服藥飲水是固定開銷；攝入接近上限時先調整其他飲水，不要壓縮服藥水量。', 'Air minum obat itu tetap; bila asupan mepet batas, kurangi minum lain, bukan air obat.'],
+  exvol: ['運動量大的隔天看晚間心跳有沒有降回來；降不回來就把當日復健量調輕並記錄。', 'Setelah hari beban besar, cek detak malam; bila tak turun, ringankan latihan esoknya.'],
+  eat:   ['進食少的日子通常水分也少；先補進食，再觀察排便/尿量有沒有跟著回來。', 'Hari makan sedikit biasanya cairan ikut kurang; tambah makan dulu, lalu pantau BAB/urine.']
+};
 function thirdVarRisk(cardId, tvId, DAYS){
   const tvName = THIRD_VARS.find(v => v.id === tvId) || { zh: tvId, idn: tvId };
-  if (tvId === 'slot') return { zh: `➕ 加入「${tvName.zh}」：請對照圖上早／晚兩條線的差異`, id: `➕ +"${tvName.idn}": bandingkan garis pagi vs malam`, flag: false };
+  const adv = TV_ADVICE[tvId] || ['', ''];
+  const three = (chg, imp) => ({ flag: imp.flag || false,
+    zh: `➕ <b>${tvName.zh} × 本圖</b><br>①變動：${chg[0]}<br>②影響：${imp.zh}${imp.flag ? ' [需獨立驗證]' : ''}<br>③建議：${adv[0]}`,
+    id: `➕ <b>${tvName.idn}</b><br>①Perubahan: ${chg[1]}<br>②Dampak: ${imp.id}<br>③Saran: ${adv[1]}` });
+  if (tvId === 'slot') return three(
+    ['圖上早／晚兩條線的高低差＝時段效應', 'selisih garis pagi vs malam = efek waktu'],
+    { zh: '同一天早晚可能一高一低，混在一起平均會蓋掉問題——本圖要早晚分開看', id: 'pagi & malam bisa berlawanan; lihat terpisah', flag: false });
   const rows = DAYS.filter(d => d.has && chartMetric(cardId, d) != null).map(d => ({ c: tvClassify(tvId, d), m: chartMetric(cardId, d) }));
   if (rows.length < 2) return null;
   const ml = METRIC_LABEL[cardId] || ['指標', '', 'indikator'];
@@ -1755,13 +1773,21 @@ function thirdVarRisk(cardId, tvId, DAYS){
     hi = rows.filter(x => x.c.val > med); lo = rows.filter(x => x.c.val <= med);
     hiLbl = L(`${tvName.zh}較高的日子`, `${tvName.idn} tinggi`); loLbl = L('較低的日子', 'rendah');
   } else return null;
-  if (!hi.length || !lo.length) return { zh: `➕ 「${tvName.zh}」：此區間資料不足以對照`, id: `➕ "${tvName.idn}": data belum cukup`, flag: false };
+  if (!hi.length || !lo.length) return three(
+    [`此區間每天的「${tvName.zh}」狀態都一樣，分不出兩組可對照`, `data "${tvName.idn}" seragam, belum bisa dibandingkan`],
+    { zh: '看不出此變數對本圖的影響；等紀錄累積出「有/無」都出現的日子再看', id: 'belum terlihat dampaknya; tunggu data bervariasi', flag: false });
   const mean = a => Math.round(a.reduce((s, x) => s + x.m, 0) / a.length * 10) / 10;
   const A = mean(hi), B = mean(lo);
-  const cmp = L(`${hiLbl}${ml[0]}平均 ${A}${ml[1]}，${loLbl} ${B}${ml[1]}`, `${hiLbl}: ${ml[2]} ~${A}${ml[1]}, ${loLbl}: ~${B}${ml[1]}`);
+  const diff = Math.round((A - B) * 10) / 10;
+  const chg = [`${hiLbl}「${ml[0]}」平均 ${A}${ml[1]}，${loLbl} ${B}${ml[1]}（差 ${diff > 0 ? '+' : ''}${diff}${ml[1]}）`,
+               `${hiLbl}: ${ml[2]} ~${A}${ml[1]}, ${loLbl}: ~${B}${ml[1]} (Δ ${diff})`];
   const note = tvRiskNote(cardId + '|' + tvId, A, B);
-  return { zh: `➕ 加入「${tvName.zh}」：${cmp}${note ? '。' + note.zh : ''}${note && note.flag ? ' [需獨立驗證]' : ''}`,
-           id: `➕ +"${tvName.idn}": ${cmp}${note ? '. ' + note.id : ''}`, flag: note ? note.flag : false };
+  const small = Math.abs(diff) <= Math.max(Math.abs(A), Math.abs(B), 1) * 0.05;
+  const imp = note ? { zh: note.zh, id: note.id, flag: note.flag }
+    : small ? { zh: '兩組差異不大，此變數對本圖影響有限', id: 'selisih kecil; dampak variabel ini terbatas', flag: false }
+    : { zh: `「${ml[0]}」被此變數整體${diff > 0 ? '推高' : '壓低'}約 ${Math.abs(diff)}${ml[1]}——圖上${diff > 0 ? '偏高' : '偏低'}的日子先想到「${tvName.zh}」，再判斷是不是病情變化`,
+        id: `${ml[2]} ${diff > 0 ? 'naik' : 'turun'} ~${Math.abs(diff)}${ml[1]} oleh variabel ini; pertimbangkan dulu sebelum menilai kondisi`, flag: false };
+  return three(chg, imp);
 }
 const LEVEL_TAG = { good: '🟢', warn: '🟡', serious: '🟠', crit: '🔴' };
 function applyInterpretations(){
@@ -1803,12 +1829,16 @@ function applyInterpretations(){
   document.getElementById('synth-title').textContent =
     L('隱藏變數綜合研判（跨圖交叉）', 'Analisis Variabel Tersembunyi (lintas grafik)');
   const body = document.getElementById('synth-body');
+  // 說明列：這張卡＝固定跨圖規則逐條比對，不是 15 圖總結
+  const expl = `<p class="synth-expl">${L(
+    'ℹ️ 這裡不是 15 張圖的總結：系統內建數條固定「跨圖交叉規則」，每條同時檢查 2–3 張圖的條件（文內標了是哪幾張圖），該區間內全部成立才會亮出來，依嚴重度排序。沒亮＝那個危險組合目前沒出現。',
+    'ℹ️ Bukan ringkasan 15 grafik: aturan silang tetap, tiap aturan memeriksa kondisi 2–3 grafik sekaligus; hanya muncul bila semua terpenuhi, diurut berdasarkan tingkat keparahan.')}</p>`;
   if (!A.hidden.length) {
-    body.innerHTML = `<div class="synth-item lv-good"><span class="tag">🟢</span>${
+    body.innerHTML = expl + `<div class="synth-item lv-good"><span class="tag">🟢</span>${
       L('目前跨圖未出現需要留意的變數組合。', 'Belum ada kombinasi variabel yang perlu diperhatikan.')}</div>`;
   } else {
-    body.innerHTML = A.hidden.map(v =>
-      `<div class="synth-item lv-${v.level}"><span class="tag">${LEVEL_TAG[v.level]}</span>${LANG === 'id' ? v.id : v.zh}</div>`
+    body.innerHTML = expl + A.hidden.map(v =>
+      `<div class="synth-item lv-${v.level}"><span class="tag">${LEVEL_TAG[v.level]}</span>${(LANG === 'id' ? v.id : v.zh).replace('👉', '<br>👉')}</div>`
     ).join('');
   }
 }
