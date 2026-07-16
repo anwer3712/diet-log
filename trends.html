@@ -68,6 +68,15 @@ h1{ text-align:center; font-size:20px; font-weight:900; color:#e11d48; letter-sp
 }
 .chart-title{ font-size:14px; font-weight:900; color:#374151; display:flex; align-items:center; gap:6px; }
 .purpose{ font-size:10.5px; color:var(--ink2); font-weight:600; line-height:1.6; margin:4px 0 8px; }
+.interplay{ font-size:11px; font-weight:700; color:#5b21b6; background:#f5f3ff; border:1px solid #ddd6fe; border-radius:12px; padding:8px 11px; line-height:1.65; margin:6px 0 6px; }
+.fivepiece{ margin:2px 0 4px; }
+.fivepiece .fp{ font-size:10.5px; font-weight:700; line-height:1.6; border-radius:11px; padding:6px 10px; margin-top:5px; border:1px solid; }
+.fivepiece .fp-eg{ background:#eff6ff; border-color:#bfdbfe; color:#1e40af; }
+.fivepiece .fp-watch{ background:#fffbeb; border-color:#fde68a; color:#92400e; }
+.fivepiece .fp-tell{ background:#f0fdf4; border-color:#bbf7d0; color:#166534; }
+.fivepiece .fp-x{ background:#faf5ff; border-color:#e9d5ff; color:#6b21a8; }
+.fivepiece .fp-xflag{ background:#fff1f2; border-color:#fecdd3; color:#9f1239; }
+.fivepiece .fp b{ color:inherit; }
 .chart-box{ position:relative; }
 .h280{ height:280px; } .h260{ height:260px; } .h240{ height:240px; } .h210{ height:210px; } .h170{ height:170px; }
 .panel-gap{ margin-top:2px; }
@@ -93,6 +102,13 @@ h1{ text-align:center; font-size:20px; font-weight:900; color:#e11d48; letter-sp
 .synth-item.lv-serious{ background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
 .synth-item.lv-crit{ background:#fef2f2; border-color:#fecaca; color:#991b1b; }
 .synth-item b{ color:inherit; }
+#jp-builder{ border:2px solid #ddd6fe; }
+#jp-builder .jp-chip{ display:inline-block; font-size:11px; font-weight:800; border-radius:999px; padding:5px 11px; margin:3px; border:1.5px solid #e5e7eb; background:#fff; color:#4b5563; cursor:pointer; }
+#jp-builder .jp-chip:hover{ border-color:#c4b5fd; }
+#jp-builder .jp-chip.on{ background:#ede9fe; border-color:#a855f7; color:#6d28d9; }
+#jp-builder .jp-chip.rel:not(.on){ border-color:#14b8a6; color:#0f766e; background:#f0fdfa; box-shadow:0 0 0 1.5px #99f6e4; }
+#jp-builder .jp-sub{ font-size:10.5px; font-weight:800; color:#6b7280; margin:10px 0 2px; }
+#jp-builder .jp-hint{ font-size:10px; font-weight:600; color:#6b7280; margin-top:8px; line-height:1.55; }
 .tblbtn{
   margin-top:8px; font-size:10px; font-weight:900; color:#6d28d9; background:#f5f3ff;
   border:1px solid #ddd6fe; border-radius:12px; padding:5px 10px; cursor:pointer;
@@ -147,6 +163,14 @@ h1{ text-align:center; font-size:20px; font-weight:900; color:#e11d48; letter-sp
 
   <div class="disclaimer" id="disclaimer"></div>
 
+  <section class="card" id="jp-builder">
+    <h2 class="chart-title">🔬 <span id="jp-title"></span></h2>
+    <div id="jp-analyses"></div>
+    <div class="jp-sub" id="jp-tv-label"></div>
+    <div id="jp-thirdvars"></div>
+    <div class="jp-hint" id="jp-hint"></div>
+  </section>
+
   <section class="card" id="synthesis-card">
     <h2 class="chart-title">🔗 <span id="synth-title"></span></h2>
     <div id="synth-body"></div>
@@ -185,7 +209,7 @@ const EX_SHORT = {
 };
 const DISTAL_EX = ['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸'];       // 末梢神經肌肉控制項目
 const LOAD_W = { '站立': 3, '橋式抬臀': 2.5, '大腿內收': 2, '仰臥抬腿': 1.5 };   // 大肌群負荷加權 [需獨立驗證]
-const INTAKE_MIN = 1000, INTAKE_MAX = 1200;                       // 限水安全區間（cc）
+const INTAKE_MIN = 1100, INTAKE_MAX = 1500;                       // 限水安全區間（cc）
 const BP_SYS_WARN = 130, BP_DIA_WARN = 80, PP_WARN = 60;          // 血壓/脈壓差警戒
 const RPP_SAFE = 10000, RPP_DANGER = 12000;                       // RPP 分級 [需獨立驗證]
 
@@ -290,13 +314,15 @@ function summarizeDay(dateStr, records){
   d.has = true;
 
   let intake = 0, urine = 0, stool = 0;
+  const cat = { water: 0, med: 0, nutri: 0, food: 0 };
   EX7.forEach(e => d.ex[e] = 0);
   const bp = { am: [], pm: [] };
 
   records.forEach(r => {
     const amt = parseFloat(r.amount) || 0;
     const note = r.note || '';
-    if (INTAKE_CATS.includes(r.category)) intake += amt;
+    if (INTAKE_CATS.includes(r.category)) { intake += amt;
+      if (r.category === '飲水量') cat.water += amt; else if (r.category === '服藥飲水') cat.med += amt; else if (r.category === '營養飲品') cat.nutri += amt; else if (r.category === '進食') cat.food += amt; }
     else if (r.category === '尿液') {
       urine += amt;
       if (/利尿藥物\s*[（(]輔助[）)]/.test(note)) d.diureticAux = true;
@@ -348,6 +374,7 @@ function summarizeDay(dateStr, records){
   d.overallPct = pcts.length ? Math.round(avg(pcts)) : null;
   d.distalPct = distal.length ? Math.round(avg(distal)) : null;
   d.load = Object.keys(LOAD_W).reduce((s, e) => s + LOAD_W[e] * (d.ex[e] || 0), 0);
+  d.cat = { water: Math.round(cat.water), med: Math.round(cat.med), nutri: Math.round(cat.nutri), food: Math.round(cat.food) };
   return d;
 }
 
@@ -585,51 +612,145 @@ function showEmpty(boxId, canvasId){
 /* ===================== 卡片骨架 ===================== */
 const CARDS = [
   { id: 'c1', icon: '💧', h: 'h280',
+    watch: ['每天把「喝的」和「尿的」都記齊；兩邊差太多（一直滯留或一直排太多）就是警訊。天熱、流汗多的日子可略放寬下限。', 'Catat "minum" & "urine" tiap hari; selisih terlalu besar = tanda bahaya. Hari panas/berkeringat boleh longgarkan batas bawah.'],
+    tell: ['帶這幾天的攝入／尿量／血壓，問醫師利尿藥要不要調、限水範圍（1100–1500cc）是否合適。', 'Bawa data asupan/urine/tensi; tanyakan penyesuaian diuretik & apakah batas 1100–1500cc sesuai.'],
     title: ['① 水分平衡與心腎負荷（I/O）', '① Keseimbangan Cairan & Beban Jantung-Ginjal (I/O)'],
+    interplay: ['喝進去的多、排出來的少，水就滯留在體內→血壓、水腫、心腎負擔一起被推高；反過來排太多又可能脫水。看「攝入」和「尿量」兩條線的差距，比只看一條更早抓到失衡。', 'Asupan banyak tapi urine sedikit → cairan menumpuk → tensi, edema, dan beban jantung-ginjal naik; sebaliknya bisa dehidrasi. Melihat selisih dua garis lebih dini mendeteksi ketidakseimbangan.'],
     purpose: ['每日總攝入（飲水＋服藥＋營養＋進食）對比尿量，監測進出淨平衡；水分滯留會直接推升血壓、水腫與急性心腎負荷。',
               'Total asupan harian (minum+obat+susu+makan) vs urine, memantau keseimbangan cairan; retensi cairan menaikkan tensi, edema, dan beban jantung-ginjal.'],
     src: '來源：《病患水分攝取警戒範圍》、《慢性病患照護與復健建議》、《照護紀錄升級：目標與圖表》' },
   { id: 'c2', icon: '🩺', h: 'h280',
+    watch: ['早晚固定時間量血壓，特別看「晚上有沒有降下來」；量之前先坐著休息幾分鐘。', 'Ukur tensi pagi & malam pada jam tetap; perhatikan apakah tensi malam turun. Duduk tenang dulu sebelum ukur.'],
+    tell: ['把早晚血壓曲線給醫師看，問降壓藥能不能撐滿 24 小時、夜間高壓要不要調用藥時間。', 'Tunjukkan kurva tensi pagi-malam; tanyakan apakah obat bertahan 24 jam & perlu ubah jadwal.'],
     title: ['② 血壓晨昏日夜節律', '② Ritme Tensi Pagi–Malam'],
+    interplay: ['把早上和晚上的血壓四條線合起來看，能看出降壓藥「撐不撐得過一整天」。晚上血壓該降卻不降（夜間高壓），對心臟和血管特別傷，比白天偶爾高更值得注意。', 'Empat garis tensi pagi & malam menunjukkan apakah obat bertahan 24 jam. Tensi malam yang seharusnya turun tapi tetap tinggi sangat berisiko bagi jantung & pembuluh.'],
     purpose: ['收縮壓／舒張壓的早晚四條曲線，檢視降壓藥 24 小時控制穩定度，警戒線 130/80 mmHg；防範晨間高血壓與姿勢性低血壓。',
               'Empat kurva tensi atas/bawah pagi & malam untuk menilai kontrol obat 24 jam; batas waspada 130/80 mmHg.'],
     src: '來源：《預測心律不整病患血壓監測》、《量血壓的正確時機》、《照護紀錄升級：目標與圖表》' },
   { id: 'c3', icon: '❤️', h: 'h240',
+    watch: ['心律不整時單次數字會跳，重點看有沒有突然很快（>100）或很慢（<55）；出現時記下當下在做什麼。', 'Saat aritmia satu angka bisa melonjak; perhatikan terlalu cepat (>100) atau lambat (<55). Catat aktivitas saat itu.'],
+    tell: ['回報異常尖峰或過慢的日子與情境，問醫師心律藥劑量是否合適。', 'Laporkan hari lonjakan/terlalu lambat & konteksnya; tanyakan dosis obat aritmia.'],
     title: ['③ 心跳與心律穩定度', '③ Stabilitas Detak Jantung'],
+    interplay: ['奶奶有永久性心律不整，單獨一次心跳數意義不大，要看「整段時間的上下擺盪幅度」。突然的尖峰（太快）或掉太低（太慢），才是要抓出來、回報醫師的訊號。', 'Karena aritmia permanen, satu angka detak kurang berarti; lihat rentang naik-turunnya. Lonjakan mendadak (terlalu cepat) atau terlalu lambat adalah sinyal untuk dilaporkan.'],
     purpose: ['心跳獨立成圖（不與血壓共用座標軸），追蹤永久性心律不整＋心臟擴大下的靜息心跳波動與異常尖峰。',
               'Detak jantung dipisah dari tensi; memantau fluktuasi & lonjakan abnormal pada aritmia permanen + kardiomegali.'],
     src: '來源：《預測心律不整病患血壓監測》、《照護紀錄升級：目標與圖表》' },
   { id: 'c4', icon: '💪', h: 'h240', radar: true,
+    watch: ['達標率低先分辨是「還沒力氣」還是「當天沒被帶著做」；別把沒做當成奶奶力竭，也別硬逼。', 'Capaian rendah: bedakan "belum kuat" vs "belum dikerjakan". Jangan anggap Nenek kelelahan, jangan paksa.'],
+    tell: ['把復健達標趨勢給復健科看，問目標次數要不要依恢復狀況調整。', 'Tunjukkan tren capaian rehab; tanyakan apakah target perlu disesuaikan dengan pemulihan.'],
     title: ['④ 髖關節術後復健肌力達標率', '④ Capaian Rehabilitasi Pasca Operasi Panggul'],
+    interplay: ['七項復健的達標率合起來看肌力平衡，某一群偏低代表那裡卡關——可能是還沒力氣，也可能是當天沒被帶著做。連日過高又要小心操過頭。達標率低不等於奶奶力竭，先分辨是「沒力」還是「沒做」。', 'Capaian tujuh latihan menunjukkan keseimbangan otot; satu kelompok rendah = terhambat (bisa belum kuat, bisa belum dikerjakan). Rendah bukan berarti Nenek kelelahan — bedakan dulu.'],
     purpose: ['七項復健運動「今日÷目標」換算每日總達標率（%），追蹤下肢與核心肌力進展；雷達圖呈現單日各肌群平衡 [需獨立驗證]。',
               'Tujuh latihan rehabilitasi dihitung sebagai % capaian harian; radar menunjukkan keseimbangan otot per hari [perlu verifikasi mandiri].'],
     src: '來源：《慢性病患照護與復健建議》、《照護紀錄升級：目標與圖表》' },
   { id: 'c5', icon: '💩', h: 'h240',
+    watch: ['排便次數配上乾硬／稀水狀態一起看；便秘先想是不是水分或吃太少造成，不要急著加藥。', 'Lihat frekuensi BAB + status keras/encer; sembelit? pikir dulu kurang cairan/makan, jangan buru-buru tambah obat.'],
+    tell: ['回診說明排便頻率、糞便狀態、以及利尿／利便藥的使用，問配比怎麼調。', 'Jelaskan frekuensi BAB, status feses, & pemakaian diuretik/pencahar; tanyakan rasionya.'],
     title: ['⑤ 腸道代謝與藥物副作用', '⑤ Usus & Efek Samping Obat'],
+    interplay: ['排便次數配上糞便是乾硬還是稀水，再對照當天有沒有利尿／利便藥，就能分辨「便秘或腹瀉是藥物造成，還是水分不夠造成」，避免對錯的原因亂加藥。', 'Frekuensi BAB + status feses (keras/encer) + ada tidaknya obat diuretik/pencahar hari itu membantu membedakan sembelit/diare akibat obat atau kurang cairan.'],
     purpose: ['每日排便次數對比目標，特殊糞便狀態（乾硬▲／稀水便▼／浣腸✚）直接標記於數據點上，協助調整利尿劑與軟便劑配比。',
               'BAB harian vs target; status feses (keras▲ / encer▼ / supositoria✚) ditandai untuk membantu menyesuaikan dosis obat.'],
     src: '來源：《慢性病患照護與復健建議》、《病患水分攝取警戒範圍》' },
   { id: 'c6', icon: '🫀', h: null, panels: [['c6a', 'h170'], ['c6b', 'h210']],
+    watch: ['脈壓差變大常跟水分滯留一起出現，是血管壓力的早期訊號；連著幾天偏高就要留意。', 'Tekanan nadi melebar sering bersama retensi cairan — sinyal dini tekanan pembuluh. Waspadai bila beberapa hari tinggi.'],
+    tell: ['把脈壓差和淨滯留趨勢給心臟／腎臟科看，問是否反映容積負荷、利尿藥是否足夠。', 'Tunjukkan tren tekanan nadi & retensi; tanyakan apakah cermin beban volume & diuretik cukup.'],
     title: ['⑥ 脈壓差與血管容積負荷', '⑥ Tekanan Nadi vs Beban Volume'],
+    interplay: ['體液滯留會把血管撐大→脈壓差（收縮壓減舒張壓）跟著變寬。這個訊號比只看血壓數字，更早反映「血管壁正在承受的壓力」，是水分超載的早期警報。', 'Retensi cairan melebarkan pembuluh → tekanan nadi (sistolik−diastolik) melebar. Sinyal ini lebih dini daripada angka tensi biasa untuk menunjukkan tekanan pada dinding pembuluh.'],
     purpose: ['上：液體滯留淨值（攝入−尿量）；下：脈壓差（收縮壓−舒張壓，警戒 >60 mmHg）。同一時間軸上下對照，較單看血壓更早預警水分超載對血管壁的應力 [需獨立驗證]。',
               'Atas: retensi cairan bersih (asupan−urine); bawah: tekanan nadi (waspada >60 mmHg). Sumbu waktu sejajar untuk deteksi dini kelebihan cairan [perlu verifikasi mandiri].'],
     src: '進階衍生指標：由每日總攝入水量、尿量與血壓欄位交叉計算' },
   { id: 'c7', icon: '🔥', h: 'h260',
+    watch: ['就算血壓、心跳分開都正常，兩者相乘偏高代表心臟較累；高耗氧的日子讓奶奶多休息。', 'Meski tensi & detak terpisah normal, hasil kalinya tinggi = jantung lelah. Hari beban tinggi, istirahatkan lebih.'],
+    tell: ['回報 RPP 偏高的天數，問心臟科心律藥和血壓藥怎麼搭配較省心臟。', 'Laporkan hari RPP tinggi; tanyakan kombinasi obat aritmia & tensi yang meringankan jantung.'],
     title: ['⑦ 心率血壓乘積（RPP）心肌耗氧負荷', '⑦ Rate-Pressure Product (RPP)'],
+    interplay: ['血壓和心跳相乘＝心臟每分鐘的耗氧量。就算血壓、心跳「單看」都還在範圍內，乘起來過高就代表心臟在「做白工」、耗氧過度——這是單看任一項都看不出來的隱藏負擔。', 'Tensi × detak = konsumsi oksigen jantung per menit. Meski masing-masing normal, hasil kali yang tinggi berarti jantung bekerja sia-sia / boros oksigen — beban tersembunyi.'],
     purpose: ['RPP＝收縮壓×心跳，為心肌耗氧量之無創指標。綠 <10,000 安全／黃 10,000–12,000 警戒／紅 >12,000 危險 [需獨立驗證]。',
               'RPP = tensi atas × detak jantung, indikator beban oksigen jantung. Hijau <10.000 aman / kuning 10.000–12.000 waspada / merah >12.000 bahaya [perlu verifikasi mandiri].'],
     src: '進階衍生指標：由收縮壓與心跳欄位交叉計算' },
   { id: 'c8', icon: '🌙', h: 'h280',
+    watch: ['運動量大的日子若晚上心跳降不回來，隔天把復健量調輕；傍晚後避免太劇烈活動。', 'Bila detak malam tak turun setelah hari beban tinggi, kurangi latihan besok; hindari aktivitas berat sore/malam.'],
+    tell: ['把運動量和夜間心跳恢復的關係給醫師看，問合適的運動強度上限。', 'Tunjukkan hubungan beban latihan & pemulihan detak malam; tanyakan batas intensitas yang aman.'],
     title: ['⑧ 復健運動負荷 vs 晚間心跳恢復', '⑧ Beban Latihan vs Pemulihan Malam'],
+    interplay: ['把白天做的運動量，對上晚上心跳有沒有降回早上的水準，能看出「這個運動強度是不是讓神經整晚亢奮、身體沒恢復好」。晚上心跳降不回來，隔天就該把復健量調輕一點。', 'Beban latihan siang vs apakah detak malam kembali ke level pagi menunjukkan apakah intensitas membuat saraf tegang semalaman & pemulihan buruk. Jika tak turun, kurangi besok.'],
     purpose: ['X＝當日大肌群運動負荷積分（站立×3、橋式×2.5、內收×2、抬腿×1.5）；Y＝晚間心跳−早晨心跳。點落在 0 線上方＝晚間心跳未降回，提示運動過度或交感神經亢奮 [需獨立驗證]。',
               'X = skor beban latihan otot besar; Y = detak malam − pagi. Titik di atas garis 0 = detak malam belum turun, tanda latihan berlebih [perlu verifikasi mandiri].'],
     src: '進階衍生指標：由復健運動與心跳欄位交叉計算' },
   { id: 'c9', icon: '🧠', h: null, panels: [['c9a', 'h170'], ['c9b', 'h210']],
+    watch: ['嚴格限水下若手腳突然沒力、拿不穩，可能是脫水或電解質問題的早期訊號，要特別警覺。', 'Saat pembatasan air, bila tangan/kaki tiba-tiba lemah/tak stabil = mungkin sinyal awal dehidrasi/elektrolit. Waspada.'],
+    tell: ['回診請醫師驗電解質（鈉／鉀），問限水下限在末梢變弱時能不能放寬。', 'Minta dokter cek elektrolit (Na/K); tanyakan apakah batas bawah air bisa dilonggarkan saat otot melemah.'],
     title: ['⑨ 體液平衡 vs 末梢神經肌肉效能', '⑨ Hidrasi vs Kinerja Otot Distal'],
-    purpose: ['上：每日總攝入水量（限水 1000–1200 cc 區間）；下：末梢小肌群達標率（舉水瓶／抬腳壓／膝彎伸）。末梢肌力微幅下滑常是隱性脫水或電解質失衡的最早訊號 [需獨立驗證]。',
-              'Atas: total asupan air (batas 1000–1200 cc); bawah: % capaian otot distal. Penurunan halus = sinyal awal dehidrasi/gangguan elektrolit [perlu verifikasi mandiri].'],
+    interplay: ['在嚴格限水下，手和腳掌這些末梢小肌肉的力氣悄悄變小，常常是「隱性脫水或電解質失衡」最早的身體訊號——比明顯不舒服更早出現。攝入貼近下限的日子若末梢同步變弱，要特別警覺。', 'Saat pembatasan air ketat, melemahnya otot kecil tangan/kaki sering jadi sinyal paling awal dehidrasi tersembunyi / gangguan elektrolit — sebelum gejala jelas.'],
+    purpose: ['上：每日總攝入水量（限水 1100–1500 cc 區間）；下：末梢小肌群達標率（舉水瓶／抬腳壓／膝彎伸）。末梢肌力微幅下滑常是隱性脫水或電解質失衡的最早訊號 [需獨立驗證]。',
+              'Atas: total asupan air (batas 1100–1500 cc); bawah: % capaian otot distal. Penurunan halus = sinyal awal dehidrasi/gangguan elektrolit [perlu verifikasi mandiri].'],
     src: '進階衍生指標：由攝入水量與末梢復健項目交叉計算' }
 ];
+
+/* ===================== 研判建構器（P1：層1 選單＋層2 第三變數 UI；逐研判量化交互＝P3） ===================== */
+const THIRD_VARS = [
+  { id:'diur',  zh:'利尿藥物',     idn:'Diuretik',        applies:['c1','c2','c5','c6','c7'] },
+  { id:'lax',   zh:'利便藥物',     idn:'Pencahar',        applies:['c5'] },
+  { id:'slot',  zh:'晨/昏時段',    idn:'Pagi/Malam',      applies:['c2','c3','c7','c8'] },
+  { id:'stool', zh:'糞便狀態',     idn:'Status feses',    applies:['c5'] },
+  { id:'foodw', zh:'進食含水占比', idn:'Rasio air makan', applies:['c1','c9'] },
+  { id:'medw',  zh:'服藥飲水占比', idn:'Rasio air obat',  applies:['c1'] },
+  { id:'exvol', zh:'復健運動量',   idn:'Beban latihan',   applies:['c2','c4','c7','c8'] },
+  { id:'eat',   zh:'進食量',       idn:'Jumlah makan',    applies:['c1','c5','c9'] }
+];
+let jpFocus = null;            // 目前聚焦研判 card id；null＝全部
+const jpTV = new Set();        // 已選第三變數 id
+
+function jpChip(label, on){
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'jp-chip' + (on ? ' on' : ''); b.textContent = label;
+  return b;
+}
+function renderBuilder(){
+  const t = document.getElementById('jp-title');
+  if (!t) return;
+  t.textContent = L('研判建構器 — 選一項看聚焦圖＋五件套', 'Pembuat Analisis — pilih satu');
+  const host = document.getElementById('jp-analyses');
+  host.innerHTML = '';
+  const all = jpChip(L('▦ 全部', '▦ Semua'), jpFocus === null);
+  all.addEventListener('click', () => { jpFocus = null; renderBuilder(); applyFocus(); });
+  host.appendChild(all);
+  CARDS.forEach(c => {
+    const label = c.icon + ' ' + L(c.title[0], c.title[1]).replace(/[（(].*$/, '').trim();
+    const chip = jpChip(label, jpFocus === c.id);
+    chip.addEventListener('click', () => { jpFocus = (jpFocus === c.id ? null : c.id); renderBuilder(); applyFocus(); });
+    host.appendChild(chip);
+  });
+  document.getElementById('jp-tv-label').textContent = L('疊加第三變數（可複選）：', 'Tambah variabel ketiga (multi):') + (jpFocus ? L('　🟢＝與所選研判可交叉', '  🟢 = terkait analisis terpilih') : '');
+  const tv = document.getElementById('jp-thirdvars');
+  tv.innerHTML = '';
+  THIRD_VARS.forEach(v => {
+    const chip = jpChip(L(v.zh, v.idn), jpTV.has(v.id));
+    if (jpFocus && v.applies.includes(jpFocus)) chip.classList.add('rel');
+    chip.addEventListener('click', () => { jpTV.has(v.id) ? jpTV.delete(v.id) : jpTV.add(v.id); renderBuilder(); applyInterpretations(); });
+    tv.appendChild(chip);
+  });
+  updateJpHint();
+}
+function applyFocus(){
+  document.querySelectorAll('#charts .card').forEach(sec => {
+    sec.style.display = (jpFocus === null || sec.dataset.cardid === jpFocus) ? '' : 'none';
+  });
+}
+function updateJpHint(){
+  const h = document.getElementById('jp-hint');
+  if (!h) return;
+  const sel = THIRD_VARS.filter(v => jpTV.has(v.id));
+  if (!sel.length){ h.textContent = L('（未加第三變數：只看基礎研判的兩指標）', '(Tanpa variabel ketiga)'); return; }
+  const names = sel.map(v => L(v.zh, v.idn)).join('、');
+  let rel = '';
+  if (jpFocus){
+    const relV = sel.filter(v => v.applies.includes(jpFocus));
+    rel = relV.length ? L('｜與本研判相關：' + relV.map(v => L(v.zh, v.idn)).join('、'),
+                          ' | terkait: ' + relV.map(v => L(v.zh, v.idn)).join(', '))
+                      : L('｜與本研判關聯較低', ' | kurang terkait');
+  }
+  h.innerHTML = L('已加第三變數：<b>' + names + '</b>' + rel + '。逐研判「加 c 後的額外風險」量化重算為 P3；跨圖組合現已可見下方 🔗 綜合研判卡。',
+                  'Variabel ketiga: <b>' + names + '</b>. Perhitungan interaksi per-analisis = tahap P3.');
+}
 
 function renderSkeleton(){
   const host = document.getElementById('charts');
@@ -637,6 +758,7 @@ function renderSkeleton(){
   CARDS.forEach(c => {
     const sec = document.createElement('section');
     sec.className = 'card';
+    sec.dataset.cardid = c.id;
     let boxes = '';
     if (c.panels) {
       boxes = c.panels.map(([pid, ph], i) =>
@@ -647,10 +769,12 @@ function renderSkeleton(){
     }
     sec.innerHTML = `
       <h2 class="chart-title">${c.icon} <span>${L(c.title[0], c.title[1])}</span></h2>
+      ${c.interplay ? `<p class="interplay">${L('🔗 兩項一起看：', '🔗 Dua indikator bersama: ')}${L(c.interplay[0], c.interplay[1])}</p>` : ''}
       <p class="purpose">${L(c.purpose[0], c.purpose[1])}</p>
       ${boxes}
       <div class="goalline" id="${c.id}-goal"></div>
       <div class="ai" id="${c.id}-ai"></div>
+      <div class="fivepiece" id="${c.id}-5p"></div>
       <div class="note" id="${c.id}-note"></div>
       <button type="button" class="tblbtn no-print" data-card="${c.id}">📋 ${L('表格檢視', 'Tampilan tabel')}</button>
       <div class="tbl" id="${c.id}-tbl"></div>
@@ -726,16 +850,16 @@ function buildC1(){
           }
         }},
         hlines: { lines: [
-          { y: INTAKE_MAX, color: C.crit, label: L('攝入上限 1,200', 'Batas asupan 1.200') },
-          { y: INTAKE_MIN, color: C.axis, label: L('攝入下限 1,000', 'Batas bawah 1.000') }
+          { y: INTAKE_MAX, color: C.crit, label: L('攝入上限 1,500', 'Batas asupan 1.500') },
+          { y: INTAKE_MIN, color: C.axis, label: L('攝入下限 1,100', 'Batas bawah 1.100') }
         ]},
         vband: { lo: urLo, hi: urHi, color: wash(C.s2, 0.10), edge: wash(C.s2, 0.55) }
       }
     }
   });
   document.getElementById('c1-note').innerHTML =
-    L('綠色虛線＝當日目標尿量（已達攝入×0.9；利尿藥物（輔助）×1.1；利尿藥物×1.3）。<b>攝入柱超過紅線 1,200 cc、或尿量長期低於綠線</b>，請提高警覺並回報醫師。',
-      'Garis hijau putus-putus = target urine harian (asupan tercapai ×0,9; diuretik (bantu) ×1,1; diuretik ×1,3). <b>Asupan di atas garis merah 1.200 cc atau urine terus di bawah garis hijau</b> → waspada & lapor dokter.');
+    L('綠色虛線＝當日目標尿量（已達攝入×0.9；利尿藥物（輔助）×1.1；利尿藥物×1.3）。<b>攝入柱超過紅線 1,500 cc、或尿量長期低於綠線</b>，請提高警覺並回報醫師。',
+      'Garis hijau putus-putus = target urine harian (asupan tercapai ×0,9; diuretik (bantu) ×1,1; diuretik ×1,3). <b>Asupan di atas garis merah 1.500 cc atau urine terus di bawah garis hijau</b> → waspada & lapor dokter.');
   fillTable('c1',
     [L('日期', 'Tanggal'), L('總攝入 cc', 'Asupan cc'), L('尿液 cc', 'Urine cc'), L('目標尿量 cc', 'Target urine cc'), L('淨平衡 cc', 'Selisih cc')],
     DAYS.map(d => [dayLabel(d.date), d.has ? fmtN(d.intake) : null, d.has ? fmtN(d.urine) : null,
@@ -1121,7 +1245,7 @@ function buildC9(){
       plugins: {
         legend: { display: false },
         tooltip: { callbacks: { title: ttTitle, label: it => ' ' + fmtCC(it.parsed.y) + '　' + L('總攝入', 'Asupan') } },
-        zones: { bands: [ { from: INTAKE_MIN, to: INTAKE_MAX, color: wash(C.s1, 0.07), label: L('限水目標區 1,000–1,200', 'Target 1.000–1.200') } ] }
+        zones: { bands: [ { from: INTAKE_MIN, to: INTAKE_MAX, color: wash(C.s1, 0.07), label: L('限水目標區 1,100–1,500', 'Target 1.100–1.500') } ] }
       }
     }
   });
@@ -1243,8 +1367,8 @@ function analyzeRange(DAYS){
         id: `<b>Retensi cairan ${retainRun} hari beruntun & membesar</b> (selisih terbaru +${Math.round(last.net)} cc). Lapor dokter untuk cek dosis diuretik.` };
     } else if (over >= 2) {
       perChart.c1 = { level: 'warn',
-        zh: `區間內有 ${over} 天總攝入超過上限 1,200 cc；限水未達標會加重容積負荷。`,
-        id: `${over} hari asupan melebihi batas 1.200 cc; kelebihan cairan menambah beban.` };
+        zh: `區間內有 ${over} 天總攝入超過上限 1,500 cc；限水未達標會加重容積負荷。`,
+        id: `${over} hari asupan melebihi batas 1.500 cc; kelebihan cairan menambah beban.` };
     } else if (lowUrine >= Math.ceil(n / 2) && n >= 3) {
       perChart.c1 = { level: 'warn',
         zh: `多數日子尿量低於目標（${lowUrine}/${n} 天），注意利尿反應或腎功能，回診時提出。`,
@@ -1360,7 +1484,11 @@ function analyzeRange(DAYS){
     }
   }
 
-  if (c8pts.length >= 5 && highLoadUp >= 2) {
+  if (c8pts.length >= 5 && highLoadUp >= 3) {
+    perChart.c8 = { level: 'serious',
+      zh: `<b>多日高運動負荷日晚間心跳持續未降</b>（${highLoadUp} 天負荷偏高且晚>早）。反覆的夜間交感亢奮、恢復不良會累積心臟負擔，建議下修復健強度並回報醫師。`,
+      id: `<b>Detak malam berulang kali tidak turun pada hari beban tinggi</b> (${highLoadUp} hari). Kurangi intensitas & lapor dokter.` };
+  } else if (c8pts.length >= 5 && highLoadUp >= 2) {
     perChart.c8 = { level: 'warn',
       zh: `<b>高運動負荷日晚間心跳未降</b>（${highLoadUp} 天負荷偏高且晚>早）。提示該強度引發交感亢奮、夜間恢復不良，隔日宜下修復健目標。`,
       id: `<b>Detak malam tidak turun pada hari beban tinggi</b> (${highLoadUp} hari). Kurangi target besok.` };
@@ -1379,8 +1507,8 @@ function analyzeRange(DAYS){
   if (days.some(d => d.intake) && days.some(d => d.distalPct != null)) {
     if (nearLow >= 2 && distalTrend < 0 && bothLowDrop >= 1) {
       perChart.c9 = { level: 'serious',
-        zh: `<b>攝入貼近下限＋末梢肌力同步下滑</b>（${nearLow} 天攝入≤1,000 cc，末梢達標率下降）。在嚴格限水下這常是隱性脫水或低血鈉/低血鉀的最早訊號，建議回報醫師檢視電解質。`,
-        id: `<b>Asupan mendekati batas bawah + otot distal menurun</b> (${nearLow} hari ≤1.000 cc). Tanda awal dehidrasi/elektrolit; lapor dokter.` };
+        zh: `<b>攝入貼近下限＋末梢肌力同步下滑</b>（${nearLow} 天攝入≤1,100 cc，末梢達標率下降）。在嚴格限水下這常是隱性脫水或低血鈉/低血鉀的最早訊號，建議回報醫師檢視電解質。`,
+        id: `<b>Asupan mendekati batas bawah + otot distal menurun</b> (${nearLow} hari ≤1.100 cc). Tanda awal dehidrasi/elektrolit; lapor dokter.` };
     } else if (distalTrend < 0) {
       perChart.c9 = { level: 'warn',
         zh: `末梢小肌群達標率呈下滑趨勢，留意是否伴隨脫水或疲勞。`,
@@ -1396,33 +1524,33 @@ function analyzeRange(DAYS){
   const hidden = [];
   if (retainRun >= 2 && ppHi >= 1 && (over >= 1 || lowUrine >= 1)) {
     hidden.push({ level: 'serious',
-      zh: `🫀 <b>容量超載傾向</b>（心腎）：液體連日滯留（⑥①）＋脈壓差擴大（⑥）${over >= 1 ? `＋攝入超上限（①）` : `＋尿量偏低（①）`}。隱藏變數：<b>有效循環容量超載／利尿劑不足</b>。→ 回報心臟科／腎臟科評估利尿劑劑量。[需獨立驗證]`,
-      id: `🫀 <b>Kecenderungan kelebihan volume</b>: retensi cairan + tekanan nadi melebar. Variabel tersembunyi: <b>kelebihan volume sirkulasi / diuretik kurang</b>. → Lapor dokter jantung/ginjal. [perlu verifikasi mandiri]` });
+      zh: `🫀 <b>身體可能「水太多、排不掉」</b>：這幾天喝進去的水一直排不出來、累積在體內（圖⑥①），血管被撐得脈壓差變大（圖⑥）${over >= 1 ? `，還有幾天喝超過上限（圖①）` : `，加上尿量偏少（圖①）`}。合起來看，可能是<b>循環裡的水分過載、利尿效果不夠</b>，心臟和腎臟會比較累。👉 回診把這幾天的攝入、尿量、血壓給心臟科或腎臟科看，問利尿藥要不要調整。[需獨立驗證]`,
+      id: `🫀 <b>Tubuh mungkin "kebanyakan air, sulit dibuang"</b>: cairan menumpuk di tubuh (grafik ⑥①) & tekanan nadi melebar (grafik ⑥)${over >= 1 ? `, ada hari asupan lewat batas (grafik ①)` : `, urine sedikit (grafik ①)`}. Mungkin <b>volume sirkulasi berlebih / diuretik kurang</b>; jantung & ginjal lebih lelah. 👉 Tunjukkan asupan, urine, tensi ke dokter jantung/ginjal, tanyakan dosis diuretik. [perlu verifikasi mandiri]` });
   }
   if (highLoadUp >= 2 && nonDip >= Math.ceil(n * 0.6) && n >= 4) {
     hidden.push({ level: 'serious',
-      zh: `🌙 <b>夜間自律恢復不良</b>：高負荷日晚間心跳未降（⑧）＋夜間血壓不降（②）。隱藏變數：<b>交感神經持續亢奮／夜間自律恢復差</b>。→ 復健科下修運動強度＋心臟科評估。[需獨立驗證]`,
-      id: `🌙 <b>Pemulihan otonom malam buruk</b>: detak malam tidak turun + tensi malam tidak turun. Variabel: <b>hiperaktivitas simpatis</b>. → Kurangi intensitas latihan + dokter jantung. [perlu verifikasi mandiri]` });
+      zh: `🌙 <b>晚上身體「靜不下來」</b>：運動量大的日子，晚上心跳沒有降回來（圖⑧），血壓晚上該降卻也沒降（圖②）。合起來看，可能是<b>神經整晚太亢奮、夜間休息時身體沒有真正放鬆下來</b>。👉 先把復健強度調輕一點，回診時請心臟科一起看夜間血壓。[需獨立驗證]`,
+      id: `🌙 <b>Malam hari tubuh "tak bisa tenang"</b>: di hari beban tinggi, detak malam tak turun (grafik ⑧) & tensi malam juga tak turun (grafik ②). Mungkin <b>saraf terlalu aktif semalaman, tubuh tak benar-benar beristirahat</b>. 👉 Kurangi intensitas latihan; minta dokter jantung menilai tensi malam. [perlu verifikasi mandiri]` });
   }
   if (red >= 1 && (ppHi >= 1 || swing >= 25)) {
     hidden.push({ level: 'crit',
-      zh: `🔥 <b>心肌高耗氧</b>：RPP 進紅區（⑦）＋${ppHi >= 1 ? `脈壓差擴大（⑥）` : `心跳大幅震盪（③）`}。隱藏變數：<b>心肌做白工／缺血風險</b>，即使血壓心跳單看未越界。→ 回報心臟科評估抗心律不整＋降壓藥協同。[需獨立驗證]`,
-      id: `🔥 <b>Beban oksigen jantung tinggi</b>: RPP zona merah + ${ppHi >= 1 ? `tekanan nadi melebar` : `fluktuasi detak`}. Variabel: <b>iskemia/kerja jantung sia-sia</b>. → Dokter jantung. [perlu verifikasi mandiri]` });
+      zh: `🔥 <b>心臟在「做白工」、比較耗氧</b>：血壓乘心跳衝進紅區（圖⑦），同時${ppHi >= 1 ? `血管脈壓差也變大（圖⑥）` : `心跳大幅忽快忽慢（圖③）`}。重點是——<b>就算血壓、心跳分開看都還在範圍內，合起來心臟的負擔已經偏重，有缺血風險</b>。這是最需要留意的一項。👉 盡快回報心臟科，問心律藥和血壓藥要怎麼搭配。[需獨立驗證]`,
+      id: `🔥 <b>Jantung "bekerja sia-sia", boros oksigen</b>: tensi×detak masuk zona merah (grafik ⑦)${ppHi >= 1 ? `, tekanan nadi melebar (grafik ⑥)` : `, detak sangat berfluktuasi (grafik ③)`}. Meski tensi & detak terpisah masih normal, gabungannya = beban jantung berat, ada risiko iskemia. Ini paling perlu diperhatikan. 👉 Segera lapor dokter jantung soal kombinasi obat. [perlu verifikasi mandiri]` });
   }
   if (nearLow >= 2 && (distalTrend < 0 || hard >= 2)) {
     hidden.push({ level: 'serious',
-      zh: `💧 <b>隱性脫水傾向</b>：攝入貼近下限（①⑨）＋${distalTrend < 0 ? `末梢肌力下滑（⑨）` : `乾硬便增加（⑤）`}。隱藏變數：<b>隱性脫水／低血鈉·低血鉀</b>。→ 回報醫師檢視電解質與限水下限。[需獨立驗證]`,
-      id: `💧 <b>Kecenderungan dehidrasi tersembunyi</b>: asupan mendekati batas bawah + ${distalTrend < 0 ? `otot distal turun` : `feses keras`}. Variabel: <b>dehidrasi/elektrolit rendah</b>. → Cek elektrolit. [perlu verifikasi mandiri]` });
+      zh: `💧 <b>可能「表面喝夠、其實偏乾」</b>：這幾天喝的量貼近下限（圖①⑨），同時${distalTrend < 0 ? `手腳末梢的力氣悄悄變小（圖⑨）` : `大便變乾硬（圖⑤）`}。合起來看，可能是<b>隱性脫水，或血鈉、血鉀偏低</b>——帳面上喝夠了，身體卻不夠水。👉 回診請醫師驗一下電解質，並問限水的下限能不能放寬。[需獨立驗證]`,
+      id: `💧 <b>Mungkin "cukup di angka, tapi kering di tubuh"</b>: asupan mendekati batas bawah (grafik ①⑨), sekaligus ${distalTrend < 0 ? `otot tangan/kaki melemah (grafik ⑨)` : `feses makin keras (grafik ⑤)`}. Mungkin <b>dehidrasi tersembunyi atau natrium/kalium rendah</b>. 👉 Minta dokter cek elektrolit & tanyakan apakah batas bawah air bisa dilonggarkan. [perlu verifikasi mandiri]` });
   }
   if (hardWithDiur >= 1 && countDays(d => d.net < 0) >= 2) {
     hidden.push({ level: 'warn',
-      zh: `💊 <b>利尿劑過度脫水腸道</b>：乾硬便與當日利尿藥物同現（⑤）＋多日淨負平衡（⑥）。隱藏變數：<b>利尿劑把腸道水分一併帶走</b>。→ 與醫師討論利尿劑／軟便劑配比與水分分配時機。[需獨立驗證]`,
-      id: `💊 <b>Diuretik mengeringkan usus</b>: feses keras + diuretik + defisit cairan. Variabel: <b>diuretik menarik air usus</b>. → Diskusikan rasio diuretik/pencahar. [perlu verifikasi mandiri]` });
+      zh: `💊 <b>利尿藥可能「連腸子的水也一起帶走」</b>：有利尿藥的日子大便偏乾硬（圖⑤），加上好幾天排出比喝進去還多（圖⑥）。合起來看，<b>利尿藥在排水的同時，可能把腸道需要的水分也帶走了，造成便秘</b>。👉 回診跟醫師討論利尿藥和軟便劑的比例、以及喝水時間怎麼分配。[需獨立驗證]`,
+      id: `💊 <b>Diuretik mungkin "ikut menarik air usus"</b>: di hari ada diuretik feses keras (grafik ⑤), plus beberapa hari keluar lebih banyak dari masuk (grafik ⑥). Mungkin <b>diuretik ikut membawa air yang dibutuhkan usus → sembelit</b>. 👉 Diskusikan rasio diuretik/pencahar & waktu minum dengan dokter. [perlu verifikasi mandiri]` });
   }
   if (countDays(d => d.am && d.am.sys < 110) >= 2 && countDays(d => (d.am && d.am.hr < 55) || (d.pm && d.pm.hr < 55)) >= 1) {
     hidden.push({ level: 'warn',
-      zh: `⚠️ <b>藥物過度反應風險</b>：血壓連日偏低（②）＋心跳低於 55（③）。隱藏變數：<b>降壓／抗心律藥物相對過量</b>，慎防姿勢性低血壓與跌倒。→ 回報醫師評估劑量。[需獨立驗證]`,
-      id: `⚠️ <b>Risiko obat berlebih</b>: tensi rendah beberapa hari + detak <55. Variabel: <b>dosis antihipertensi/antiaritmia berlebih</b>. → Evaluasi dosis. [perlu verifikasi mandiri]` });
+      zh: `⚠️ <b>藥可能「作用過頭了」</b>：血壓連續幾天偏低（圖②），心跳也掉到 55 以下（圖③）。合起來看，可能是<b>降壓藥或心律藥的劑量相對偏強</b>。要特別小心站起來時頭暈、跌倒。👉 回診請醫師評估是不是要減量。[需獨立驗證]`,
+      id: `⚠️ <b>Obat mungkin "terlalu kuat"</b>: tensi rendah beberapa hari (grafik ②) & detak di bawah 55 (grafik ③). Mungkin <b>dosis obat tensi/aritmia relatif berlebih</b>. Hati-hati pusing saat berdiri & jatuh. 👉 Minta dokter menilai apakah perlu menurunkan dosis. [perlu verifikasi mandiri]` });
   }
   const rank = { crit: 0, serious: 1, warn: 2 };
   hidden.sort((a, b) => rank[a.level] - rank[b.level]);
@@ -1459,19 +1587,158 @@ function renderChrome(){
     b.classList.toggle('on', +b.dataset.days === RANGE.days);
     b.textContent = b.dataset.days + ' ' + L('天', 'hari');
   });
+  renderBuilder();
 }
 
+function fmtMD(ds){ const p = (ds || '').split('-'); return p.length === 3 ? (+p[1]) + '/' + (+p[2]) : ds; }
+/* 每圖「數據舉例」：找當區間最能說明問題的那一天＋數值（純資料格式化，不下醫療結論） */
+function chartExample(cardId, DAYS){
+  const days = DAYS.filter(d => d.has);
+  if (!days.length) return null;
+  const md = d => fmtMD(d.date);
+  const best = keyfn => days.reduce((b, d) => { const v = keyfn(d); return v == null ? b : (b == null || v > keyfn(b) ? d : b); }, null);
+  switch (cardId) {
+    case 'c1': { const d = best(x => x.net); if (!d || d.net == null) return null;
+      return { zh: `📅 例：${md(d)} 喝進 ${d.intake}cc、尿出 ${d.urine}cc → 當天${d.net >= 0 ? '水分滯留 +' : '淨排出 '}${Math.abs(Math.round(d.net))}cc`,
+               id: `📅 Contoh: ${md(d)} minum ${d.intake}cc, urine ${d.urine}cc → ${d.net >= 0 ? 'retensi +' : 'defisit '}${Math.abs(Math.round(d.net))}cc` }; }
+    case 'c2': { const d = best(x => x.am ? x.am.sys : null); if (!d || !d.am) return null;
+      return { zh: `📅 例：${md(d)} 晨血壓 ${d.am.sys}/${d.am.dia}${d.pm ? `、晚 ${d.pm.sys}/${d.pm.dia}` : ''}`,
+               id: `📅 Contoh: ${md(d)} tensi pagi ${d.am.sys}/${d.am.dia}${d.pm ? `, malam ${d.pm.sys}/${d.pm.dia}` : ''}` }; }
+    case 'c3': { let d = null, ex = -1, hr = null;
+      days.forEach(x => { [x.am && x.am.hr, x.pm && x.pm.hr].forEach(h => { if (h != null) { const e = Math.abs(h - 70); if (e > ex) { ex = e; d = x; hr = h; } } }); });
+      if (!d) return null;
+      return { zh: `📅 例：${md(d)} 心跳 ${hr} 次/分`, id: `📅 Contoh: ${md(d)} detak ${hr} x/menit` }; }
+    case 'c4': { const d = best(x => x.overallPct == null ? null : -x.overallPct); if (!d || d.overallPct == null) return null;
+      return { zh: `📅 例：${md(d)} 復健達標率 ${d.overallPct}%`, id: `📅 Contoh: ${md(d)} capaian rehab ${d.overallPct}%` }; }
+    case 'c5': { const d = [...days].reverse().find(x => x.stoolMarks.hard || x.stoolMarks.loose || x.stool === 0) || best(x => -x.stool);
+      if (!d) return null;
+      const st = d.stoolMarks.hard ? (LANG === 'id' ? 'feses keras' : '乾硬便') : d.stoolMarks.loose ? (LANG === 'id' ? 'feses encer' : '稀水便') : d.stool === 0 ? (LANG === 'id' ? 'tidak BAB' : '無排便') : (LANG === 'id' ? `BAB ${d.stool}x` : `排便 ${d.stool} 次`);
+      return { zh: `📅 例：${md(d)} ${st}`, id: `📅 Contoh: ${md(d)} ${st}` }; }
+    case 'c6': { const d = best(x => Math.max(x.ppAm == null ? -1 : x.ppAm, x.ppPm == null ? -1 : x.ppPm)); if (!d) return null;
+      const pp = Math.max(d.ppAm == null ? -1 : d.ppAm, d.ppPm == null ? -1 : d.ppPm); if (pp < 0) return null;
+      return { zh: `📅 例：${md(d)} 脈壓差 ${pp} mmHg${d.net != null ? `、當天淨${d.net >= 0 ? '滯留 +' : '排 '}${Math.abs(Math.round(d.net))}cc` : ''}`,
+               id: `📅 Contoh: ${md(d)} tekanan nadi ${pp} mmHg` }; }
+    case 'c7': { const d = best(x => Math.max(x.rppAm == null ? -1 : x.rppAm, x.rppPm == null ? -1 : x.rppPm)); if (!d) return null;
+      const isPm = (d.rppPm || 0) > (d.rppAm || 0); const bp = isPm ? d.pm : d.am; const rpp = isPm ? d.rppPm : d.rppAm; if (!bp || rpp == null) return null;
+      return { zh: `📅 例：${md(d)} ${bp.sys}×${bp.hr}＝RPP ${Math.round(rpp / 100) / 10}k（${isPm ? '晚' : '晨'}）`,
+               id: `📅 Contoh: ${md(d)} ${bp.sys}×${bp.hr}=RPP ${Math.round(rpp / 100) / 10}k` }; }
+    case 'c8': { const pts = days.filter(x => x.dHr != null); if (!pts.length) return null;
+      const d = pts.reduce((b, x) => (b == null || x.load > b.load ? x : b), null);
+      return { zh: `📅 例：${md(d)} 運動量 ${Math.round(d.load)}、晚−晨心跳 ${d.dHr >= 0 ? '+' : ''}${d.dHr}`,
+               id: `📅 Contoh: ${md(d)} beban ${Math.round(d.load)}, detak malam−pagi ${d.dHr >= 0 ? '+' : ''}${d.dHr}` }; }
+    case 'c9': { const d = best(x => x.intake ? -x.intake : null); if (!d || !d.intake) return null;
+      return { zh: `📅 例：${md(d)} 攝入 ${d.intake}cc${d.distalPct != null ? `、末梢達標 ${d.distalPct}%` : ''}`,
+               id: `📅 Contoh: ${md(d)} asupan ${d.intake}cc${d.distalPct != null ? `, otot distal ${d.distalPct}%` : ''}` }; }
+  }
+  return null;
+}
+/* ---- 第三變數量化交互（P3）：把某圖關鍵指標依第三變數分組對照，算「加 c 後的額外風險」 ---- */
+const METRIC_LABEL = {
+  c1: ['淨滯留', 'cc', 'retensi'], c2: ['晨收縮壓', '', 'tensi pagi'], c3: ['心跳偏離70', '', 'deviasi detak'],
+  c4: ['達標率', '%', 'capaian'], c5: ['排便', '次', 'BAB'], c6: ['脈壓差', 'mmHg', 'tekanan nadi'],
+  c7: ['RPP', 'k', 'RPP'], c8: ['晚−晨心跳', '', 'Δ detak'], c9: ['末梢達標', '%', 'otot distal']
+};
+function chartMetric(cardId, d){
+  switch (cardId) {
+    case 'c1': return d.net;
+    case 'c2': return d.am ? d.am.sys : null;
+    case 'c3': { const hs = [d.am && d.am.hr, d.pm && d.pm.hr].filter(x => x != null); return hs.length ? Math.max(...hs.map(h => Math.abs(h - 70))) : null; }
+    case 'c4': return d.overallPct;
+    case 'c5': return d.stool;
+    case 'c6': { const p = Math.max(d.ppAm == null ? -999 : d.ppAm, d.ppPm == null ? -999 : d.ppPm); return p <= -999 ? null : p; }
+    case 'c7': { const r = Math.max(d.rppAm == null ? -1 : d.rppAm, d.rppPm == null ? -1 : d.rppPm); return r < 0 ? null : Math.round(r / 100) / 10; }
+    case 'c8': return d.dHr;
+    case 'c9': return d.distalPct;
+  }
+  return null;
+}
+function tvClassify(tvId, d){
+  switch (tvId) {
+    case 'diur':  return { has: !!(d.diuretic || d.diureticAux) };
+    case 'lax':   return { has: !!(d.laxPills > 0 || d.stoolMarks.lax) };
+    case 'stool': return { has: !!(d.stoolMarks.hard || d.stoolMarks.loose) };
+    case 'exvol': return { val: d.load || 0 };
+    case 'foodw': return { val: d.intake ? Math.round((d.cat ? d.cat.food : 0) / d.intake * 100) : 0 };
+    case 'medw':  return { val: d.cat ? d.cat.med : 0 };
+    case 'eat':   return { val: d.cat ? d.cat.food : 0 };
+    default: return {};
+  }
+}
+function tvRiskNote(k, A, B){
+  switch (k) {
+    case 'c1|diur':  return A > 250 ? { flag: true, zh: '有利尿藥的日子仍明顯滯留，利尿效果可能不足', id: 'retensi tetap tinggi meski diuretik — mungkin kurang' } : { flag: false, zh: '利尿藥日滯留較低，反應尚可', id: 'retensi lebih rendah dengan diuretik' };
+    case 'c6|diur':  return A >= 60 ? { flag: true, zh: '有利尿藥脈壓差仍偏高，容積負荷未完全緩解', id: 'tekanan nadi tetap tinggi' } : null;
+    case 'c1|eat':   return A > B ? { flag: false, zh: '進食多的日子總攝入偏高，含水食物確實佔一部分水分', id: 'makan lebih → asupan lebih tinggi' } : null;
+    case 'c1|foodw': return { flag: false, zh: '食物含水占比越高，越要記得算進總攝入', id: 'rasio air makanan tinggi → hitung ke total' };
+    case 'c7|exvol': return A > B ? { flag: true, zh: '運動量大的日子心肌耗氧偏高，屬運動當下生理性；靜息日仍高才需警覺', id: 'RPP naik di hari beban tinggi (fisiologis)' } : null;
+    case 'c2|exvol': return A > B ? { flag: true, zh: '運動量大的日子血壓偏高，避免飯後或劇烈後立即量', id: 'tensi lebih tinggi di hari beban besar' } : null;
+    case 'c5|diur':  return { flag: true, zh: '利尿藥可能連腸道水分一起帶走，留意乾硬便', id: 'diuretik bisa mengeringkan usus' };
+    case 'c5|lax':   return { flag: false, zh: '利便藥日排便較多屬預期，觀察是否過度', id: 'BAB lebih banyak di hari pencahar' };
+    case 'c5|eat':   return A > B ? { flag: true, zh: '進食量少的日子排便也少，可能是吃太少造成，先補進食再考慮加藥', id: 'makan sedikit → BAB sedikit; tambah makan dulu' } : null;
+    case 'c9|eat':   return { flag: false, zh: '進食足夠有助末梢肌力與能量', id: 'makan cukup bantu otot distal' };
+    case 'c9|foodw': return { flag: false, zh: '含水食物有助補水，末梢變弱時可增加', id: 'makanan berair bantu hidrasi' };
+  }
+  return null;
+}
+function thirdVarRisk(cardId, tvId, DAYS){
+  const tvName = THIRD_VARS.find(v => v.id === tvId) || { zh: tvId, idn: tvId };
+  if (tvId === 'slot') return { zh: `➕ 加入「${tvName.zh}」：請對照圖上早／晚兩條線的差異`, id: `➕ +"${tvName.idn}": bandingkan garis pagi vs malam`, flag: false };
+  const rows = DAYS.filter(d => d.has && chartMetric(cardId, d) != null).map(d => ({ c: tvClassify(tvId, d), m: chartMetric(cardId, d) }));
+  if (rows.length < 2) return null;
+  const ml = METRIC_LABEL[cardId] || ['指標', '', 'indikator'];
+  let hi, lo, hiLbl, loLbl;
+  if (rows[0].c.has !== undefined) {
+    hi = rows.filter(x => x.c.has); lo = rows.filter(x => !x.c.has);
+    hiLbl = L(`有${tvName.zh}的日子`, `dengan ${tvName.idn}`); loLbl = L('沒有的日子', 'tanpa');
+  } else if (rows[0].c.val !== undefined) {
+    const vals = rows.map(x => x.c.val).sort((a, b) => a - b); const med = vals[Math.floor(vals.length / 2)];
+    hi = rows.filter(x => x.c.val > med); lo = rows.filter(x => x.c.val <= med);
+    hiLbl = L(`${tvName.zh}較高的日子`, `${tvName.idn} tinggi`); loLbl = L('較低的日子', 'rendah');
+  } else return null;
+  if (!hi.length || !lo.length) return { zh: `➕ 「${tvName.zh}」：此區間資料不足以對照`, id: `➕ "${tvName.idn}": data belum cukup`, flag: false };
+  const mean = a => Math.round(a.reduce((s, x) => s + x.m, 0) / a.length * 10) / 10;
+  const A = mean(hi), B = mean(lo);
+  const cmp = L(`${hiLbl}${ml[0]}平均 ${A}${ml[1]}，${loLbl} ${B}${ml[1]}`, `${hiLbl}: ${ml[2]} ~${A}${ml[1]}, ${loLbl}: ~${B}${ml[1]}`);
+  const note = tvRiskNote(cardId + '|' + tvId, A, B);
+  return { zh: `➕ 加入「${tvName.zh}」：${cmp}${note ? '。' + note.zh : ''}${note && note.flag ? ' [需獨立驗證]' : ''}`,
+           id: `➕ +"${tvName.idn}": ${cmp}${note ? '. ' + note.id : ''}`, flag: note ? note.flag : false };
+}
 const LEVEL_TAG = { good: '🟢', warn: '🟡', serious: '🟠', crit: '🔴' };
 function applyInterpretations(){
   const A = analyzeRange(DAYS);
   CARDS.forEach(c => {
     const el = document.getElementById(c.id + '-ai');
-    if (!el) return;
     const v = A.perChart[c.id];
-    if (!v) { el.style.display = 'none'; el.className = 'ai'; el.innerHTML = ''; return; }
-    el.style.display = '';
-    el.className = 'ai lv-' + v.level;
-    el.innerHTML = `<span class="tag">${LEVEL_TAG[v.level]}</span>${LANG === 'id' ? v.id : v.zh}`;
+    if (el) {
+      if (!v) { el.style.display = 'none'; el.className = 'ai'; el.innerHTML = ''; }
+      else {
+        el.style.display = '';
+        el.className = 'ai lv-' + v.level;
+        el.innerHTML = `<span class="tag">${LEVEL_TAG[v.level]}</span>${LANG === 'id' ? v.id : v.zh}`;
+      }
+    }
+    const fp = document.getElementById(c.id + '-5p');
+    if (fp) {
+      const eg = chartExample(c.id, DAYS);
+      const watch = c.watch ? L(c.watch[0], c.watch[1]) : null;
+      const tell = c.tell ? L(c.tell[0], c.tell[1]) : null;
+      if (!v && !eg) { fp.style.display = 'none'; fp.innerHTML = ''; }
+      else {
+        fp.style.display = '';
+        let html = '';
+        if (eg) html += `<div class="fp fp-eg">${LANG === 'id' ? eg.id : eg.zh}</div>`;
+        if (watch) html += `<div class="fp fp-watch">⚠️ ${L('現在要注意', 'Perhatikan sekarang')}：${watch}</div>`;
+        if (tell) html += `<div class="fp fp-tell">🩺 ${L('回診跟醫生說', 'Sampaikan ke dokter')}：${tell}</div>`;
+        if (jpTV.size) {
+          THIRD_VARS.forEach(tv => {
+            if (!jpTV.has(tv.id) || !tv.applies.includes(c.id)) return;
+            const r = thirdVarRisk(c.id, tv.id, DAYS);
+            if (r) html += `<div class="fp fp-x${r.flag ? ' fp-xflag' : ''}">${LANG === 'id' ? r.id : r.zh}</div>`;
+          });
+        }
+        fp.innerHTML = html;
+      }
+    }
   });
   document.getElementById('synth-title').textContent =
     L('隱藏變數綜合研判（跨圖交叉）', 'Analisis Variabel Tersembunyi (lintas grafik)');
@@ -1492,6 +1759,7 @@ function renderAll(){
   renderSkeleton();
   buildC1(); buildC2(); buildC3(); buildC4(); buildC5(); buildC6(); buildC7(); buildC8(); buildC9();
   applyInterpretations();
+  applyFocus();
 }
 
 let rawByDate = {};

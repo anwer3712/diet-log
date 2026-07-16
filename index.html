@@ -124,7 +124,7 @@
             </div>
 
             <div id="fluid-warning" class="hidden bg-red-100 text-red-700 p-2.5 rounded-2xl text-xs font-black mt-2 mb-2 animate-pulse text-center border border-red-200">
-                🚨 總液體量已超過目標值 (1200 c.c.)！<br><span class="text-[10px] font-medium">Volume cairan melebihi target (1200 c.c.)!</span>
+                🚨 總液體量已超過目標值 (1500 c.c.)！<br><span class="text-[10px] font-medium">Volume cairan melebihi target (1500 c.c.)!</span>
             </div>
             <div id="urine-range-info" class="hidden bg-blue-50 text-blue-700 p-2.5 rounded-2xl text-xs font-bold mt-2 mb-1 border border-blue-100">
                 <span id="urine-range-text"></span>
@@ -808,7 +808,7 @@ function checkBpTime() {
                 if (currentItem === '總攝入水量') {
                     urineRangeInfoEl.classList.remove('hidden');
                     document.getElementById('urine-range-text').innerHTML =
-                        LTXT(`💧 正常範圍：1000 c.c. ～ 1200 c.c.`, `💧 Kisaran normal: 1000 c.c. ~ 1200 c.c.`);
+                        LTXT(`💧 正常範圍：1100 c.c. ～ 1500 c.c.`, `💧 Kisaran normal: 1100 c.c. ~ 1500 c.c.`);
                 } else {
                     urineRangeInfoEl.classList.add('hidden');
                 }
@@ -836,7 +836,7 @@ function checkBpTime() {
 
             const warningEl = document.getElementById('fluid-warning');
             const bar = document.getElementById('progress-bar');
-            const overFluid = (currentItem === '總攝入水量' && achieved > 1200);
+            const overFluid = (currentItem === '總攝入水量' && achieved > 1500);
 
             // 尿液超出正常範圍警告（alert 提醒＋下方深紅閃動框與警示卡同步亮起）
             const overUrine = (currentItem === '尿液' && achieved > 0 && urineRangeMax > 0 && achieved > urineRangeMax);
@@ -851,7 +851,7 @@ function checkBpTime() {
             if (overFluid || overUrine) {
                 warningEl.classList.remove('hidden');
                 warningEl.innerHTML = overFluid
-                    ? `🚨 總液體量已超過目標值 (1200 c.c.)！<br><span class="text-[10px] font-medium">Volume cairan melebihi target (1200 c.c.)!</span>`
+                    ? `🚨 總液體量已超過目標值 (1500 c.c.)！<br><span class="text-[10px] font-medium">Volume cairan melebihi target (1500 c.c.)!</span>`
                     : `🚨 尿液量 ${achieved} c.c. 已超過正常上限 (${urineRangeMax} c.c.)！<br><span class="text-[10px] font-medium">Volume urine (${achieved} c.c.) melebihi batas normal (${urineRangeMax} c.c.)!</span>`;
                 targetDashboard.classList.add('danger-active');
                 bar.classList.remove('bg-[#FB8B7A]'); bar.classList.add('bg-red-500');

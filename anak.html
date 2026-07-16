@@ -789,7 +789,7 @@ function renderAll(){
             <div class="flex-1 min-w-0 h-3 rounded-full bg-gray-200 overflow-hidden"><div class="h-full rounded-full transition-all duration-700" style="width:${pct}%;background:${col}"></div></div>
         </div>`;
     };
-    let strips = strip('💧', wGoal, intake, 'cc', intake > 1200)
+    let strips = strip('💧', wGoal, intake, 'cc', intake > 1500)
                + strip('🚽', uGoal, urine, 'cc', urine > 0 && uGoal > 0 && urine > uGoal)
                + strip('💩', sGoal, stoolN, t('times'), false);
     strips += `<div class="grid grid-cols-4 gap-1 pt-0.5">` + CARE_EX_TYPES.map(ex => {
@@ -834,14 +834,14 @@ function renderAll(){
 }
 
 /* ===== 兒童版警示（跟大人版同規則，用小朋友看得懂的話）：
- * 喝太多(>1200cc)、尿太多(>今日尿液目標=喝的×0.9；利尿藥物(輔助)×1.1；利尿藥物×1.3)
+ * 喝太多(>1500cc)、尿太多(>今日尿液目標=喝的×0.9；利尿藥物(輔助)×1.1；利尿藥物×1.3)
  * → 動態大紅橫幅＋每天每種跳一次大彈窗 ===== */
 function checkWarnings(){
     const intake = records.filter(r => ['飲水量','服藥飲水','營養飲品','進食'].includes(r.category)).reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
     const urine = records.filter(r => r.category === '尿液').reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
     const uMax = careUrineGoal(intake, careMedFromRecords(records).diuretic);
     const warns = [];
-    if (intake > 1200) warns.push({ key:'minum', text:t('warnDrink') });
+    if (intake > 1500) warns.push({ key:'minum', text:t('warnDrink') });
     if (urine > 0 && uMax > 0 && urine > uMax) warns.push({ key:'pipis', text:t('warnPipis') });
     $('warn-box').innerHTML = warns.map(w =>
         `<div class="alert-banner border-8 bg-red-100 rounded-3xl p-3 text-2xl font-black" style="border-color: var(--danger); color: var(--danger)"><span class="bounce-big">🚨</span> ${w.text}<br><span class="text-xl">${t('callAdult')}</span></div>`).join('');
