@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理設定 — 奶奶照護日誌</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=10"></script>
+    <script src="care-tasks.js?v=11"></script>
+    <script src="care-clinical.js?v=1"></script>
     <style>
         body { background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 45%, #fff1f2 100%); }
         .animate-spin-slow { animation: spin 3s linear infinite; }
@@ -140,10 +141,19 @@ function textBlock(label, key, val){
         <input type="text" id="ui-text-${key}-zh" value="${esc(val.zh)}" placeholder="中文（留空＝內建）" class="w-full bg-gray-50 border-0 rounded-xl py-1.5 px-2 text-xs font-bold mb-1">
         <input type="text" id="ui-text-${key}-id" value="${esc(val.id)}" placeholder="Indonesia（留空＝內建）" class="w-full bg-gray-50 border-0 rounded-xl py-1.5 px-2 text-xs font-bold"></div>`;
 }
+function diseaseGroups(){   // DISEASES（care-clinical.js）依 system 分組，保留原順序＝7 組標題
+    const order = [], groups = {};
+    (typeof DISEASES !== 'undefined' ? DISEASES : []).forEach(d => {
+        if (!groups[d.system]) { groups[d.system] = []; order.push(d.system); }
+        groups[d.system].push(d);
+    });
+    return order.map(sys => [sys, groups[sys]]);
+}
 function renderSettings(){
     const ui = careUI(cachedGoals);
     curDiuretics = (ui.diuretics || []).map(d => ({ name:d.name, aux:!!d.aux }));
     curNotices = (ui.notices || []).map(n => ({ on:!!n.on, zh:n.zh||'', id:n.id||'', pos:n.pos||'top' }));
+    const curDiseases = ui.diseases || [];   // 固定目錄勾選框，非動態清單；勾選狀態即來源，存檔時直接讀 DOM
 
     const modes = card('🧾 記錄模式', `
         <p class="text-xs font-bold text-gray-500 mb-1">尿液</p>
@@ -174,8 +184,14 @@ function renderSettings(){
         return `<div class="text-[10px] font-bold text-gray-500">${nm}<div class="flex items-center gap-0.5"><input type="number" id="ui-bp-${slot}-${k}-0" value="${esc(r[k][0])}" class="w-full bg-gray-50 border-0 rounded-lg py-1 px-1 text-xs font-bold text-center">–<input type="number" id="ui-bp-${slot}-${k}-1" value="${esc(r[k][1])}" class="w-full bg-gray-50 border-0 rounded-lg py-1 px-1 text-xs font-bold text-center"></div></div>`;
     }).join('')}</div>`;
     const bp = card('🩺 血壓合理區間（下限–上限）', bpRow('early','🌞 早（服藥前）', ui.bp.early) + bpRow('late','🌙 晚（睡前）', ui.bp.late));
+    const dx = card('🏥 病患疾病（可複選） / Penyakit pasien', diseaseGroups().map(([sys, list]) =>
+        `<p class="text-[11px] font-bold text-gray-500 mt-2 first:mt-0 mb-1">${esc(sys)}</p>
+        <div class="grid grid-cols-2 gap-x-2">${list.map(d =>
+            `<label class="flex items-center gap-2 py-1 text-xs font-bold text-gray-700 cursor-pointer"><input type="checkbox" class="dx-chk w-4 h-4" value="${d.id}" ${curDiseases.includes(d.id)?'checked':''}> ${esc(d.zh)}（${esc(d.idn)}）</label>`
+        ).join('')}</div>`
+    ).join(''));
 
-    document.getElementById('ui-settings').innerHTML = modes+diur+show+popup+txt+notice+time+num+bp;
+    document.getElementById('ui-settings').innerHTML = modes+diur+dx+show+popup+txt+notice+time+num+bp;
     renderDiuretics(); renderNotices();
 }
 function renderDiuretics(){
@@ -213,6 +229,7 @@ function readSettings(){
         stoolMode: (document.querySelector('input[name="ui-stoolMode"]:checked')||{}).value || 'status',
         diuretics: curDiuretics.filter(d => String(d.name).trim()).map(d => ({ name:d.name.trim(), aux:!!d.aux })),
         notices: curNotices.filter(n => String(n.zh).trim() || String(n.id).trim()).map(n => ({ on:!!n.on, zh:n.zh.trim(), id:(n.id||'').trim(), pos:n.pos==='output'?'output':'top' })),
+        diseases: Array.from(document.querySelectorAll('.dx-chk:checked')).map(el => el.value),
         show: {}, popup: {}, text: {}, time: {}, num: {}, bp: { early:{}, late:{} }
     };
     UI_SHOW_ITEMS.forEach(([k]) => patch.show[k] = chk('ui-show-'+k));

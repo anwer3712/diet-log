@@ -200,6 +200,8 @@ const CARE_UI_DEFAULTS = {
         { name: '利尿藥物（輔助）', aux: true },
         { name: '利尿藥物', aux: false }
     ],
+    diseases: [],               // 病患疾病 id 清單（軸3，選自 care-clinical.js DISEASES）；admin-settings 複選存入，trends 研判建構器讀取
+
     show: {                     // 提示卡/警語 顯示開關（true＝顯示）
         bedRail: true, catheter: false, bpGuide: true, rehabNote: true,
         standWarn: true, enemaWarn: true, urineRangeInfo: true

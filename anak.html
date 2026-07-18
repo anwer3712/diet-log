@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>奶奶日誌 — 兒童版 / Catatan Nenek — Anak</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=10"></script>
+    <script src="care-tasks.js?v=11"></script>
     <style>
         /* ============================================================
          * 兒童＋先天遠視設計原則：超大字、白底高對比、粗實心框、
@@ -817,7 +817,8 @@ function renderAll(){
         const hit = gEx > 0 && done >= gEx;
         return `<div class="rounded-xl border-[3px] ${hit ? 'border-green-600 bg-green-50' : 'border-gray-300 bg-white'} text-center py-0.5">
             <span class="block text-xl leading-none">${CAT_EMOJI[ex]}</span>
-            <span class="text-[13px] font-black">✅${done}<span class="text-gray-500">/🎯${gEx > 0 ? gEx : '…'}</span></span>
+            <span class="block text-[13px] font-black leading-none">✅${done}</span>
+            <span class="block text-[13px] font-black text-gray-500 leading-none">🎯${gEx > 0 ? gEx : '…'}</span>
         </div>`;
     }).join('') + `</div>`;
     $('goal-strips').innerHTML = strips;

@@ -6,7 +6,8 @@
 <title>健康趨勢分析 — 奶奶照護日誌 / Analisis Tren Kesehatan</title>
 <!-- Chart.js 4.4.1（本地 vendor，無 CDN 依賴；MIT 授權見 vendor/chart.LICENSE.md） -->
 <script src="vendor/chart.umd.min.js"></script>
-<script src="care-tasks.js?v=10"></script>
+<script src="care-tasks.js?v=11"></script>
+<script src="care-clinical.js?v=1"></script>
 <style>
 /* ============ 自足式樣式（本頁不依賴 Tailwind CDN，離線快取後仍可完整顯示） ============
  * 色彩依 dataviz 檢核色盤（已通過 CVD ΔE≥12 與亮度帶驗證）：
@@ -169,6 +170,8 @@ h1{ text-align:center; font-size:20px; font-weight:900; color:#e11d48; letter-sp
     <div id="jp-analyses"></div>
     <div class="jp-sub" id="jp-tv-label"></div>
     <div id="jp-thirdvars"></div>
+    <div class="jp-sub" id="jp-dx-label"></div>
+    <div id="jp-diseases"></div>
     <div class="jp-hint" id="jp-hint"></div>
   </section>
 
@@ -253,6 +256,7 @@ function cachePrune(){
 
 let cloudGoals = {};
 try { cloudGoals = (JSON.parse(localStorage.getItem(GOALS_KEY) || 'null') || {}).g || {}; } catch (e) {}
+const weatherByDate = {};   // P5：龍潭每日氣象（GAS getRecords 回應附帶）；date→{temp,rh,pressure,pm25,wbgt}
 
 async function fetchDay(dateStr){
   const res = await fetch(`${GAS_URL}?date=${dateStr}&t=${Date.now()}`, { cache: 'no-store' });
@@ -264,6 +268,7 @@ async function fetchDay(dateStr){
     cloudGoals = data.goals;
     try { localStorage.setItem(GOALS_KEY, JSON.stringify({ t: Date.now(), g: data.goals })); } catch (e) {}
   }
+  if (data.weather) weatherByDate[dateStr] = data.weather;   // P5：GAS 未供 weather 前恆 undefined，安全略過
   cacheSet(dateStr, records);
   return records;
 }
@@ -376,6 +381,9 @@ function summarizeDay(dateStr, records){
   d.distalPct = distal.length ? Math.round(avg(distal)) : null;
   d.load = Object.keys(LOAD_W).reduce((s, e) => s + LOAD_W[e] * (d.ex[e] || 0), 0);
   d.cat = { water: Math.round(cat.water), med: Math.round(cat.med), nutri: Math.round(cat.nutri), food: Math.round(cat.food) };
+  d.weather = weatherByDate[d.date] || null;   // P5：氣象（無則 null，P4 網絡層安全略過）
+  if (d.weather && d.weather.wbgt == null && typeof estimateWBGT === 'function')
+    d.weather.wbgt = estimateWBGT(d.weather.temp, d.weather.rh);
   return d;
 }
 
@@ -741,6 +749,8 @@ const THIRD_VARS = [
 ];
 let jpFocus = null;            // 目前聚焦研判 card id；null＝全部
 const jpTV = new Set();        // 已選第三變數 id
+const jpDx = new Set();        // 軸3：目前納入研判的病患疾病 id（來源＝careUI(cloudGoals).diseases）
+let jpDxInit = false;          // 首次見到病患疾病清單時預設全開一次；之後尊重使用者勾選
 
 function jpChip(label, on){
   const b = document.createElement('button');
@@ -771,6 +781,27 @@ function renderBuilder(){
     chip.addEventListener('click', () => { jpTV.has(v.id) ? jpTV.delete(v.id) : jpTV.add(v.id); renderBuilder(); applyInterpretations(); });
     tv.appendChild(chip);
   });
+  // 軸3：病患疾病 chips（來源＝admin-settings 存的 careUI(cloudGoals).diseases；預設全開一次）
+  const dxHost = document.getElementById('jp-diseases');
+  const dxLabelEl = document.getElementById('jp-dx-label');
+  const patientDx = (typeof careUI === 'function' ? (careUI(cloudGoals).diseases || []) : []);
+  if (!jpDxInit && patientDx.length){ patientDx.forEach(id => jpDx.add(id)); jpDxInit = true; }
+  if (dxHost && dxLabelEl){
+    if (patientDx.length && typeof DX_BY_ID !== 'undefined'){
+      dxLabelEl.style.display = ''; dxHost.style.display = '';
+      dxLabelEl.textContent = L('疊加病患疾病（可複選，預設全開）：', 'Tambah penyakit pasien (multi, default semua):');
+      dxHost.innerHTML = '';
+      patientDx.forEach(id => {
+        const d = DX_BY_ID[id]; if (!d) return;
+        const chip = jpChip('🩺 ' + (LANG === 'id' ? d.idn : d.zh), jpDx.has(id));
+        chip.addEventListener('click', () => { jpDx.has(id) ? jpDx.delete(id) : jpDx.add(id); renderBuilder(); applyInterpretations(); });
+        dxHost.appendChild(chip);
+      });
+    } else {
+      dxLabelEl.style.display = 'none'; dxHost.style.display = 'none';
+      dxLabelEl.textContent = ''; dxHost.innerHTML = '';
+    }
+  }
   updateJpHint();
 }
 function applyFocus(){
@@ -782,17 +813,20 @@ function updateJpHint(){
   const h = document.getElementById('jp-hint');
   if (!h) return;
   const sel = THIRD_VARS.filter(v => jpTV.has(v.id));
-  if (!sel.length){ h.textContent = L('（未加第三變數：只看基礎研判的兩指標）', '(Tanpa variabel ketiga)'); return; }
-  const names = sel.map(v => L(v.zh, v.idn)).join('、');
-  let rel = '';
-  if (jpFocus){
-    const relV = sel.filter(v => v.applies.includes(jpFocus));
-    rel = relV.length ? L('｜與本研判相關：' + relV.map(v => L(v.zh, v.idn)).join('、'),
-                          ' | terkait: ' + relV.map(v => L(v.zh, v.idn)).join(', '))
-                      : L('｜與本研判關聯較低', ' | kurang terkait');
+  const dxSel = (typeof DX_BY_ID !== 'undefined') ? [...jpDx].map(id => DX_BY_ID[id]).filter(Boolean) : [];
+  if (!sel.length && !dxSel.length){
+    h.textContent = L('（未加變數/疾病：只看基礎研判。到「管理設定」勾選病患疾病後，這裡會多出可疊加的病名。）',
+                      '(Belum ada variabel/penyakit. Pilih penyakit di Pengaturan untuk menambah faktor.)');
+    return;
   }
-  h.innerHTML = L('已加第三變數：<b>' + names + '</b>' + rel + '。相關圖表下方會多出紫色「➕」小卡，固定三行：①變動（兩組平均差多少）②影響（本圖判讀因此要注意什麼）③建議（照護上怎麼做）。跨圖組合另見下方 🔗 綜合研判卡。',
-                  'Variabel ketiga: <b>' + names + '</b>' + rel + '. Kartu ungu "➕" muncul di bawah grafik terkait: ①Perubahan ②Dampak ③Saran.');
+  const tvNames = sel.map(v => L(v.zh, v.idn)).join('、');
+  const dxNames = dxSel.map(d => L(d.zh, d.idn)).join('、');
+  const parts = [];
+  if (tvNames) parts.push(L('變數：<b>' + tvNames + '</b>', 'Variabel: <b>' + tvNames + '</b>'));
+  if (dxNames) parts.push(L('疾病：<b>' + dxNames + '</b>', 'Penyakit: <b>' + dxNames + '</b>'));
+  h.innerHTML = parts.join('｜') + L(
+    '。相關圖下方會出現紫色「🧩 整合研判」卡，四段：①變動（實證：條件成立/不成立日的數值差）②為什麼（機制）③影響總結（變數＋疾病整合，非相加）④建議（非處方照護行動）。跨圖組合另見下方 🔗 綜合研判卡。',
+    '. Kartu ungu "🧩" muncul di bawah grafik terkait: ①Perubahan ②Sebab ③Dampak terpadu ④Saran (bukan resep).');
 }
 
 function renderSkeleton(){
@@ -1595,6 +1629,32 @@ function analyzeRange(DAYS){
       zh: `⚠️ <b>藥可能「作用過頭了」</b>：血壓連續幾天偏低（圖②），心跳也掉到 55 以下（圖③）。合起來看，可能是<b>降壓藥或心律藥的劑量相對偏強</b>。要特別小心站起來時頭暈、跌倒。👉 回診請醫師評估是不是要減量。[需獨立驗證]`,
       id: `⚠️ <b>Obat mungkin "terlalu kuat"</b>: tensi rendah beberapa hari (grafik ②) & detak di bawah 55 (grafik ③). Mungkin <b>dosis obat tensi/aritmia relatif berlebih</b>. Hati-hati pusing saat berdiri & jatuh. 👉 Minta dokter menilai apakah perlu menurunkan dosis. [perlu verifikasi mandiri]` });
   }
+  // P4 定性影響圖（跨圖 N:M，疾病感知加層）：range 級訊號→driver 旗標→care-clinical.propagate。
+  // 只在有選中疾病(jpDx)時加層；純 driver 匯聚已由上面 hidden 規則覆蓋。
+  if (typeof propagate === 'function' && typeof jpDx !== 'undefined' && jpDx.size){
+    const driverFlags = {
+      retain: retainRun >= 2, widePP: ppHi >= 1, highIntake: over >= 1, lowUrine: lowUrine >= 1,
+      nearLowIntake: nearLow >= 2,
+      dehydrationSign: nearLow >= 1 && (distalTrend < 0 || hard >= 1),
+      hardStool: hard >= 2, nonDip: n >= 4 && nonDip >= Math.ceil(n * 0.6),
+      highRPP: red >= 1, distalWeak: distalTrend < 0,
+      lowBP: countDays(d => d.am && d.am.sys < 110) >= 2,
+      brady: countDays(d => (d.am && d.am.hr < 55) || (d.pm && d.pm.hr < 55)) >= 1,
+      coldSnap: false, humidLowPressure: false, highWBGT: false, highPM25: false, bigTempSwing: false
+    };
+    // P5：氣象資料流入後（d.weather 存在）覆寫氣象旗標；目前無 d.weather → 全 false 安全跳過
+    const wd = days.filter(d => d.weather);
+    if (wd.length){
+      const anyW = f => wd.some(f);
+      driverFlags.coldSnap = anyW(d => d.weather.temp != null && d.weather.temp <= 12);
+      driverFlags.highWBGT = anyW(d => d.weather.wbgt != null && d.weather.wbgt >= 31);
+      driverFlags.highPM25 = anyW(d => d.weather.pm25 != null && d.weather.pm25 >= 35);
+      driverFlags.humidLowPressure = anyW(d => d.weather.rh != null && d.weather.rh >= 80 && d.weather.pressure != null && d.weather.pressure <= 1005);
+      const temps = wd.map(d => d.weather.temp).filter(x => x != null);
+      driverFlags.bigTempSwing = temps.length >= 2 && (Math.max(...temps) - Math.min(...temps)) >= 8;
+    }
+    propagate(driverFlags, [...jpDx]).forEach(it => hidden.push({ level: it.level, zh: it.zh, id: it.id }));
+  }
   const rank = { crit: 0, serious: 1, warn: 2 };
   hidden.sort((a, b) => rank[a.level] - rank[b.level]);
 
@@ -1725,71 +1785,52 @@ function tvClassify(tvId, d){
     default: return {};
   }
 }
-function tvRiskNote(k, A, B){
-  switch (k) {
-    case 'c1|diur':  return A > 250 ? { flag: true, zh: '有利尿藥的日子仍明顯滯留，利尿效果可能不足', id: 'retensi tetap tinggi meski diuretik — mungkin kurang' } : { flag: false, zh: '利尿藥日滯留較低，反應尚可', id: 'retensi lebih rendah dengan diuretik' };
-    case 'c6|diur':  return A >= 60 ? { flag: true, zh: '有利尿藥脈壓差仍偏高，容積負荷未完全緩解', id: 'tekanan nadi tetap tinggi' } : null;
-    case 'c1|eat':   return A > B ? { flag: false, zh: '進食多的日子總攝入偏高，含水食物確實佔一部分水分', id: 'makan lebih → asupan lebih tinggi' } : null;
-    case 'c1|foodw': return { flag: false, zh: '食物含水占比越高，越要記得算進總攝入', id: 'rasio air makanan tinggi → hitung ke total' };
-    case 'c7|exvol': return A > B ? { flag: true, zh: '運動量大的日子心肌耗氧偏高，屬運動當下生理性；靜息日仍高才需警覺', id: 'RPP naik di hari beban tinggi (fisiologis)' } : null;
-    case 'c2|exvol': return A > B ? { flag: true, zh: '運動量大的日子血壓偏高，避免飯後或劇烈後立即量', id: 'tensi lebih tinggi di hari beban besar' } : null;
-    case 'c5|diur':  return { flag: true, zh: '利尿藥可能連腸道水分一起帶走，留意乾硬便', id: 'diuretik bisa mengeringkan usus' };
-    case 'c5|lax':   return { flag: false, zh: '利便藥日排便較多屬預期，觀察是否過度', id: 'BAB lebih banyak di hari pencahar' };
-    case 'c5|eat':   return A > B ? { flag: true, zh: '進食量少的日子排便也少，可能是吃太少造成，先補進食再考慮加藥', id: 'makan sedikit → BAB sedikit; tambah makan dulu' } : null;
-    case 'c9|eat':   return { flag: false, zh: '進食足夠有助末梢肌力與能量', id: 'makan cukup bantu otot distal' };
-    case 'c9|foodw': return { flag: false, zh: '含水食物有助補水，末梢變弱時可增加', id: 'makanan berair bantu hidrasi' };
-  }
-  return null;
-}
-/* 每個第三變數的固定「③建議」（照護行動層，非醫療處方；劑量類一律導向醫師） */
-const TV_ADVICE = {
-  diur:  ['利尿藥有無/劑量由醫師決定；照顧者只要每天照實勾選。若「有藥的日子」指標仍異常（滯留高/尿量沒增加），把這張圖帶去回診。', 'Dosis diuretik urusan dokter; catat jujur tiap hari. Bila hari berobat tetap abnormal, bawa grafik ini saat kontrol.'],
-  lax:   ['利便藥顆數照醫囑；若有藥仍連日 0 排便，先檢查攝入與進食量，回診討論，不自行加藥。', 'Butir pencahar sesuai resep; bila tetap tak BAB, cek asupan dulu & diskusikan dengan dokter.'],
-  slot:  ['血壓固定「晨起後、睡前」量，其他時段的數字不要拿來互相比較。', 'Ukur tensi pada waktu tetap (pagi bangun & sebelum tidur); angka di luar itu jangan dibandingkan.'],
-  stool: ['持續乾硬→先看攝入是否貼近下限；持續稀水→回報醫師，並注意脫水。', 'Feses keras terus → cek asupan; encer terus → lapor dokter, waspada dehidrasi.'],
-  foodw: ['湯湯水水占比高的日子，記得把食物含水全算進攝入，帳面才不會少算。', 'Hari makanan berair tinggi: hitung airnya ke total asupan.'],
-  medw:  ['服藥飲水是固定開銷；攝入接近上限時先調整其他飲水，不要壓縮服藥水量。', 'Air minum obat itu tetap; bila asupan mepet batas, kurangi minum lain, bukan air obat.'],
-  exvol: ['運動量大的隔天看晚間心跳有沒有降回來；降不回來就把當日復健量調輕並記錄。', 'Setelah hari beban besar, cek detak malam; bila tak turun, ringankan latihan esoknya.'],
-  eat:   ['進食少的日子通常水分也少；先補進食，再觀察排便/尿量有沒有跟著回來。', 'Hari makan sedikit biasanya cairan ikut kurang; tambah makan dulu, lalu pantau BAB/urine.']
-};
-function thirdVarRisk(cardId, tvId, DAYS){
-  const tvName = THIRD_VARS.find(v => v.id === tvId) || { zh: tvId, idn: tvId };
-  const adv = TV_ADVICE[tvId] || ['', ''];
-  const three = (chg, imp) => ({ flag: imp.flag || false,
-    zh: `➕ <b>${tvName.zh} × 本圖</b><br>①變動：${chg[0]}<br>②影響：${imp.zh}${imp.flag ? ' [需獨立驗證]' : ''}<br>③建議：${adv[0]}`,
-    id: `➕ <b>${tvName.idn}</b><br>①Perubahan: ${chg[1]}<br>②Dampak: ${imp.id}<br>③Saran: ${adv[1]}` });
-  if (tvId === 'slot') return three(
-    ['圖上早／晚兩條線的高低差＝時段效應', 'selisih garis pagi vs malam = efek waktu'],
-    { zh: '同一天早晚可能一高一低，混在一起平均會蓋掉問題——本圖要早晚分開看', id: 'pagi & malam bisa berlawanan; lihat terpisah', flag: false });
-  const rows = DAYS.filter(d => d.has && chartMetric(cardId, d) != null).map(d => ({ c: tvClassify(tvId, d), m: chartMetric(cardId, d) }));
-  if (rows.length < 2) return null;
-  const ml = METRIC_LABEL[cardId] || ['指標', '', 'indikator'];
-  let hi, lo, hiLbl, loLbl;
-  if (rows[0].c.has !== undefined) {
-    hi = rows.filter(x => x.c.has); lo = rows.filter(x => !x.c.has);
-    hiLbl = L(`有${tvName.zh}的日子`, `dengan ${tvName.idn}`); loLbl = L('沒有的日子', 'tanpa');
-  } else if (rows[0].c.val !== undefined) {
-    const vals = rows.map(x => x.c.val).sort((a, b) => a - b); const med = vals[Math.floor(vals.length / 2)];
-    hi = rows.filter(x => x.c.val > med); lo = rows.filter(x => x.c.val <= med);
-    hiLbl = L(`${tvName.zh}較高的日子`, `${tvName.idn} tinggi`); loLbl = L('較低的日子', 'rendah');
-  } else return null;
-  if (!hi.length || !lo.length) return three(
-    [`此區間每天的「${tvName.zh}」狀態都一樣，分不出兩組可對照`, `data "${tvName.idn}" seragam, belum bisa dibandingkan`],
-    { zh: '看不出此變數對本圖的影響；等紀錄累積出「有/無」都出現的日子再看', id: 'belum terlihat dampaknya; tunggu data bervariasi', flag: false });
-  const mean = a => Math.round(a.reduce((s, x) => s + x.m, 0) / a.length * 10) / 10;
-  const A = mean(hi), B = mean(lo);
-  const diff = Math.round((A - B) * 10) / 10;
-  const chg = [`${hiLbl}「${ml[0]}」平均 ${A}${ml[1]}，${loLbl} ${B}${ml[1]}（差 ${diff > 0 ? '+' : ''}${diff}${ml[1]}）`,
-               `${hiLbl}: ${ml[2]} ~${A}${ml[1]}, ${loLbl}: ~${B}${ml[1]} (Δ ${diff})`];
-  const note = tvRiskNote(cardId + '|' + tvId, A, B);
-  const small = Math.abs(diff) <= Math.max(Math.abs(A), Math.abs(B), 1) * 0.05;
-  const imp = note ? { zh: note.zh, id: note.id, flag: note.flag }
-    : small ? { zh: '兩組差異不大，此變數對本圖影響有限', id: 'selisih kecil; dampak variabel ini terbatas', flag: false }
-    : { zh: `「${ml[0]}」被此變數整體${diff > 0 ? '推高' : '壓低'}約 ${Math.abs(diff)}${ml[1]}——圖上${diff > 0 ? '偏高' : '偏低'}的日子先想到「${tvName.zh}」，再判斷是不是病情變化`,
-        id: `${ml[2]} ${diff > 0 ? 'naik' : 'turun'} ~${Math.abs(diff)}${ml[1]} oleh variabel ini; pertimbangkan dulu sebelum menilai kondisi`, flag: false };
-  return three(chg, imp);
-}
+/* 舊 per-變數卡（tvRiskNote / TV_ADVICE / thirdVarRisk）已由 care-clinical.js 的三軸整合引擎
+ * clinicalIntegrate() ＋ 本檔 computeEmpirical() 取代；chartMetric/tvClassify/METRIC_LABEL 仍被 computeEmpirical 複用。 */
 const LEVEL_TAG = { good: '🟢', warn: '🟡', serious: '🟠', crit: '🔴' };
+
+/* 三軸實證層：算本圖指標「所選變數條件全成立日 vs 全不成立日」的均差（joint），
+ * 聯合資料不足(<2天任一側)時退回各變數邊際差(marginals)。供 care-clinical.clinicalIntegrate 的①變動用。
+ * 複用既有 chartMetric / tvClassify / METRIC_LABEL / THIRD_VARS；slot(時段) 無中位可分組故排除。 */
+function computeEmpirical(cardId, tvIds, DAYS){
+  const ml = METRIC_LABEL[cardId] || ['指標', '', 'indikator'];
+  const has = DAYS.filter(d => d.has && chartMetric(cardId, d) != null);
+  const usableTVs = (tvIds || []).filter(t => t !== 'slot');
+  const mean = a => a.length ? Math.round(a.reduce((s, x) => s + x, 0) / a.length * 10) / 10 : null;
+  const medians = {};
+  usableTVs.forEach(tv => {
+    const vals = has.map(d => tvClassify(tv, d).val).filter(v => v !== undefined).sort((a, b) => a - b);
+    if (vals.length) medians[tv] = vals[Math.floor(vals.length / 2)];
+  });
+  const dayMeetsTV = (tv, d) => {
+    const c = tvClassify(tv, d);
+    if (c.has !== undefined) return !!c.has;
+    if (c.val !== undefined && medians[tv] !== undefined) return c.val > medians[tv];
+    return false;
+  };
+  let joint = null;
+  if (usableTVs.length){
+    const hi = [], lo = [];
+    has.forEach(d => {
+      const flags = usableTVs.map(tv => dayMeetsTV(tv, d));
+      if (flags.every(x => x)) hi.push(chartMetric(cardId, d));
+      else if (flags.every(x => !x)) lo.push(chartMetric(cardId, d));
+    });
+    if (hi.length >= 2 && lo.length >= 2){
+      const A = mean(hi), B = mean(lo);
+      joint = { n: hi.length, A, B, diff: Math.round((A - B) * 10) / 10 };
+    }
+  }
+  const marginals = usableTVs.map(tv => {
+    const hi = [], lo = [];
+    has.forEach(d => { (dayMeetsTV(tv, d) ? hi : lo).push(chartMetric(cardId, d)); });
+    if (hi.length < 1 || lo.length < 1) return null;
+    const A = mean(hi), B = mean(lo);
+    const nm = THIRD_VARS.find(v => v.id === tv) || { zh: tv, idn: tv };
+    return { tvZh: nm.zh, tvIdn: nm.idn, n: hi.length, A, B, diff: Math.round((A - B) * 10) / 10 };
+  }).filter(Boolean);
+  return { metricLabel: ml, joint, marginals };
+}
 function applyInterpretations(){
   const A = analyzeRange(DAYS);
   CARDS.forEach(c => {
@@ -1808,20 +1849,22 @@ function applyInterpretations(){
       const eg = chartExample(c.id, DAYS);
       const watch = c.watch ? L(c.watch[0], c.watch[1]) : null;
       const tell = c.tell ? L(c.tell[0], c.tell[1]) : null;
-      if (!v && !eg) { fp.style.display = 'none'; fp.innerHTML = ''; }
+      // 三軸整合卡：本圖 × 選中第三變數 × 病患疾病 → 一張四段研判（取代舊的並排單變數卡）
+      let integ = null;
+      const activeTVs = THIRD_VARS.filter(tv => jpTV.has(tv.id) && tv.applies.includes(c.id)).map(tv => tv.id);
+      const activeDx = [...jpDx];
+      if ((activeTVs.length || activeDx.length) && typeof clinicalIntegrate === 'function'){
+        integ = clinicalIntegrate({ cardId: c.id, tvIds: activeTVs, dxIds: activeDx,
+          empirical: computeEmpirical(c.id, activeTVs, DAYS), lang: LANG });
+      }
+      if (!v && !eg && !integ) { fp.style.display = 'none'; fp.innerHTML = ''; }
       else {
         fp.style.display = '';
         let html = '';
         if (eg) html += `<div class="fp fp-eg">${LANG === 'id' ? eg.id : eg.zh}</div>`;
         if (watch) html += `<div class="fp fp-watch">⚠️ ${L('現在要注意', 'Perhatikan sekarang')}：${watch}</div>`;
         if (tell) html += `<div class="fp fp-tell">🩺 ${L('回診跟醫生說', 'Sampaikan ke dokter')}：${tell}</div>`;
-        if (jpTV.size) {
-          THIRD_VARS.forEach(tv => {
-            if (!jpTV.has(tv.id) || !tv.applies.includes(c.id)) return;
-            const r = thirdVarRisk(c.id, tv.id, DAYS);
-            if (r) html += `<div class="fp fp-x${r.flag ? ' fp-xflag' : ''}">${LANG === 'id' ? r.id : r.zh}</div>`;
-          });
-        }
+        if (integ) html += `<div class="fp fp-x${integ.flag ? ' fp-xflag' : ''}">${LANG === 'id' ? integ.id : integ.zh}</div>`;
         fp.innerHTML = html;
       }
     }
@@ -1831,8 +1874,8 @@ function applyInterpretations(){
   const body = document.getElementById('synth-body');
   // 說明列：這張卡＝固定跨圖規則逐條比對，不是 15 圖總結
   const expl = `<p class="synth-expl">${L(
-    'ℹ️ 這裡不是 15 張圖的總結：系統內建數條固定「跨圖交叉規則」，每條同時檢查 2–3 張圖的條件（文內標了是哪幾張圖），該區間內全部成立才會亮出來，依嚴重度排序。沒亮＝那個危險組合目前沒出現。',
-    'ℹ️ Bukan ringkasan 15 grafik: aturan silang tetap, tiap aturan memeriksa kondisi 2–3 grafik sekaligus; hanya muncul bila semua terpenuhi, diurut berdasarkan tingkat keparahan.')}</p>`;
+    'ℹ️ 這裡不是 15 張圖的總結：系統內建數條固定「跨圖交叉規則」，每條同時檢查 2–3 張圖的條件（文內標了是哪幾張圖），該區間內全部成立才會亮出來，依嚴重度排序。沒亮＝那個危險組合目前沒出現。若在上方建構器勾選了病患疾病，會再加上 🕸️「跨系統網絡」研判（多因子 N:M＋疾病敏化，屬定性知識網絡、非機率貝氏預測，需醫師判讀）。',
+    'ℹ️ Bukan ringkasan 15 grafik: aturan silang tetap, tiap aturan memeriksa kondisi 2–3 grafik sekaligus; hanya muncul bila semua terpenuhi, diurut berdasarkan tingkat keparahan. Bila penyakit pasien dipilih di atas, ditambah analisis 🕸️ "jaringan lintas-sistem" (N:M + sensitisasi penyakit; kualitatif, bukan prediksi probabilistik).')}</p>`;
   if (!A.hidden.length) {
     body.innerHTML = expl + `<div class="synth-item lv-good"><span class="tag">🟢</span>${
       L('目前跨圖未出現需要留意的變數組合。', 'Belum ada kombinasi variabel yang perlu diperhatikan.')}</div>`;
