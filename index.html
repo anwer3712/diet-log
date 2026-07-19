@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>奶奶照護日誌 / Catatan Perawatan Nenek</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=11"></script>
+    <script src="care-tasks.js?v=12"></script>
     <style>
         body.mode-zh .lang-id, body.mode-zh .lang-sep, body.mode-zh br.lang-br { display: none; }
         body.mode-id .lang-zh, body.mode-id .lang-sep, body.mode-id br.lang-br { display: none; }
@@ -502,9 +502,11 @@
         function renderTopBar(){
             const us = document.getElementById('user-switch');
             const nm = u => careUserName(cloudGoals, u);   // 管理者設定的名字，未設定則顯示 U1/U2/U3
-            us.innerHTML = [['1','👤'+nm('1')],['2','👤'+nm('2')],['3','👤'+nm('3')],['4','👤'+nm('4')],['A','⚙️' + LTXT('管理','Admin')]].map(([u,lbl]) =>
+            us.innerHTML = [['1','👤'+nm('1')],['2','👤'+nm('2')],['3','👤'+nm('3')],['4','👤'+nm('4')]].map(([u,lbl]) =>
                 `<button type="button" onclick="switchUser('${u}')" class="px-2.5 py-1.5 rounded-full text-[11px] font-black border ${CARE_USER===u?'bg-[#FB8B7A] text-white border-[#FB8B7A]':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
-            ).join('') + `<a href="anak.html" class="px-2.5 py-1.5 rounded-full text-[11px] font-black border bg-indigo-50 text-indigo-600 border-indigo-300">👦 Anak</a>`;
+            ).join('')
+            + `<button type="button" onclick="openAdminSettings()" class="px-2.5 py-1.5 rounded-full text-[11px] font-black border ${CARE_USER==='A'?'bg-[#FB8B7A] text-white border-[#FB8B7A]':'bg-purple-50 text-purple-600 border-purple-300'}">⚙️${LTXT('管理','Admin')}</button>`
+            + `<a href="anak.html" class="px-2.5 py-1.5 rounded-full text-[11px] font-black border bg-indigo-50 text-indigo-600 border-indigo-300">👦 Anak</a>`;
             const ls = document.getElementById('lang-switch');
             ls.innerHTML = [['zh','中文'],['id','ID']].map(([m,lbl]) =>
                 `<button type="button" onclick="switchLang('${m}')" class="px-2.5 py-1.5 rounded-full text-[10px] font-black border ${LANG_MODE===m?'bg-sky-400 text-white border-sky-400':'bg-white text-gray-500 border-gray-200'}">${lbl}</button>`
@@ -520,6 +522,15 @@
             careSetUser(u); location.reload();
         };
         window.switchLang = function(m){ careSetLang(m); location.reload(); };
+        // ⚙️管理＝設定入口（2026-07-19 依需求由「切身分」改為開啟管理設定頁；同時把此裝置切成管理者身分）
+        window.openAdminSettings = function(){
+            if (!medUnlocked() && !careAskPin(LTXT('管理設定需要密碼：', 'Perlu PIN admin:'))) {
+                showToast(LTXT('密碼錯誤', 'PIN salah'), true); return;
+            }
+            sessionStorage.setItem('care_admin_ok', '1');
+            careSetUser('A');
+            location.href = 'admin-settings.html';
+        };
 
         // 今日完成進度格（時段/項目/方格），每次紀錄變動後重繪
         function updateProgressGrid(){
@@ -640,6 +651,15 @@
             const cZh = document.getElementById('catheter-text-zh'), cId = document.getElementById('catheter-text-id');
             if (cZh) cZh.textContent = uiText('catheter','zh') || `🚽 早上、下午各一次訓練尿感：關閉導尿管，每次最多 ${UI.num.catheterHours} 小時。`;
             if (cId) cId.textContent = uiText('catheter','id') || `Latihan sensasi kencing sekali di pagi hari dan sekali di sore hari: tutup kateter, maksimal ${UI.num.catheterHours} jam setiap kali.`;
+            // 其餘提示卡/警語自訂文字：有填任一語言 → 整塊改用自訂內容（管理設定 👁️ 顯示項目 ✏️）
+            const OVERRIDE_BLOCKS = { bpGuide:'bp-guide-card', rehabNote:'rehab-note', standWarn:'stand-warning', enemaWarn:'enema-warning' };
+            Object.keys(OVERRIDE_BLOCKS).forEach(k => {
+                const zh = uiText(k,'zh'), id = uiText(k,'id');
+                if (!zh && !id) return;
+                const el = document.getElementById(OVERRIDE_BLOCKS[k]);
+                if (el) el.innerHTML = (zh ? `<p class="lang-zh">${careEscapeHtml(zh)}</p>` : '')
+                    + (id ? `<p class="lang-id text-[11px] font-medium">${careEscapeHtml(id)}</p>` : '');
+            });
             renderNoticeSlots();
             if (window.renderUrineMedChips) renderUrineMedChips();
         }
@@ -1052,6 +1072,30 @@ function checkBpTime() {
             }
         }
 
+        // ===== 自訂時間提醒（管理設定 ⏰）：到點彈窗，每支裝置每日每則一次；每 30 秒檢查 =====
+        function checkCustomReminders() {
+            if (!UI.popup.reminder) return;   // 沿用提醒總開關
+            const now = new Date();
+            const hm = now.toTimeString().substring(0, 5);
+            const today = careTodayStr();
+            const due = [];
+            (UI.reminders || []).forEach((r, i) => {
+                if (!r || !r.on || !/^\d{2}:\d{2}$/.test(r.time || '') || (!r.zh && !r.id)) return;
+                const key = 'custom_rem_' + today + '_' + i + '_' + r.time;
+                if (hm >= r.time && !localStorage.getItem(key)) { localStorage.setItem(key, '1'); due.push(r); }
+            });
+            if (due.length === 0) return;
+            document.getElementById('reminder-content').innerHTML = due.map(r =>
+                `<div class="border-l-4 border-sky-400 pl-3 py-1.5 bg-stone-50/50 rounded-r-xl"><p class="font-black text-sm">⏰ ${r.time}｜${careEscapeHtml(r.zh || '')}${r.id ? `<br><span class="text-xs text-gray-500">${careEscapeHtml(r.id)}</span>` : ''}</p></div>`).join('');
+            document.getElementById('reminder-modal').classList.remove('hidden');
+            // 清 7 天前的舊 key
+            const cutoff = new Date(now.getTime() - 7 * 864e5).toISOString().split('T')[0];
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('custom_rem_') && k.slice(11, 21) < cutoff) localStorage.removeItem(k);
+            }
+        }
+
         function setStoolStatus(status) { document.getElementById('input-note').value = status; }
         function setUrineColor(color) { document.getElementById('input-note').value = color; }
         function toggleEnemaWarning() {
@@ -1174,6 +1218,7 @@ function checkBpTime() {
             updateTargetPanel();
             renderRecords();
             checkReminders();
+            checkCustomReminders();
             checkBowelMovementAlert();
             renderTopBar();   // 名字存雲端，取回後更新身分按鈕
         }
@@ -1411,6 +1456,7 @@ function checkBpTime() {
             paintMedLock();        // 藥物鎖定視覺初始狀態
             setNow(); updateView(); fetchCloudData();
             setGuide('date');   // 引導起點：日期框閃水藍
+            setInterval(checkCustomReminders, 30000);   // 自訂時間提醒：頁面開著也會到點跳
         };
 
         function checkBowelMovementAlert() {

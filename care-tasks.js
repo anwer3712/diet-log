@@ -211,9 +211,12 @@ const CARE_UI_DEFAULTS = {
         gridRemind: true, bowelAlert: true, bpAlert: true, fluidOver: true, urineOver: true
     },
     text: {                     // 可編提示文字（雙語）；空字串＝用頁面內建文字
-        bedRail: { zh: '', id: '' }, catheter: { zh: '', id: '' }
+        bedRail: { zh: '', id: '' }, catheter: { zh: '', id: '' },
+        bpGuide: { zh: '', id: '' }, rehabNote: { zh: '', id: '' },
+        standWarn: { zh: '', id: '' }, enemaWarn: { zh: '', id: '' }
     },
     notices: [],                // 自訂公告槽：{ on:true, zh:'', id:'', pos:'top'|'output' }
+    reminders: [],              // 自訂時間提醒：{ on:true, time:'HH:MM', zh:'', id:'' }，index 到時彈窗（每日一次）
     time: {
         intakeCheck: '21:00', rehabFrom: '16:00', rehabDeadline: '19:00',
         gridFrom: '20:00', urineFrom: '21:01', bpMorning: '10:00', bpNight: '21:00'
