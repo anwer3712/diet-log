@@ -1,4 +1,4 @@
-# 奶奶照護日誌 / Grandma Care Log
+# 陽光照護日誌 / Sunshine Care Log
 > A free, open-source daily care tracking tool for elderly patients — built for family caregivers.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)

@@ -1,4 +1,4 @@
-# Contributing to Grandma Care Log
+# Contributing to Sunshine Care Log
 
 Thank you for your interest in improving this home-care tool! This project exists to help family caregivers everywhere, and contributions of all kinds are welcome.
 

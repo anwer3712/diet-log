@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>奶奶照護日誌 / Catatan Perawatan Nenek</title>
+    <title>陽光照護日誌 / Catatan Perawatan Mentari</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="care-tasks.js?v=12"></script>
     <style>
@@ -79,8 +79,8 @@
     <div class="max-w-md mx-auto px-4 pt-5">
 
         <div class="text-center mb-4">
-            <a href="admin.html"><h1 class="text-xl font-black text-[#FB8B7A] tracking-wide flex items-center justify-center gap-1.5">👵💗 奶奶照護日誌</h1></a>
-            <p class="text-[11px] text-gray-400 font-bold mt-0.5">Buku Harian Perawatan Nenek</p>
+            <a href="admin.html"><h1 class="text-xl font-black text-[#FB8B7A] tracking-wide flex items-center justify-center gap-1.5">☀️💗 陽光照護日誌</h1></a>
+            <p class="text-[11px] text-gray-400 font-bold mt-0.5">Buku Harian Perawatan Mentari</p>
         </div>
 
         <!-- 今日完成進度格：時段 / 項目 / 方格（最上方，一眼看完今天還缺什麼） -->
@@ -347,7 +347,7 @@
     <div id="bp-alert-modal" class="fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4 hidden">
         <div class="modal-pop danger bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-red-500 text-center space-y-4">
             <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-4xl animate-bounce">⚠️</div>
-            <h4 class="font-black text-red-700 text-2xl leading-tight">請注意奶奶狀況！<br><span class="text-lg">Perhatikan kondisi Nenek!</span></h4>
+            <h4 class="font-black text-red-700 text-2xl leading-tight">請注意長輩狀況！<br><span class="text-lg">Perhatikan kondisi Lansia!</span></h4>
             <p id="bp-alert-sub" class="text-base font-black text-gray-700"></p>
             <div id="bp-alert-body" class="space-y-2"></div>
             <button type="button" onclick="closeBpAlert()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl py-4 text-xl shadow-md transition-all">我知道了 / Saya mengerti</button>
@@ -1003,7 +1003,7 @@ function checkBpTime() {
             const exTypes = CARE_EX_TYPES;   // 復健項目中央定義在 care-tasks.js
             const missingEx = CARE_EX_TYPES.filter(ex => !records.some(r => r.category === ex));
 
-            const stillNote = `<p class="text-xs text-orange-500 mt-1">※ 測量血壓前，請奶奶保持靜止15分鐘，確保讀數準確。<br>Sebelum mengukur tekanan darah, mintalah Nenek untuk diam selama 15 menit untuk memastikan pembacaan yang akurat.</p>`;
+            const stillNote = `<p class="text-xs text-orange-500 mt-1">※ 測量血壓前，請長輩保持靜止15分鐘，確保讀數準確。<br>Sebelum mengukur tekanan darah, mintalah Lansia untuk diam selama 15 menit untuk memastikan pembacaan yang akurat.</p>`;
 
             const redMissed = (zh, id) => `<div class="bg-red-50 border border-red-200 rounded-2xl p-2.5 mb-2"><p class="text-red-700 font-black text-sm">🚨 ${zh}<br><span class="text-[11px] font-medium text-red-500">${id}</span></p></div>`;
             const blueGuide = (html) => `<div class="border-l-4 border-sky-400 pl-3 py-1.5 bg-stone-50/50 rounded-r-xl">${html}</div>`;
@@ -1015,7 +1015,7 @@ function checkBpTime() {
             // === 運動提醒：復健期限前尚未完成任何復健項目則提醒 ===
             if (UI.popup.rehabRemind && hourMin >= UI.time.rehabFrom && hourMin < UI.time.rehabDeadline) {
                 const exDone2 = records.filter(r => r.type === '運動').length;
-                if (exDone2 < 1) reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 今日尚未進行復健運動<br><span class="text-xs text-gray-500">Nenek belum melakukan latihan rehabilitasi hari ini</span></p>`));
+                if (exDone2 < 1) reminders.push(blueGuide(`<p class="font-black text-sm">🏃‍♀️ 今日尚未進行復健運動<br><span class="text-xs text-gray-500">Lansia belum melakukan latihan rehabilitasi hari ini</span></p>`));
             }
             if (hourMin >= UI.time.rehabDeadline && exDone === 0) missedSet.add('evening_ex');
             else missedSet.delete('evening_ex');
@@ -1042,7 +1042,7 @@ function checkBpTime() {
             const missedLabel = {
                 'morning_bp': ['尚未測量早上血壓', 'Belum ukur tekanan darah pagi'],
                 'evening_bp': ['尚未測量睡前血壓', 'Belum ukur tekanan darah sebelum tidur'],
-                'evening_ex': ['尚未完成復健運動', 'Nenek belum latihan hari ini'],
+                'evening_ex': ['尚未完成復健運動', 'Lansia belum latihan hari ini'],
             };
             let redItems = [];
             missedSet.forEach(key => {
@@ -1304,7 +1304,7 @@ function checkBpTime() {
                 const hr = document.getElementById('input-bp-hr').value;
                 if (!sys || !dia || !hr) return showToast("請完整填寫血壓與心跳數值！", true);
                 amount = `${sys}/${dia} (心跳:${hr})`;
-                // 合理區間檢查（care-tasks.js v7）：超出→彈窗提醒注意奶奶狀況，不擋存檔
+                // 合理區間檢查（care-tasks.js v7）：超出→彈窗提醒注意長輩狀況，不擋存檔
                 const bpChk = careBpViolations(category, sys, dia, hr, UI);
                 if (bpChk.violations.length > 0 && UI.popup.bpAlert) showBpAlert(bpChk);
             } else {

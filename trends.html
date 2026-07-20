@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>健康趨勢分析 — 奶奶照護日誌 / Analisis Tren Kesehatan</title>
+<title>健康趨勢分析 — 陽光照護日誌 / Analisis Tren Kesehatan</title>
 <!-- Chart.js 4.4.1（本地 vendor，無 CDN 依賴；MIT 授權見 vendor/chart.LICENSE.md） -->
 <script src="vendor/chart.umd.min.js"></script>
 <script src="care-tasks.js?v=12"></script>
@@ -640,15 +640,15 @@ const CARDS = [
     watch: ['心律不整時單次數字會跳，重點看有沒有突然很快（>100）或很慢（<55）；出現時記下當下在做什麼。', 'Saat aritmia satu angka bisa melonjak; perhatikan terlalu cepat (>100) atau lambat (<55). Catat aktivitas saat itu.'],
     tell: ['回報異常尖峰或過慢的日子與情境，問醫師心律藥劑量是否合適。', 'Laporkan hari lonjakan/terlalu lambat & konteksnya; tanyakan dosis obat aritmia.'],
     title: ['③ 心跳與心律穩定度', '③ Stabilitas Detak Jantung'],
-    interplay: ['奶奶有永久性心律不整，單獨一次心跳數意義不大，要看「整段時間的上下擺盪幅度」。突然的尖峰（太快）或掉太低（太慢），才是要抓出來、回報醫師的訊號。', 'Karena aritmia permanen, satu angka detak kurang berarti; lihat rentang naik-turunnya. Lonjakan mendadak (terlalu cepat) atau terlalu lambat adalah sinyal untuk dilaporkan.'],
+    interplay: ['長輩有永久性心律不整，單獨一次心跳數意義不大，要看「整段時間的上下擺盪幅度」。突然的尖峰（太快）或掉太低（太慢），才是要抓出來、回報醫師的訊號。', 'Karena aritmia permanen, satu angka detak kurang berarti; lihat rentang naik-turunnya. Lonjakan mendadak (terlalu cepat) atau terlalu lambat adalah sinyal untuk dilaporkan.'],
     purpose: ['心跳獨立成圖（不與血壓共用座標軸），追蹤永久性心律不整＋心臟擴大下的靜息心跳波動與異常尖峰。',
               'Detak jantung dipisah dari tensi; memantau fluktuasi & lonjakan abnormal pada aritmia permanen + kardiomegali.'],
     src: '來源：《預測心律不整病患血壓監測》、《照護紀錄升級：目標與圖表》' },
   { id: 'c4', icon: '💪', h: 'h240', radar: true,
-    watch: ['達標率低先分辨是「還沒力氣」還是「當天沒被帶著做」；別把沒做當成奶奶力竭，也別硬逼。', 'Capaian rendah: bedakan "belum kuat" vs "belum dikerjakan". Jangan anggap Nenek kelelahan, jangan paksa.'],
+    watch: ['達標率低先分辨是「還沒力氣」還是「當天沒被帶著做」；別把沒做當成長輩力竭，也別硬逼。', 'Capaian rendah: bedakan "belum kuat" vs "belum dikerjakan". Jangan anggap Lansia kelelahan, jangan paksa.'],
     tell: ['把復健達標趨勢給復健科看，問目標次數要不要依恢復狀況調整。', 'Tunjukkan tren capaian rehab; tanyakan apakah target perlu disesuaikan dengan pemulihan.'],
     title: ['④ 髖關節術後復健肌力達標率', '④ Capaian Rehabilitasi Pasca Operasi Panggul'],
-    interplay: ['七項復健的達標率合起來看肌力平衡，某一群偏低代表那裡卡關——可能是還沒力氣，也可能是當天沒被帶著做。連日過高又要小心操過頭。達標率低不等於奶奶力竭，先分辨是「沒力」還是「沒做」。', 'Capaian tujuh latihan menunjukkan keseimbangan otot; satu kelompok rendah = terhambat (bisa belum kuat, bisa belum dikerjakan). Rendah bukan berarti Nenek kelelahan — bedakan dulu.'],
+    interplay: ['七項復健的達標率合起來看肌力平衡，某一群偏低代表那裡卡關——可能是還沒力氣，也可能是當天沒被帶著做。連日過高又要小心操過頭。達標率低不等於長輩力竭，先分辨是「沒力」還是「沒做」。', 'Capaian tujuh latihan menunjukkan keseimbangan otot; satu kelompok rendah = terhambat (bisa belum kuat, bisa belum dikerjakan). Rendah bukan berarti Lansia kelelahan — bedakan dulu.'],
     purpose: ['七項復健運動「今日÷目標」換算每日總達標率（%），追蹤下肢與核心肌力進展；雷達圖呈現單日各肌群平衡 [需獨立驗證]。',
               'Tujuh latihan rehabilitasi dihitung sebagai % capaian harian; radar menunjukkan keseimbangan otot per hari [perlu verifikasi mandiri].'],
     src: '來源：《慢性病患照護與復健建議》、《照護紀錄升級：目標與圖表》' },
@@ -669,7 +669,7 @@ const CARDS = [
               'Atas: retensi cairan bersih (asupan−urine); bawah: tekanan nadi (waspada >60 mmHg). Sumbu waktu sejajar untuk deteksi dini kelebihan cairan [perlu verifikasi mandiri].'],
     src: '進階衍生指標：由每日總攝入水量、尿量與血壓欄位交叉計算' },
   { id: 'c7', icon: '🔥', h: 'h260',
-    watch: ['就算血壓、心跳分開都正常，兩者相乘偏高代表心臟較累；高耗氧的日子讓奶奶多休息。', 'Meski tensi & detak terpisah normal, hasil kalinya tinggi = jantung lelah. Hari beban tinggi, istirahatkan lebih.'],
+    watch: ['就算血壓、心跳分開都正常，兩者相乘偏高代表心臟較累；高耗氧的日子讓長輩多休息。', 'Meski tensi & detak terpisah normal, hasil kalinya tinggi = jantung lelah. Hari beban tinggi, istirahatkan lebih.'],
     tell: ['回報 RPP 偏高的天數，問心臟科心律藥和血壓藥怎麼搭配較省心臟。', 'Laporkan hari RPP tinggi; tanyakan kombinasi obat aritmia & tensi yang meringankan jantung.'],
     title: ['⑦ 心率血壓乘積（RPP）心肌耗氧負荷', '⑦ Rate-Pressure Product (RPP)'],
     interplay: ['血壓和心跳相乘＝心臟每分鐘的耗氧量。就算血壓、心跳「單看」都還在範圍內，乘起來過高就代表心臟在「做白工」、耗氧過度——這是單看任一項都看不出來的隱藏負擔。', 'Tensi × detak = konsumsi oksigen jantung per menit. Meski masing-masing normal, hasil kali yang tinggi berarti jantung bekerja sia-sia / boros oksigen — beban tersembunyi.'],
@@ -1664,7 +1664,7 @@ function analyzeRange(DAYS){
 /* ===================== 主流程 ===================== */
 function renderChrome(){
   document.getElementById('page-title').textContent = '📈 ' + L('健康趨勢分析', 'Analisis Tren Kesehatan');
-  document.getElementById('page-sub').textContent = L('多重慢性病照護 9 大趨勢圖（心臟擴大／心律不整／髖關節術後／限水）', '9 grafik tren perawatan penyakit kronis Nenek');
+  document.getElementById('page-sub').textContent = L('多重慢性病照護 9 大趨勢圖（心臟擴大／心律不整／髖關節術後／限水）', '9 grafik tren perawatan penyakit kronis Lansia');
   document.getElementById('back-link').textContent = '← ' + L('回照護日誌', 'Kembali');
   document.getElementById('print-btn').textContent = '🖨️ ' + L('列印報告', 'Cetak laporan');
   document.getElementById('disclaimer').textContent =
