@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理設定 — 陽光照護日誌</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=12"></script>
+    <script src="care-tasks.js?v=13"></script>
     <script src="care-clinical.js?v=1"></script>
     <style>
         body { background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 45%, #fff1f2 100%); }
@@ -171,6 +171,11 @@ function renderSettings(){
     curReminders = (ui.reminders || []).map(r => ({ on:!!r.on, time:r.time||'', zh:r.zh||'', id:r.id||'' }));
     const curDiseases = ui.diseases || [];   // 固定目錄勾選框，非動態清單；勾選狀態即來源，存檔時直接讀 DOM
 
+    const subj = card('👤 內文稱呼（用於警語／提示文字中對照顧對象的稱呼）', `
+        <div class="flex gap-2">
+            <input type="text" id="ui-subj-zh" value="${esc(ui.subject.zh)}" placeholder="中文稱呼（例：案主）" class="flex-1 min-w-0 bg-gray-50 border-0 rounded-xl py-1.5 px-2 text-xs font-bold">
+            <input type="text" id="ui-subj-id" value="${esc(ui.subject.id)}" placeholder="Indonesia（contoh: Klien）" class="flex-1 min-w-0 bg-gray-50 border-0 rounded-xl py-1.5 px-2 text-xs font-bold">
+        </div>`);
     const modes = card('🧾 記錄模式', `
         <p class="text-xs font-bold text-gray-500 mb-1">尿液</p>
         <div class="flex flex-wrap gap-3 mb-2 text-xs font-bold">
@@ -242,7 +247,7 @@ function renderSettings(){
     ).join('') + `<p class="text-[10px] text-gray-400 font-bold mt-2">勾選後按最下方「儲存所有設定」，📈 健康趨勢分析的研判建構器會吃這份疾病清單。</p>`);
 
     document.getElementById('dx-slot').innerHTML = dx;   // 疾病卡固定放在 📈 健康趨勢分析入口上方
-    document.getElementById('ui-settings').innerHTML = modes+diur+show+popup+notice;
+    document.getElementById('ui-settings').innerHTML = subj+modes+diur+show+popup+notice;
     renderDiuretics(); renderNotices(); renderReminders();
 }
 function renderDiuretics(){
@@ -296,6 +301,7 @@ function readSettings(){
         reminders: curReminders.filter(r => /^\d{2}:\d{2}$/.test(String(r.time)) && (String(r.zh).trim() || String(r.id).trim()))
             .map(r => ({ on:!!r.on, time:r.time, zh:String(r.zh).trim(), id:String(r.id||'').trim() })),
         diseases: Array.from(document.querySelectorAll('.dx-chk:checked')).map(el => el.value),
+        subject: { zh: val('ui-subj-zh').trim() || D.subject.zh, id: val('ui-subj-id').trim() || D.subject.id },
         show: {}, popup: {}, text: {}, time: {}, num: {}, bp: { early:{}, late:{} }
     };
     UI_SHOW_ITEMS.forEach(([k]) => patch.show[k] = chk('ui-show-'+k));

@@ -201,6 +201,7 @@ const CARE_UI_DEFAULTS = {
         { name: '利尿藥物', aux: false }
     ],
     diseases: [],               // 病患疾病 id 清單（軸3，選自 care-clinical.js DISEASES）；admin-settings 複選存入，trends 研判建構器讀取
+    subject: { zh: '案主', id: 'Klien' },   // 內文對照顧對象的稱呼（雙語）；admin-settings 可改，全頁警語/提示文字套用
 
     show: {                     // 提示卡/警語 顯示開關（true＝顯示）
         bedRail: true, catheter: false, bpGuide: true, rehabNote: true,
@@ -244,6 +245,11 @@ function careUiMerge(base, over){
     return out;
 }
 function careUI(goals){ return careUiMerge(CARE_UI_DEFAULTS, (careConfig(goals).ui) || {}); }
+/* 內文稱呼（雙語）：管理設定可改，缺值退回內建「案主/Klien」 */
+function careSubj(goals, lang){
+    const s = careUI(goals).subject || CARE_UI_DEFAULTS.subject;
+    return (s && s[lang]) || CARE_UI_DEFAULTS.subject[lang];
+}
 /* 存回 cfg.ui（merge-safe，不覆蓋 last_med 其他欄位）；就地更新 goals 並回傳新 JSON，呼叫端 POST setMed */
 function careSaveUI(goals, uiPatch){
     const c = careConfig(goals);
@@ -283,10 +289,13 @@ function careUiSelfTest(){
     A(ui3.bp.early.dia[1] === 90, 'bp partial keeps sibling');
     A(careBpViolations('血壓/心跳(早)', 135, 80, 75, ui3).violations.length === 0, 'bp in range');
     A(careBpViolations('血壓/心跳(早)', 145, 80, 75, ui3).violations.length === 1, 'bp sys over');
+    A(careSubj({}, 'zh') === '案主' && careSubj({}, 'id') === 'Klien', 'subject default');
+    const ui4 = careUiMerge(CARE_UI_DEFAULTS, { subject: { zh: '爺爺', id: 'Kakek' } });
+    A(ui4.subject.zh === '爺爺' && careUrineFactor('full', ui4) === 1.3, 'subject override keeps sibling defaults');
     return 'careUiSelfTest PASS';
 }
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { careUiMerge, careUI, careSaveUI, careDiureticCat, careUrineFactor, careUrineGoal, careBpViolations, careUiSelfTest, CARE_UI_DEFAULTS };
+    module.exports = { careUiMerge, careUI, careSubj, careSaveUI, careDiureticCat, careUrineFactor, careUrineGoal, careBpViolations, careUiSelfTest, CARE_UI_DEFAULTS };
 }
 
 /* ===== 授權連結：admin 產生、照顧者點開即綁定該裝置身分（免密碼）

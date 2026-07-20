@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>陽光日誌 — 兒童版 / Catatan Mentari — Anak</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="care-tasks.js?v=12"></script>
+    <script src="care-tasks.js?v=13"></script>
     <style>
         /* ============================================================
          * 兒童＋先天遠視設計原則：超大字、白底高對比、粗實心框、
@@ -429,14 +429,14 @@ const T = {
     delNo:    { zh:'不要',           id:'TIDAK' },
     callAdult:{ zh:'快叫大人來！🧑', id:'PANGGIL ORANG DEWASA! 🧑' },
     bpTitle:  { zh:'快叫大人來！',   id:'PANGGIL ORANG DEWASA!' },
-    bpSub:    { zh:'注意長輩的狀況！', id:'Perhatikan kondisi Lansia!' },
+    bpSub:    { zh:'注意§S§的狀況！', id:'Perhatikan kondisi §S§!' },
     okCalled: { zh:'好，我叫了',     id:'OK, SUDAH PANGGIL' },
     normalRange:{ zh:'正常',         id:'Wajar' },
     warnDrink:{ zh:'🛑 停！喝太多了！', id:'🛑 STOP! Minum TERLALU BANYAK!' },
     warnPipis:{ zh:'🛑 尿尿太多了！',  id:'🛑 Pipis TERLALU BANYAK!' }
 };
 let LANG = (function(){ const s = localStorage.getItem('anak_lang'); return (s === 'id' || s === 'zh') ? s : 'zh'; })();
-function t(key){ return (T[key] && T[key][LANG]) || ''; }
+function t(key){ const raw = (T[key] && T[key][LANG]) || ''; return raw.indexOf('§S§') === -1 ? raw : raw.split('§S§').join(careSubj(goals, LANG)); }
 
 let S = { step1:false, type:null, item:null, color:null, status:null, gliserin:null, food:null, appetite:null, umed:null, lax:null, typeConfirmed:false };
 let records = [], goals = {};
@@ -892,7 +892,7 @@ function fetchWithTimeout(url, ms){
 function loadDay(){
     const date = $('input-date').value || careTodayStr();
     const key = 'anak_cache_' + date;
-    try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c) { records = c.records; goals = c.goals; UI = careUI(goals); applyAnakUiStatic(); renderAll(); } } catch(e) {}
+    try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c) { records = c.records; goals = c.goals; UI = careUI(goals); applyAnakUiStatic(); applyLang(); renderAll(); } } catch(e) {}
     $('sync-icon').classList.add('animate-spin-slow');
     const url = `${GAS_URL}?date=${date}&t=${Date.now()}`;
     fetchWithTimeout(url, 20000)
@@ -901,7 +901,7 @@ function loadDay(){
         .then(data => {
             records = (data.records || []).filter(r => r.status !== '無效');
             goals = data.goals || {};
-            UI = careUI(goals); applyAnakUiStatic();
+            UI = careUI(goals); applyAnakUiStatic(); applyLang();
             try { localStorage.setItem(key, JSON.stringify({ records, goals, ts:Date.now() })); } catch(e) {}
             renderAll();
         })
