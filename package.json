@@ -1,0 +1,12 @@
+{
+  "name": "translate-readmes-job",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@k3rn31p4nic/google-translate-api": "^1.0.8",
+    "unified": "^10.1.2",
+    "remark-parse": "^10.0.1",
+    "remark-stringify": "^10.0.1",
+    "unist-util-visit": "^4.1.0"
+  }
+}
