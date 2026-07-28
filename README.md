@@ -1,18 +1,26 @@
-[Read this in other languages](docs/translations/Translations.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)  
+[![Live Demo](https://img.shields.io/badge/Live-Demo-rose)](https://anwer3712.github.io/diet-log/)
+
+---
+
+<!-- Flags language selector: click a flag to open the translation (opens in a new tab) -->
+
+#### Read this in other languages
+
+<kbd><a href="docs/translations/README.zh-tw.md" target="_blank" rel="noopener noreferrer"><img title="中文 (繁體)" alt="中文 (繁體)" src="https://cdn.jsdelivr.net/gh/hampusborgos/country-flags@main/svg/tw.svg" width="28"></a></kbd>
+<kbd><a href="docs/translations/README.id.md" target="_blank" rel="noopener noreferrer"><img title="Bahasa Indonesia" alt="Bahasa Indonesia" src="https://cdn.jsdelivr.net/gh/hampusborgos/country-flags@main/svg/id.svg" width="28"></a></kbd>
+<kbd><a href="docs/translations/README.en.md" target="_blank" rel="noopener noreferrer"><img title="English" alt="English" src="https://cdn.jsdelivr.net/gh/hampusborgos/country-flags@main/svg/gb.svg" width="28"></a></kbd>
 
 ---
 
 # 陽光照護日誌 / Sunshine Care Log
 > A free, open-source daily care tracking tool for elderly patients — built for family caregivers.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Live Demo](https://img.shields.io/badge/Live-Demo-rose)](https://anwer3712.github.io/diet-log/)
-
 ---
 
 ## What is this?
 
-A bilingual (Traditional Chinese 🇹🇼 / Indonesian 🇮🇩) web app designed to help **family caregivers** track daily health data for elderly patients at home — especially those with chron[...]
+A bilingual (Traditional Chinese 🇹🇼 / Indonesian 🇮🇩) web app designed to help **family caregivers** track daily health data for elderly patients at home — especially those with chronic conditions requiring fluid monitoring.
 
 No installation needed. Works on any smartphone browser. Data syncs to Google Sheets via Google Apps Script.
 
@@ -22,7 +30,7 @@ No installation needed. Works on any smartphone browser. Data syncs to Google Sh
 
 - **Fluid intake tracking** — water, medication drinks, nutritional supplements, meals (with daily target & progress bar)
 - **Fluid output tracking** — urine volume + color, bowel movements with status
-- **Intelligent urine target algorithm** — auto-calculates expected urine output based on water intake goal, adjusted for diuretic medication (×1.1–1.5 range) vs. no medication (×0.4–0.6 r[...]
+- **Intelligent urine target algorithm** — auto-calculates expected urine output based on water intake goal, adjusted for diuretic medication (×1.1–1.5 range) vs. no medication (×0.4–0.6 range)
 - **Fluid overload warning** — red alert when total intake exceeds 1,200 c.c.
 - **Exercise logging** — bottle lifts, foot presses, knee bends, standing assistance (with safety protocol checklist)
 - **Blood pressure & heart rate** — morning and evening measurements with measurement guidelines
@@ -78,7 +86,7 @@ No frameworks. No build tools. No dependencies to install. Opens directly in any
 
 ## Motivation
 
-Built out of necessity. When a family member required 24/7 home care with strict fluid management, existing apps were either too complex, English-only, or required monthly subscriptions. This tool[...]
+Built out of necessity. When a family member required 24/7 home care with strict fluid management, existing apps were either too complex, English-only, or required monthly subscriptions. This tool was developed to be simple, bilingual, and free for families.
 
 ---
 
@@ -86,7 +94,7 @@ Built out of necessity. When a family member required 24/7 home care with strict
 
 Planned improvements (community input welcome):
 
-- [ ] **AI-assisted health analysis** — integrate Claude to detect abnormal trends across fluid intake, urine output, and blood pressure data, and translate raw numbers into plain-language guida[...]
+- [ ] **AI-assisted health analysis** — integrate Claude to detect abnormal trends across fluid intake, urine output, and blood pressure data, and translate raw numbers into plain-language guidance
 - [ ] **AI caregiver Q&A** — let caregivers ask questions in their own language ("her urine was dark today, should I worry?") grounded in the patient's actual logged data
 - [ ] **Additional language pairs** — English, Vietnamese, Tagalog, Thai for multicultural caregiving households
 - [ ] **Offline mode** — service worker caching for unstable connections
