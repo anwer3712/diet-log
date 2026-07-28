@@ -1,3 +1,7 @@
+[Read this in other languages](docs/translations/Translations.md)
+
+---
+
 # 陽光照護日誌 / Sunshine Care Log
 > A free, open-source daily care tracking tool for elderly patients — built for family caregivers.
 
@@ -8,7 +12,7 @@
 
 ## What is this?
 
-A bilingual (Traditional Chinese 🇹🇼 / Indonesian 🇮🇩) web app designed to help **family caregivers** track daily health data for elderly patients at home — especially those with chronic conditions requiring fluid management (heart failure, kidney disease, etc.).
+A bilingual (Traditional Chinese 🇹🇼 / Indonesian 🇮🇩) web app designed to help **family caregivers** track daily health data for elderly patients at home — especially those with chron[...]
 
 No installation needed. Works on any smartphone browser. Data syncs to Google Sheets via Google Apps Script.
 
@@ -18,7 +22,7 @@ No installation needed. Works on any smartphone browser. Data syncs to Google Sh
 
 - **Fluid intake tracking** — water, medication drinks, nutritional supplements, meals (with daily target & progress bar)
 - **Fluid output tracking** — urine volume + color, bowel movements with status
-- **Intelligent urine target algorithm** — auto-calculates expected urine output based on water intake goal, adjusted for diuretic medication (×1.1–1.5 range) vs. no medication (×0.4–0.6 range); alerts caregiver if output is abnormal
+- **Intelligent urine target algorithm** — auto-calculates expected urine output based on water intake goal, adjusted for diuretic medication (×1.1–1.5 range) vs. no medication (×0.4–0.6 r[...]
 - **Fluid overload warning** — red alert when total intake exceeds 1,200 c.c.
 - **Exercise logging** — bottle lifts, foot presses, knee bends, standing assistance (with safety protocol checklist)
 - **Blood pressure & heart rate** — morning and evening measurements with measurement guidelines
@@ -74,7 +78,7 @@ No frameworks. No build tools. No dependencies to install. Opens directly in any
 
 ## Motivation
 
-Built out of necessity. When a family member required 24/7 home care with strict fluid management, existing apps were either too complex, English-only, or required monthly subscriptions. This tool was built specifically for a household where caregivers speak Traditional Chinese and Indonesian — and needed something that works on a phone, offline-capable, and free forever.
+Built out of necessity. When a family member required 24/7 home care with strict fluid management, existing apps were either too complex, English-only, or required monthly subscriptions. This tool[...]
 
 ---
 
@@ -82,7 +86,7 @@ Built out of necessity. When a family member required 24/7 home care with strict
 
 Planned improvements (community input welcome):
 
-- [ ] **AI-assisted health analysis** — integrate Claude to detect abnormal trends across fluid intake, urine output, and blood pressure data, and translate raw numbers into plain-language guidance for caregivers
+- [ ] **AI-assisted health analysis** — integrate Claude to detect abnormal trends across fluid intake, urine output, and blood pressure data, and translate raw numbers into plain-language guida[...]
 - [ ] **AI caregiver Q&A** — let caregivers ask questions in their own language ("her urine was dark today, should I worry?") grounded in the patient's actual logged data
 - [ ] **Additional language pairs** — English, Vietnamese, Tagalog, Thai for multicultural caregiving households
 - [ ] **Offline mode** — service worker caching for unstable connections
