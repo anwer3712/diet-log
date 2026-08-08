@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鏡像 U1 — 全文字開啟 · 可編輯 / Cermin U1</title>
+    <link rel="preconnect" href="https://script.google.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="care-tasks.js?v=13"></script>
+    <script src="mirror-ui.js?v=1"></script>
+    <style>
+        body { background: #fafafa; font-size: 16px; }
+        /* 長頁面效能：每個區塊離開視窗就不算版面／不上色，捲動才渲染 */
+        .mf-sec { content-visibility: auto; contain-intrinsic-size: auto 620px; }
+
+        /* ===== 三種框 ===== */
+        .mf-purple { border: 3px solid #a855f7; background: #faf5ff; border-radius: 1.25rem; }
+        .mf-orange { border: 3px solid #f97316; background: #fff7ed; border-radius: 1.25rem; }
+        .mf-red    { border: 3px solid #ef4444; background: #fef2f2; border-radius: 1.25rem; }
+        .mf-tag { font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 999px; letter-spacing: .04em; }
+        .mf-purple > .mf-hd .mf-tag { background: #a855f7; color: #fff; }
+        .mf-orange > .mf-hd .mf-tag { background: #f97316; color: #fff; }
+        .mf-red    > .mf-hd .mf-tag { background: #ef4444; color: #fff; }
+        .mf-hd { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .5rem; }
+        .mf-hd h4 { font-weight: 900; font-size: .8rem; color: #374151; }
+
+        /* 🟠 鎖定態：欄位變灰、游標禁止，仍看得見數值 */
+        .mf-orange.mf-locked input, .mf-orange.mf-locked select { background: #f3f4f6; color: #6b7280; cursor: not-allowed; }
+        .mf-lock-badge { cursor: pointer; font-size: 1rem; line-height: 1; }
+
+        /* 運算式顯示列 */
+        .mf-formula { font-size: 11px; font-weight: 700; color: #9a3412; background: #ffedd5; border: 1px dashed #fb923c; border-radius: .75rem; padding: .4rem .6rem; margin-top: .4rem; line-height: 1.5; }
+        .mf-formula b { color: #c2410c; }
+
+        /* 預覽區：忠實複製正式頁外觀，但一律展開 */
+        .mf-prev { border: 2px dashed #cbd5e1; border-radius: 1.25rem; padding: .75rem; background: #fff; }
+        .mf-prev-label { font-size: 10px; font-weight: 900; color: #64748b; margin-bottom: .4rem; }
+
+        .mf-in { width: 100%; background: #fff; border: 1.5px solid #d1d5db; border-radius: .75rem; padding: .4rem .6rem; font-size: 13px; font-weight: 700; color: #1f2937; }
+        .mf-in:focus { outline: 2px solid #6366f1; outline-offset: 1px; }
+        .mf-num { width: 5.5rem; text-align: center; }
+        textarea.mf-in { min-height: 4.5rem; line-height: 1.5; resize: vertical; }
+        .mf-chk { width: 1.15rem; height: 1.15rem; }
+        .mf-lbl { display: inline-flex; align-items: center; gap: .35rem; font-size: 12px; font-weight: 800; color: #374151; margin: 0 .75rem .35rem 0; }
+
+        h2.mf-h2 { font-weight: 900; font-size: 1rem; color: #0f172a; border-left: 6px solid #FB8B7A; padding-left: .6rem; margin: 1.5rem 0 .6rem; }
+        .animate-spin-slow { animation: spin 3s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen pb-28 font-sans">
+
+<div class="max-w-3xl mx-auto px-4 pt-5">
+
+    <div class="text-center mb-3">
+        <h1 class="text-xl font-black text-purple-600 tracking-wide">🪞 鏡像 U1 — 全文字開啟 · 可編輯</h1>
+        <p class="text-[11px] text-gray-500 font-bold mt-0.5">Cermin U1 — semua teks terbuka &amp; dapat diedit</p>
+    </div>
+
+    <div class="grid grid-cols-4 gap-2 mb-3">
+        <a href="index.html" class="bg-rose-50 border border-rose-200 text-rose-600 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">📝 正式日誌</a>
+        <a href="mirror-u2.html" class="bg-green-50 border border-green-200 text-green-700 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">🪞 鏡像 U2 運動</a>
+        <a href="admin-settings.html" class="bg-sky-50 border border-sky-200 text-sky-600 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">⚙️ 舊管理設定</a>
+        <a href="trends.html" class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">📈 趨勢</a>
+    </div>
+
+    <!-- 圖例 -->
+    <div class="bg-white rounded-2xl border-2 border-gray-200 p-3 mb-4 text-[11px] font-bold text-gray-600 space-y-1">
+        <p><span class="mf-tag" style="background:#a855f7;color:#fff">🟣 紫</span> 判斷／顯示文字：勾＝顯示，欄位＝改成你的字（自訂公告、顯示項目）。</p>
+        <p><span class="mf-tag" style="background:#f97316;color:#fff">🟠 橘</span> 跟計算有關：預設鎖住，點 🔒 輸入管理者密碼才能改；改完下方運算式即時連動。</p>
+        <p><span class="mf-tag" style="background:#ef4444;color:#fff">🔴 紅</span> 由「彈窗／提醒」「利尿藥物」「記錄模式」搬過來的設定，各自放在對應內容上方。</p>
+        <p class="text-gray-500">此頁所有欄位都寫回同一份雲端設定（cfg.ui），正式頁 index.html／anak.html／trends.html 立刻吃到。</p>
+    </div>
+
+    <div id="mf-loading" class="text-center py-4 text-gray-500 text-sm font-bold"><span class="inline-block animate-spin-slow">🔄</span> 讀取雲端設定中…</div>
+
+    <div id="mf-body" class="hidden">
+
+    <!-- ========== §0 全域：提醒總開關 · 自訂時間提醒 · 內文稱呼 ========== -->
+    <h2 class="mf-h2">§0 全域設定 / Global</h2>
+    <section class="mf-sec space-y-3">
+
+        <div class="mf-red p-3">
+            <div class="mf-hd"><span class="mf-tag">🔴 彈窗／提醒</span><h4>🔔 照護提醒彈窗（時段提醒總開關）</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-popup-reminder" class="mf-chk"> 開啟提醒彈窗（關閉後，下方所有提醒都不會跳）</label>
+            <div class="mt-2 pt-2 border-t border-red-200">
+                <p class="text-[11px] font-black text-gray-600 mb-1">⏰ 自訂時間提醒（到點在日誌頁彈窗，每支手機每日一次）</p>
+                <div id="reminder-list" class="space-y-2"></div>
+                <button type="button" id="btn-add-reminder" class="mt-2 bg-white border border-red-300 text-red-600 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95">＋ 新增提醒</button>
+            </div>
+        </div>
+
+        <div class="mf-purple p-3">
+            <div class="mf-hd"><span class="mf-tag">🟣 判斷／文字</span><h4>👤 內文稱呼（警語／提示文字中對照顧對象的稱呼）</h4></div>
+            <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="ui-subj-zh" class="mf-in" placeholder="中文稱呼（例：案主）">
+                <input type="text" id="ui-subj-id" class="mf-in" placeholder="Indonesia (contoh: Klien)">
+            </div>
+            <div class="mf-prev mt-2">
+                <p class="mf-prev-label">↓ 即時預覽（血壓警語）</p>
+                <p class="text-red-700 font-black text-sm">請注意<span id="prev-subj-zh">案主</span>狀況！ / Perhatikan kondisi <span id="prev-subj-id">Klien</span>!</p>
+            </div>
+        </div>
+
+        <div class="mf-purple p-3">
+            <div class="mf-hd"><span class="mf-tag">🟣 判斷／文字</span><h4>📢 自訂公告（勾選＋文字 → 顯示在使用者頁頂部）</h4></div>
+            <div id="notice-list-top" class="space-y-2"></div>
+            <button type="button" id="btn-add-notice-top" class="mt-2 bg-white border border-purple-300 text-purple-600 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95">＋ 新增頂部公告</button>
+            <div class="mf-prev mt-2">
+                <p class="mf-prev-label">↓ 即時預覽（正式頁 #notice-top 位置）</p>
+                <div id="prev-notice-top" class="space-y-2"><p class="text-[11px] text-gray-400 font-bold">（無公告）</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== §1 今日進度格 ========== -->
+    <h2 class="mf-h2">§1 今日進度格 / Progres Hari Ini</h2>
+    <section class="mf-sec space-y-3">
+        <div class="mf-red p-3">
+            <div class="mf-hd"><span class="mf-tag">🔴 彈窗／提醒</span><h4>📋 進度盤點提醒</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-popup-gridRemind" class="mf-chk"> 啟用「今日進度格未完成」提醒</label>
+            <div class="mf-orange p-2 mt-1">
+                <div class="mf-hd"><span class="mf-tag">🟠 計算</span><h4>盤點起算時間</h4><span class="mf-lock-badge" onclick="mfRequestUnlock()">🔒</span></div>
+                <label class="mf-lbl">盤點起 <input type="time" id="ui-time-gridFrom" class="mf-in" style="width:8.5rem"></label>
+                <div class="mf-formula" id="fx-grid"></div>
+            </div>
+        </div>
+        <div class="mf-prev">
+            <p class="mf-prev-label">↓ 正式頁對應內容：🌟 今日進度</p>
+            <div id="progress-grid" class="text-center text-[10px] text-gray-500 font-bold">⏳</div>
+        </div>
+    </section>
+
+    <!-- ========== §2 床圍欄警語 ========== -->
+    <h2 class="mf-h2">§2 床圍欄警語 / Pagar Tempat Tidur</h2>
+    <section class="mf-sec space-y-3">
+        <div class="mf-purple p-3">
+            <div class="mf-hd"><span class="mf-tag">🟣 判斷／文字</span><h4>🚨 床圍欄警語（頂部紅幅）</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-show-bedRail" class="mf-chk"> 顯示此紅幅</label>
+            <input type="text" id="ui-text-bedRail-zh" class="mf-in mb-1" placeholder="中文（留空＝用內建文字）">
+            <input type="text" id="ui-text-bedRail-id" class="mf-in" placeholder="Indonesia（留空＝內建）">
+            <div class="mf-prev mt-2">
+                <p class="mf-prev-label">↓ 即時預覽</p>
+                <div id="prev-bedrail" class="bg-red-600 text-white rounded-2xl px-4 py-3 shadow-lg flex items-start gap-2 border-2 border-red-700">
+                    <span class="text-xl leading-none">🚨</span>
+                    <p class="text-xs font-black leading-snug"><span id="prev-bedrail-zh"></span><br><span id="prev-bedrail-id" class="text-[11px] font-bold text-red-100"></span></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== §3 今日目標追蹤（總攝入） ========== -->
+    <h2 class="mf-h2">§3 今日目標追蹤 · 總攝入 / Target Asupan</h2>
+    <section class="mf-sec space-y-3">
+        <div class="mf-red p-3">
+            <div class="mf-hd"><span class="mf-tag">🔴 彈窗／提醒</span><h4>⏰ 攝入未達標提醒</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-popup-intake21" class="mf-chk"> 啟用</label>
+            <div class="mf-orange p-2 mt-1">
+                <div class="mf-hd"><span class="mf-tag">🟠 計算</span><h4>攝入盤點時間</h4><span class="mf-lock-badge" onclick="mfRequestUnlock()">🔒</span></div>
+                <label class="mf-lbl">盤點時間 <input type="time" id="ui-time-intakeCheck" class="mf-in" style="width:8.5rem"></label>
+                <div class="mf-formula" id="fx-intake"></div>
+            </div>
+        </div>
+
+        <div class="mf-red p-3">
+            <div class="mf-hd"><span class="mf-tag">🔴 彈窗／提醒</span><h4>🚨 攝入超標警告</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-popup-fluidOver" class="mf-chk"> 啟用</label>
+            <div class="mf-orange p-2 mt-1">
+                <div class="mf-hd"><span class="mf-tag">🟠 計算</span><h4>攝入正常區間（下限／上限＝超標門檻）</h4><span class="mf-lock-badge" onclick="mfRequestUnlock()">🔒</span></div>
+                <label class="mf-lbl">正常下限 <input type="number" step="any" id="ui-num-fluidMin" class="mf-in mf-num"> cc</label>
+                <label class="mf-lbl">上限／超標 <input type="number" step="any" id="ui-num-fluidMax" class="mf-in mf-num"> cc</label>
+                <label class="mf-lbl text-gray-500">試算：今日已攝入 <input type="number" id="sim-intake" value="1200" class="mf-in mf-num"> cc</label>
+                <div class="mf-formula" id="fx-fluid"></div>
+            </div>
+        </div>
+
+        <div class="mf-purple p-3">
+            <div class="mf-hd"><span class="mf-tag">🟣 判斷／文字</span><h4>💧 目標區間說明列（此列文字由運算式即時產生，只能開關）</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-show-urineRangeInfo" class="mf-chk"> 顯示說明列</label>
+        </div>
+
+        <div class="mf-prev">
+            <p class="mf-prev-label">↓ 正式頁對應內容：🎯 今日目標追蹤</p>
+            <div class="bg-white rounded-3xl p-4 shadow-sm border-2 border-stone-100">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold text-gray-700 text-base">🎯 【總攝入水量】今日目標</h3>
+                    <span id="prev-percent" class="text-xs font-black bg-stone-50 text-[#F4726B] px-2.5 py-0.5 rounded-full">0%</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden mb-2"><div id="prev-bar" class="bg-[#FB8B7A] h-full w-0 rounded-full transition-all"></div></div>
+                <div id="prev-fluid-warn" class="hidden bg-red-100 text-red-700 p-2.5 rounded-2xl text-xs font-black mt-2 text-center border border-red-200"></div>
+                <div id="prev-range-info" class="bg-blue-50 text-blue-700 p-2.5 rounded-2xl text-xs font-bold mt-2 border border-blue-100"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== §4 血壓 ========== -->
+    <h2 class="mf-h2">§4 血壓與心跳 / Tekanan Darah</h2>
+    <section class="mf-sec space-y-3">
+        <div class="mf-red p-3">
+            <div class="mf-hd"><span class="mf-tag">🔴 彈窗／提醒</span><h4>⚠️ 血壓超標彈窗</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-popup-bpAlert" class="mf-chk"> 啟用</label>
+            <div class="mf-orange p-2 mt-1">
+                <div class="mf-hd"><span class="mf-tag">🟠 計算</span><h4>量測期限與合理區間</h4><span class="mf-lock-badge" onclick="mfRequestUnlock()">🔒</span></div>
+                <label class="mf-lbl">早壓期限 <input type="time" id="ui-time-bpMorning" class="mf-in" style="width:8.5rem"></label>
+                <label class="mf-lbl">晚壓期限 <input type="time" id="ui-time-bpNight" class="mf-in" style="width:8.5rem"></label>
+                <div id="bp-range-box" class="mt-2 space-y-2"></div>
+                <label class="mf-lbl text-gray-500 mt-2">試算（早）：收縮 <input type="number" id="sim-sys" value="145" class="mf-in mf-num"> 舒張 <input type="number" id="sim-dia" value="80" class="mf-in mf-num"> 心跳 <input type="number" id="sim-hr" value="75" class="mf-in mf-num"></label>
+                <div class="mf-formula" id="fx-bp"></div>
+            </div>
+        </div>
+
+        <div class="mf-purple p-3">
+            <div class="mf-hd"><span class="mf-tag">🟣 判斷／文字</span><h4>💡 血壓測量指南（血壓頁）</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-show-bpGuide" class="mf-chk"> 顯示此指南</label>
+            <input type="text" id="ui-text-bpGuide-zh" class="mf-in mb-1" placeholder="中文（留空＝用內建三點指南）">
+            <input type="text" id="ui-text-bpGuide-id" class="mf-in" placeholder="Indonesia（留空＝內建）">
+            <div class="mf-prev mt-2">
+                <p class="mf-prev-label">↓ 即時預覽</p>
+                <div id="prev-bpguide" class="bg-red-50 border border-red-100 rounded-2xl p-3 text-red-600 font-bold text-xs space-y-1"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== §5 攝入四項 ========== -->
+    <h2 class="mf-h2">§5 攝入四項 / Asupan</h2>
+    <section class="mf-sec space-y-3">
+        <div class="mf-prev">
+            <p class="mf-prev-label">↓ 正式頁對應內容（無專屬設定，全部固定顯示）</p>
+            <div class="grid grid-cols-2 gap-2">
+                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700">💧 飲水 / Air Minum</div>
+                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700">💊 服藥 / Minum Obat</div>
+                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700">🥛 營養 / Susu Nutrisi</div>
+                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700">🍚 進食 / Makan（必填備註＋胃口）</div>
+            </div>
+            <p class="text-[11px] font-bold text-gray-500 mt-2">😋 胃口（必選）：好 / 普通 / 差　·　🖼️ 湯湯水水計量說明圖 math.jpg 固定顯示</p>
+        </div>
+    </section>
+
+    <!-- ========== §6 排出 · 尿液 ========== -->
+    <h2 class="mf-h2">§6 排出 · 尿液 / Air Kencing</h2>
+    <section class="mf-sec space-y-3">
+        <div class="mf-red p-3">
+            <div class="mf-hd"><span class="mf-tag">🔴 記錄模式</span><h4>🧾 尿液記錄模式</h4></div>
+            <label class="mf-lbl"><input type="radio" name="ui-urineMode" value="cc" class="mf-chk"> 容量 CC（現狀）</label>
+            <label class="mf-lbl"><input type="radio" name="ui-urineMode" value="count" class="mf-chk"> 次數制（只記顏色＋利尿藥）</label>
+            <p class="text-[10px] text-gray-500 font-bold">※ 次數制不填 CC，自動計 1 筆；會關閉「尿量 CC 目標／超標警告」。</p>
+        </div>
+
+        <div class="mf-red p-3">
+            <div class="mf-hd"><span class="mf-tag">🔴 利尿藥物</span><h4>💊 利尿藥物（填寫頁可複選；換算倍率取最高）</h4></div>
+            <p class="text-[10px] text-gray-500 font-bold mb-2">這份清單＝填寫頁「尿液」的當日藥物按鈕。每種藥屬「輔助」或「完整」，決定當日尿液目標＝當日總攝入 × 下方倍率；同日選多種藥時取最高倍率。</p>
+            <div id="diuretic-list" class="space-y-2"></div>
+            <button type="button" id="btn-add-diuretic" class="mt-2 bg-white border border-red-300 text-red-600 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95">＋ 新增藥物</button>
+            <div class="mf-orange p-2 mt-2">
+                <div class="mf-hd"><span class="mf-tag">🟠 計算</span><h4>尿液目標換算倍率</h4><span class="mf-lock-badge" onclick="mfRequestUnlock()">🔒</span></div>
+                <label class="mf-lbl">無藥 × <input type="number" step="any" id="ui-num-uFactorNone" class="mf-in mf-num"></label>
+                <label class="mf-lbl">輔助 × <input type="number" step="any" id="ui-num-uFactorAux" class="mf-in mf-num"></label>
+                <label class="mf-lbl">完整 × <input type="number" step="any" id="ui-num-uFactorFull" class="mf-in mf-num"></label>
+                <label class="mf-lbl text-gray-500">試算：今日尿量 <input type="number" id="sim-urine" value="1400" class="mf-in mf-num"> cc</label>
+                <div class="mf-formula" id="fx-urine"></div>
+            </div>
+        </div>
+
+        <div class="mf-red p-3">
+            <div class="mf-hd"><span class="mf-tag">🔴 彈窗／提醒</span><h4>🚽 睡前尿液提醒 · 🚨 尿量超標警告</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-popup-urineRemind" class="mf-chk"> 睡前尿液提醒</label>
+            <label class="mf-lbl"><input type="checkbox" id="ui-popup-urineOver" class="mf-chk"> 尿量超標警告</label>
+            <div class="mf-orange p-2 mt-1">
+                <div class="mf-hd"><span class="mf-tag">🟠 計算</span><h4>提醒起算時間</h4><span class="mf-lock-badge" onclick="mfRequestUnlock()">🔒</span></div>
+                <label class="mf-lbl">提醒起 <input type="time" id="ui-time-urineFrom" class="mf-in" style="width:8.5rem"></label>
+                <div class="mf-formula" id="fx-urine-remind"></div>
+            </div>
+        </div>
+
+        <div class="mf-purple p-3">
+            <div class="mf-hd"><span class="mf-tag">🟣 判斷／文字</span><h4>🚽 導尿管訓練提示（排出頁）</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-show-catheter" class="mf-chk"> 顯示此提示</label>
+            <input type="text" id="ui-text-catheter-zh" class="mf-in mb-1" placeholder="中文（留空＝套用下方時數自動組句）">
+            <input type="text" id="ui-text-catheter-id" class="mf-in" placeholder="Indonesia（留空＝自動組句）">
+            <div class="mf-orange p-2 mt-2">
+                <div class="mf-hd"><span class="mf-tag">🟠 計算</span><h4>導尿管訓練門檻</h4><span class="mf-lock-badge" onclick="mfRequestUnlock()">🔒</span></div>
+                <label class="mf-lbl">每次上限 <input type="number" step="any" id="ui-num-catheterHours" class="mf-in mf-num"> 小時</label>
+                <label class="mf-lbl">每日 <input type="number" step="any" id="ui-num-catheterTimes" class="mf-in mf-num"> 次</label>
+                <div class="mf-formula" id="fx-catheter"></div>
+            </div>
+            <div class="mf-prev mt-2">
+                <p class="mf-prev-label">↓ 即時預覽</p>
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-amber-800 font-bold text-xs space-y-1">
+                    <p id="prev-catheter-zh"></p><p id="prev-catheter-id" class="text-[11px] text-amber-600 font-medium"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mf-purple p-3">
+            <div class="mf-hd"><span class="mf-tag">🟣 判斷／文字</span><h4>📢 自訂公告（排出頁位置）</h4></div>
+            <div id="notice-list-output" class="space-y-2"></div>
+            <button type="button" id="btn-add-notice-output" class="mt-2 bg-white border border-purple-300 text-purple-600 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95">＋ 新增排出頁公告</button>
+            <div class="mf-prev mt-2">
+                <p class="mf-prev-label">↓ 即時預覽（正式頁 #notice-output 位置）</p>
+                <div id="prev-notice-output" class="space-y-2"><p class="text-[11px] text-gray-400 font-bold">（無公告）</p></div>
+            </div>
+        </div>
+
+        <div class="mf-prev">
+            <p class="mf-prev-label">↓ 正式頁對應內容：尿液顏色 + 當日利尿藥物</p>
+            <div class="grid grid-cols-3 gap-1.5 mb-2">
+                <div class="bg-stone-50 text-rose-600 rounded-2xl py-2 text-xs font-bold text-center leading-tight">淡紅色 / Merah Muda</div>
+                <div class="bg-yellow-100 text-yellow-700 rounded-2xl py-2 text-xs font-bold text-center leading-tight">深黃 / Kuning Tua</div>
+                <div class="bg-yellow-50 text-yellow-600 rounded-2xl py-2 text-xs font-bold text-center leading-tight">淺黃 / Kuning Muda</div>
+            </div>
+            <div id="prev-urine-med" class="grid grid-cols-3 gap-1.5"></div>
+        </div>
+    </section>
+
+    <!-- ========== §7 排出 · 排便 ========== -->
+    <h2 class="mf-h2">§7 排出 · 排便 / BAB</h2>
+    <section class="mf-sec space-y-3">
+        <div class="mf-red p-3">
+            <div class="mf-hd"><span class="mf-tag">🔴 記錄模式</span><h4>🧾 排便記錄模式</h4></div>
+            <label class="mf-lbl"><input type="radio" name="ui-stoolMode" value="status" class="mf-chk"> 狀態＋利便藥（現狀）</label>
+            <label class="mf-lbl"><input type="radio" name="ui-stoolMode" value="weight" class="mf-chk"> 記重量（g，目標仍算次數）</label>
+        </div>
+
+        <div class="mf-red p-3">
+            <div class="mf-hd"><span class="mf-tag">🔴 彈窗／提醒</span><h4>💩 未解便超時警告</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-popup-bowelAlert" class="mf-chk"> 啟用</label>
+            <div class="mf-orange p-2 mt-1">
+                <div class="mf-hd"><span class="mf-tag">🟠 計算</span><h4>警告時數區間</h4><span class="mf-lock-badge" onclick="mfRequestUnlock()">🔒</span></div>
+                <label class="mf-lbl">警告起 <input type="number" step="any" id="ui-num-bowelMinH" class="mf-in mf-num"> 小時</label>
+                <label class="mf-lbl">警告迄 <input type="number" step="any" id="ui-num-bowelMaxH" class="mf-in mf-num"> 小時</label>
+                <label class="mf-lbl text-gray-500">試算：距前次解便 <input type="number" id="sim-bowel" value="65" class="mf-in mf-num"> 小時</label>
+                <div class="mf-formula" id="fx-bowel"></div>
+            </div>
+        </div>
+
+        <div class="mf-purple p-3">
+            <div class="mf-hd"><span class="mf-tag">🟣 判斷／文字</span><h4>🚫 浣腸警告（勾浣腸時）</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-show-enemaWarn" class="mf-chk"> 顯示此警告</label>
+            <input type="text" id="ui-text-enemaWarn-zh" class="mf-in mb-1" placeholder="中文（留空＝用內建兩點警告）">
+            <input type="text" id="ui-text-enemaWarn-id" class="mf-in" placeholder="Indonesia（留空＝內建）">
+            <div class="mf-prev mt-2">
+                <p class="mf-prev-label">↓ 即時預覽</p>
+                <div id="prev-enema" class="bg-red-50 border border-red-200 rounded-2xl p-2.5 text-red-700 font-bold text-[11px] space-y-1.5"></div>
+            </div>
+        </div>
+
+        <div class="mf-prev">
+            <p class="mf-prev-label">↓ 正式頁對應內容：糞便狀態 + 當日利便藥物</p>
+            <div class="grid grid-cols-3 gap-1.5 mb-2">
+                <div class="bg-orange-50 border border-orange-100 text-orange-700 rounded-2xl py-2 text-xs font-bold text-center leading-tight">稀便 / feses encer</div>
+                <div class="bg-red-50 border border-red-100 text-red-700 rounded-2xl py-2 text-xs font-bold text-center leading-tight">乾硬 / Kering dan keras</div>
+                <div class="bg-green-50 border border-green-100 text-green-700 rounded-2xl py-2 text-xs font-bold text-center leading-tight">正常 / Normal</div>
+            </div>
+            <div class="mf-formula" id="fx-stool"></div>
+        </div>
+    </section>
+
+    <!-- ========== §8 復健運動 ========== -->
+    <h2 class="mf-h2">§8 復健運動 / Latihan Rehabilitasi</h2>
+    <section class="mf-sec space-y-3">
+        <div class="mf-red p-3">
+            <div class="mf-hd"><span class="mf-tag">🔴 彈窗／提醒</span><h4>🏃 未復健提醒</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-popup-rehabRemind" class="mf-chk"> 啟用</label>
+            <div class="mf-orange p-2 mt-1">
+                <div class="mf-hd"><span class="mf-tag">🟠 計算</span><h4>提醒時段與完成期限</h4><span class="mf-lock-badge" onclick="mfRequestUnlock()">🔒</span></div>
+                <label class="mf-lbl">提醒起 <input type="time" id="ui-time-rehabFrom" class="mf-in" style="width:8.5rem"></label>
+                <label class="mf-lbl">期限 <input type="time" id="ui-time-rehabDeadline" class="mf-in" style="width:8.5rem"></label>
+                <div class="mf-formula" id="fx-rehab"></div>
+            </div>
+        </div>
+
+        <div class="mf-purple p-3">
+            <div class="mf-hd"><span class="mf-tag">🟣 判斷／文字</span><h4>🕒 復健說明（運動頁）</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-show-rehabNote" class="mf-chk"> 顯示此說明</label>
+            <input type="text" id="ui-text-rehabNote-zh" class="mf-in mb-1" placeholder="中文（留空＝用內建說明）">
+            <input type="text" id="ui-text-rehabNote-id" class="mf-in" placeholder="Indonesia（留空＝內建）">
+            <div class="mf-prev mt-2">
+                <p class="mf-prev-label">↓ 即時預覽</p>
+                <div id="prev-rehabnote" class="bg-stone-50 border border-stone-200 rounded-2xl p-3 text-gray-700 font-bold text-[11px] space-y-1"></div>
+            </div>
+        </div>
+
+        <div class="mf-purple p-3">
+            <div class="mf-hd"><span class="mf-tag">🟣 判斷／文字</span><h4>⚠️ 站立安全指南（選「站立」時）</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-show-standWarn" class="mf-chk"> 顯示此指南</label>
+            <input type="text" id="ui-text-standWarn-zh" class="mf-in mb-1" placeholder="中文（留空＝用內建四點指南）">
+            <input type="text" id="ui-text-standWarn-id" class="mf-in" placeholder="Indonesia（留空＝內建）">
+            <div class="mf-prev mt-2">
+                <p class="mf-prev-label">↓ 即時預覽</p>
+                <div id="prev-standwarn" class="bg-red-50 border border-red-200 rounded-2xl p-3 text-red-800 font-bold text-[11px] space-y-1.5"></div>
+            </div>
+        </div>
+
+        <div class="mf-prev">
+            <p class="mf-prev-label">↓ 正式頁對應內容：四項復健（範例彈窗與 LEVEL 1–4 分級請到鏡像 U2 編輯）</p>
+            <div class="grid grid-cols-1 gap-2">
+                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700">🦵 仰臥抬腿，左右交替10秒</div>
+                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700">🩲 仰躺大腿內收訓練，左右交替10秒</div>
+                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700">🍑 橋式／仰躺雙腳屈膝抬臀10秒</div>
+                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700">🧍 站立</div>
+            </div>
+            <a href="mirror-u2.html" class="mt-2 block text-center bg-green-50 border-2 border-green-300 text-green-700 rounded-2xl py-2.5 text-xs font-black active:scale-95">🪞 前往鏡像 U2：LEVEL 1–4 分級項目 · 彈窗 · 照片 · 介紹文字 →</a>
+        </div>
+    </section>
+
+    </div><!-- /#mf-body -->
+</div>
+
+<!-- 固定存檔列 -->
+<div class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t-2 border-gray-200 px-4 py-2.5">
+    <div class="max-w-3xl mx-auto flex items-center gap-2">
+        <div class="text-[10px] font-black text-gray-500 leading-tight shrink-0">
+            雲端容量<br><span id="mf-size" class="text-gray-700">—</span>
+        </div>
+        <button type="button" id="btn-save" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl py-3 text-sm shadow-lg active:scale-95">💾 儲存所有設定（公告／顯示／提醒／藥物／模式／計算）</button>
+    </div>
+</div>
+
+<div id="mf-toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-black py-3 px-5 rounded-full transition-opacity duration-300 opacity-0 z-50 pointer-events-none"></div>
+
+<script>
+"use strict";
+
+let goals = {};
+let ui = careUI({});
+let curDiuretics = [], curNotices = [], curReminders = [];
+const SAVE_LABEL = '💾 儲存所有設定（公告／顯示／提醒／藥物／模式／計算）';
+
+/* 內建文字：留空時預覽要顯示的原文（與 index.html 一致） */
+const BUILTIN = {
+    bedRail: { zh: '床圍欄放下時，照顧者不得離開病患 1 公尺。', id: 'Saat pagar tempat tidur diturunkan, perawat tidak boleh meninggalkan pasien lebih dari 1 meter.' },
+    bpGuide: { zh: '💡 血壓測量指南：1. 早上起床後一小時內和晚上睡覺前一小時內測量。2. 測量前保持靜止15分鐘。3. 高血壓患者的收縮壓/舒張壓應低於 130/80 mmHg。', id: 'Pedoman: 1. Ukur dalam 1 jam setelah bangun dan 1 jam sebelum tidur. 2. Diam 15 menit sebelum pengukuran. 3. Pasien hipertensi: sistolik/diastolik < 130/80 mmHg.' },
+    rehabNote: { zh: '🕒 復健練習應於三餐飯前及睡前半小時進行，每日至少四次。若無法在規定時間內完成，請另覓時間補做，但勿將四次運動集中於同一時段。', id: 'Latihan rehabilitasi sebaiknya dilakukan setengah jam sebelum tiga waktu makan dan sebelum tidur, minimal empat kali sehari.' },
+    standWarn: { zh: '⚠️ 站立式安全指南：1. 至少兩名照顧者同樓層互相支援。2. 評估病患身心狀況良好。3. 照顧者不得同時進行其他操作。4. 電動床降至最低、放下一邊圍欄，膝蓋抵膝支撐，病患環抱頸部發力站起，抬頭挺胸直視前方。', id: 'Pedoman keselamatan berdiri: 1. Minimal dua pengasuh. 2. Kondisi pasien baik. 3. Pengasuh tidak melakukan hal lain. 4. Turunkan ranjang, lutut menopang lutut, pasien memeluk leher pengasuh untuk berdiri.' },
+    enemaWarn: { zh: '🚫 未排便達三日以上，才允許使用浣腸。💧 使用浣腸後須注意病患飲水，避免脫水。', id: 'Enema hanya diperbolehkan jika tidak BAB pada hari ketiga. Perhatikan asupan cairan setelah enema untuk mencegah dehidrasi.' }
+};
+
+/* ===== 表單 → 畫面 ===== */
+function fillForm(){
+    ['bedRail','catheter','bpGuide','rehabNote','standWarn','enemaWarn','urineRangeInfo'].forEach(k => {
+        const el = document.getElementById('ui-show-' + k); if (el) el.checked = !!ui.show[k];
+    });
+    ['reminder','intake21','rehabRemind','urineRemind','gridRemind','bowelAlert','bpAlert','fluidOver','urineOver'].forEach(k => {
+        const el = document.getElementById('ui-popup-' + k); if (el) el.checked = !!ui.popup[k];
+    });
+    ['bedRail','catheter','bpGuide','rehabNote','standWarn','enemaWarn'].forEach(k => {
+        const t = ui.text[k] || { zh:'', id:'' };
+        const z = document.getElementById('ui-text-' + k + '-zh'); if (z) z.value = t.zh || '';
+        const i = document.getElementById('ui-text-' + k + '-id'); if (i) i.value = t.id || '';
+    });
+    Object.keys(ui.time).forEach(k => { const el = document.getElementById('ui-time-' + k); if (el) el.value = ui.time[k]; });
+    Object.keys(ui.num).forEach(k => { const el = document.getElementById('ui-num-' + k); if (el) el.value = ui.num[k]; });
+    document.getElementById('ui-subj-zh').value = ui.subject.zh || '';
+    document.getElementById('ui-subj-id').value = ui.subject.id || '';
+    const um = ui.urineMode === 'count' ? 'count' : 'cc';
+    const sm = ui.stoolMode === 'weight' ? 'weight' : 'status';
+    document.querySelector(`input[name="ui-urineMode"][value="${um}"]`).checked = true;
+    document.querySelector(`input[name="ui-stoolMode"][value="${sm}"]`).checked = true;
+
+    curDiuretics = (ui.diuretics || []).map(d => ({ name: d.name, aux: !!d.aux }));
+    curNotices  = (ui.notices  || []).map(n => ({ on: !!n.on, zh: n.zh || '', id: n.id || '', pos: n.pos === 'output' ? 'output' : 'top' }));
+    curReminders = (ui.reminders || []).map(r => ({ on: !!r.on, time: r.time || '', zh: r.zh || '', id: r.id || '' }));
+
+    renderBpRanges();
+    renderDiuretics(); renderNotices(); renderReminders();
+    mfPaintLocks();
+    repaint();
+}
+
+function renderBpRanges(){
+    const row = (slot, label) => {
+        const r = ui.bp[slot];
+        return `<div><p class="text-[11px] font-black text-gray-600 mb-1">${label}</p><div class="grid grid-cols-3 gap-1">` +
+            ['sys','dia','hr'].map(k => {
+                const nm = { sys:'收縮', dia:'舒張', hr:'心跳' }[k];
+                return `<div class="text-[10px] font-bold text-gray-600">${nm}
+                    <div class="flex items-center gap-0.5">
+                        <input type="number" id="ui-bp-${slot}-${k}-0" value="${mfEsc(r[k][0])}" class="mf-in text-center px-1">–<input type="number" id="ui-bp-${slot}-${k}-1" value="${mfEsc(r[k][1])}" class="mf-in text-center px-1">
+                    </div></div>`;
+            }).join('') + `</div></div>`;
+    };
+    document.getElementById('bp-range-box').innerHTML = row('early', '🌞 早（服藥前）') + row('late', '🌙 晚（睡前）');
+}
+
+function renderDiuretics(){
+    document.getElementById('diuretic-list').innerHTML = curDiuretics.map((d, i) =>
+        `<div class="flex items-center gap-1.5" data-di="${i}">
+            <input type="text" value="${mfEsc(d.name)}" data-act="di-name" placeholder="藥名" class="mf-in flex-1 min-w-0">
+            <select data-act="di-aux" class="mf-in shrink-0" style="width:8rem">
+                <option value="aux" ${d.aux ? 'selected' : ''}>輔助 ×倍率</option>
+                <option value="full" ${!d.aux ? 'selected' : ''}>完整 ×倍率</option>
+            </select>
+            <button type="button" data-act="di-del" class="shrink-0 text-red-500 text-lg px-1 active:scale-90">🗑️</button>
+        </div>`).join('') || '<p class="text-[11px] text-gray-500 font-bold">尚無藥物，按下方新增</p>';
+}
+
+function renderNotices(){
+    const build = (pos, boxId) => {
+        const box = document.getElementById(boxId);
+        const rows = curNotices.map((n, i) => [n, i]).filter(([n]) => n.pos === pos);
+        box.innerHTML = rows.map(([n, i]) =>
+            `<div class="border-2 border-purple-200 bg-white rounded-xl p-2 space-y-1" data-no="${i}">
+                <div class="flex items-center gap-2">
+                    <label class="mf-lbl"><input type="checkbox" ${n.on ? 'checked' : ''} data-act="no-on" class="mf-chk"> 顯示</label>
+                    <select data-act="no-pos" class="mf-in shrink-0" style="width:7rem">
+                        <option value="top" ${n.pos === 'top' ? 'selected' : ''}>頂部</option>
+                        <option value="output" ${n.pos === 'output' ? 'selected' : ''}>排出頁</option>
+                    </select>
+                    <button type="button" data-act="no-del" class="ml-auto text-red-500 text-lg px-1 active:scale-90">🗑️</button>
+                </div>
+                <input type="text" value="${mfEsc(n.zh)}" data-act="no-zh" placeholder="中文公告文字" class="mf-in">
+                <input type="text" value="${mfEsc(n.id)}" data-act="no-id" placeholder="Indonesia (opsional)" class="mf-in">
+            </div>`).join('') || '<p class="text-[11px] text-gray-500 font-bold">尚無公告，按下方新增</p>';
+    };
+    build('top', 'notice-list-top');
+    build('output', 'notice-list-output');
+}
+
+function renderReminders(){
+    document.getElementById('reminder-list').innerHTML = curReminders.map((r, i) =>
+        `<div class="border-2 border-red-200 bg-white rounded-xl p-2 space-y-1" data-re="${i}">
+            <div class="flex items-center gap-2">
+                <label class="mf-lbl"><input type="checkbox" ${r.on ? 'checked' : ''} data-act="re-on" class="mf-chk"> 啟用</label>
+                <input type="time" value="${mfEsc(r.time)}" data-act="re-time" class="mf-in shrink-0" style="width:8.5rem">
+                <button type="button" data-act="re-del" class="ml-auto text-red-500 text-lg px-1 active:scale-90">🗑️</button>
+            </div>
+            <input type="text" value="${mfEsc(r.zh)}" data-act="re-zh" placeholder="提醒內容（中文）" class="mf-in">
+            <input type="text" value="${mfEsc(r.id)}" data-act="re-id" placeholder="Indonesia (opsional)" class="mf-in">
+        </div>`).join('') || '<p class="text-[11px] text-gray-500 font-bold">尚無自訂提醒，按下方新增</p>';
+}
+
+/* ===== 預覽＋運算式：所有變更都走這一個 rAF 節流的重繪 ===== */
+const repaint = mfRaf(function(){
+    const t = (k, side) => (document.getElementById('ui-text-' + k + '-' + side) || {}).value || '';
+    const txt = (k, side) => (t(k, side).trim() || BUILTIN[k][side]);
+
+    /* 稱呼 */
+    const sZh = mfVal('ui-subj-zh').trim() || '案主', sId = mfVal('ui-subj-id').trim() || 'Klien';
+    document.getElementById('prev-subj-zh').textContent = sZh;
+    document.getElementById('prev-subj-id').textContent = sId;
+
+    /* 床圍欄 */
+    document.getElementById('prev-bedrail-zh').textContent = txt('bedRail', 'zh');
+    document.getElementById('prev-bedrail-id').textContent = txt('bedRail', 'id');
+    document.getElementById('prev-bedrail').style.display = mfChk('ui-show-bedRail') ? '' : 'none';
+
+    /* 公告預覽 */
+    const noticeHtml = pos => {
+        const items = curNotices.filter(n => n.on && n.pos === pos && (n.zh || n.id));
+        if (!items.length) return '<p class="text-[11px] text-gray-400 font-bold">（無公告）</p>';
+        return items.map(n => `<div class="bg-sky-50 border border-sky-200 text-sky-800 rounded-2xl px-4 py-2.5 text-xs font-bold leading-snug">${mfEsc(n.zh)}${n.zh && n.id ? '<br>' : ''}${n.id ? `<span class="text-[11px] font-medium">${mfEsc(n.id)}</span>` : ''}</div>`).join('');
+    };
+    document.getElementById('prev-notice-top').innerHTML = noticeHtml('top');
+    document.getElementById('prev-notice-output').innerHTML = noticeHtml('output');
+
+    /* 進度盤點 */
+    document.getElementById('fx-grid').innerHTML =
+        `運算式：<b>現在時間 ≥ ${mfVal('ui-time-gridFrom')}</b> 且今日進度格仍有 <b>missed / pending</b> → 跳「今日進度格未完成」紅字提醒。`;
+
+    /* 攝入 */
+    const fMin = mfNum('ui-num-fluidMin', 1100), fMax = mfNum('ui-num-fluidMax', 1500);
+    const simIntake = mfNum('sim-intake', 0);
+    document.getElementById('fx-intake').innerHTML =
+        `運算式：<b>現在 ≥ ${mfVal('ui-time-intakeCheck')}</b> 且 <b>今日總攝入 &lt; goal_總攝入水量</b> → 跳「請檢查今日攝入量」。`;
+    const overFluid = simIntake > fMax;
+    document.getElementById('fx-fluid').innerHTML =
+        `運算式：<b>總攝入 &gt; 上限</b> 即超標。試算 <b>${simIntake}</b> cc ${overFluid ? '&gt;' : '≤'} <b>${fMax}</b> cc → ${overFluid ? '<b style="color:#b91c1c">超標，跳紅色警示</b>' : '未超標'}。<br>說明列文字：💧 正常範圍：<b>${fMin}</b> c.c. ～ <b>${fMax}</b> c.c.`;
+    const showRange = mfChk('ui-show-urineRangeInfo');
+    const rangeEl = document.getElementById('prev-range-info');
+    rangeEl.style.display = showRange ? '' : 'none';
+    rangeEl.textContent = `💧 正常範圍：${fMin} c.c. ～ ${fMax} c.c.`;
+    const pct = fMax > 0 ? Math.round(simIntake / fMax * 100) : 0;
+    document.getElementById('prev-percent').textContent = pct + '%';
+    document.getElementById('prev-bar').style.width = Math.min(pct, 100) + '%';
+    const fw = document.getElementById('prev-fluid-warn');
+    fw.classList.toggle('hidden', !(overFluid && mfChk('ui-popup-fluidOver')));
+    fw.innerHTML = `🚨 總液體量已超過目標值 (${fMax} c.c.)！`;
+
+    /* 血壓 */
+    const bpGuideOn = mfChk('ui-show-bpGuide');
+    const g = document.getElementById('prev-bpguide');
+    g.style.display = bpGuideOn ? '' : 'none';
+    g.innerHTML = `<p>${mfEsc(txt('bpGuide', 'zh'))}</p><p class="text-[11px] text-red-500 font-medium">${mfEsc(txt('bpGuide', 'id'))}</p>`;
+    const bpUi = { bp: { early: {}, late: {} } };
+    ['early','late'].forEach(slot => ['sys','dia','hr'].forEach(k => {
+        bpUi.bp[slot][k] = [mfNum(`ui-bp-${slot}-${k}-0`, 0), mfNum(`ui-bp-${slot}-${k}-1`, 999)];
+    }));
+    const chk = careBpViolations('血壓/心跳(早)', mfNum('sim-sys', 0), mfNum('sim-dia', 0), mfNum('sim-hr', 0), bpUi);
+    document.getElementById('fx-bp').innerHTML =
+        `運算式：早壓期限 <b>${mfVal('ui-time-bpMorning')}</b>／晚壓期限 <b>${mfVal('ui-time-bpNight')}</b>；存檔時任一項超出區間即跳紅色彈窗。<br>`
+        + (chk.violations.length
+            ? `試算結果：<b style="color:#b91c1c">${chk.violations.map(v => `${v.zh} ${v.val}（合理 ${v.lo}–${v.hi}）`).join('、')} 超出範圍 → 跳窗</b>`
+            : '試算結果：三項皆在合理區間 → 不跳窗');
+
+    /* 尿液 */
+    const fN = mfNum('ui-num-uFactorNone', 0.9), fA = mfNum('ui-num-uFactorAux', 1.1), fF = mfNum('ui-num-uFactorFull', 1.3);
+    const countMode = (document.querySelector('input[name="ui-urineMode"]:checked') || {}).value === 'count';
+    const uGoal = f => Math.round(simIntake * f);
+    document.getElementById('fx-urine').innerHTML = countMode
+        ? '目前為<b>次數制</b>：不計 CC 目標，倍率不生效（只記顏色＋利尿藥）。'
+        : `運算式：<b>今日尿液目標 ＝ 今日已達攝入 × 倍率</b><br>無藥 ${simIntake}×${fN} = <b>${uGoal(fN)}</b> cc　輔助 ${simIntake}×${fA} = <b>${uGoal(fA)}</b> cc　完整 ${simIntake}×${fF} = <b>${uGoal(fF)}</b> cc<br>試算尿量 <b>${mfNum('sim-urine', 0)}</b> cc 對「無藥」目標 → ${mfNum('sim-urine', 0) > uGoal(fN) ? '<b style="color:#b91c1c">超標，跳窗</b>' : '未超標'}`;
+    document.getElementById('fx-urine-remind').innerHTML =
+        `運算式：<b>現在 ≥ ${mfVal('ui-time-urineFrom')}</b> → 提醒「睡前量測今日最後一次尿液量」。`;
+    document.getElementById('prev-urine-med').innerHTML =
+        ['<div class="rounded-2xl py-2 px-1 text-xs font-bold text-center border-2 bg-white text-gray-600 border-gray-300">無 / Tidak</div>']
+        .concat(curDiuretics.filter(d => String(d.name).trim()).map(d =>
+            `<div class="rounded-2xl py-2 px-1 text-xs font-bold text-center border-2 bg-white text-gray-600 border-gray-300">${mfEsc(d.name)}<span class="block text-[9px] text-gray-400">×${d.aux ? fA : fF}</span></div>`)).join('');
+
+    /* 導尿管 */
+    const cH = mfNum('ui-num-catheterHours', 3), cT = mfNum('ui-num-catheterTimes', 2);
+    const catZh = t('catheter', 'zh').trim() || `🚽 早上、下午各一次訓練尿感：關閉導尿管，每次最多 ${cH} 小時。`;
+    const catId = t('catheter', 'id').trim() || `Latihan sensasi kencing sekali di pagi hari dan sekali di sore hari: tutup kateter, maksimal ${cH} jam setiap kali.`;
+    document.getElementById('prev-catheter-zh').textContent = catZh;
+    document.getElementById('prev-catheter-id').textContent = catId;
+    document.getElementById('prev-catheter-zh').parentElement.style.display = mfChk('ui-show-catheter') ? '' : 'none';
+    document.getElementById('fx-catheter').innerHTML =
+        `運算式：留空自訂文字時，提示句自動代入 <b>每次最多 ${cH} 小時</b>；每日 <b>${cT}</b> 次為訓練目標。`;
+
+    /* 排便 */
+    const bMin = mfNum('ui-num-bowelMinH', 60), bMax = mfNum('ui-num-bowelMaxH', 72), simB = mfNum('sim-bowel', 0);
+    const inWin = simB >= bMin && simB <= bMax;
+    document.getElementById('fx-bowel').innerHTML =
+        `運算式：<b>${bMin} ≤ 距前次解便時數 ≤ ${bMax}</b> → 跳「嚴重警告」（同一裝置每 2 小時最多一次）。<br>試算 ${simB} 小時 → ${inWin ? '<b style="color:#b91c1c">在警告區間，會跳窗</b>' : '不在區間，不跳窗'}`;
+    const stoolWeight = (document.querySelector('input[name="ui-stoolMode"]:checked') || {}).value === 'weight';
+    document.getElementById('fx-stool').innerHTML =
+        `運算式：<b>排便目標 ＝ 1 次；利便藥物 ≥2 顆時＝顆數</b>。目前模式：<b>${stoolWeight ? '記重量（g），達成仍以次數計' : '狀態＋利便藥（1 筆＝1 次）'}</b>。`;
+    const en = document.getElementById('prev-enema');
+    en.style.display = mfChk('ui-show-enemaWarn') ? '' : 'none';
+    en.innerHTML = `<p>${mfEsc(txt('enemaWarn', 'zh'))}</p><p class="text-[10px] text-red-500 font-medium">${mfEsc(txt('enemaWarn', 'id'))}</p>`;
+
+    /* 復健 */
+    document.getElementById('fx-rehab').innerHTML =
+        `運算式：<b>${mfVal('ui-time-rehabFrom')} ≤ 現在 &lt; ${mfVal('ui-time-rehabDeadline')}</b> 且今日尚未有任何運動紀錄 → 提醒；<b>過 ${mfVal('ui-time-rehabDeadline')}</b> 仍為 0 → 進度格標記「未做」。`;
+    const rn = document.getElementById('prev-rehabnote');
+    rn.style.display = mfChk('ui-show-rehabNote') ? '' : 'none';
+    rn.innerHTML = `<p>${mfEsc(txt('rehabNote', 'zh'))}</p><p class="text-[10px] text-gray-500 font-medium">${mfEsc(txt('rehabNote', 'id'))}</p>`;
+    const sw = document.getElementById('prev-standwarn');
+    sw.style.display = mfChk('ui-show-standWarn') ? '' : 'none';
+    sw.innerHTML = `<p>${mfEsc(txt('standWarn', 'zh'))}</p><p class="text-[10px] text-red-600 font-medium">${mfEsc(txt('standWarn', 'id'))}</p>`;
+
+    updateSize();
+});
+
+/* ===== 讀表單 → cfg.ui patch（欄位命名與 admin-settings.html 完全一致） ===== */
+function readPatch(){
+    const D = CARE_UI_DEFAULTS;
+    const patch = {
+        urineMode: (document.querySelector('input[name="ui-urineMode"]:checked') || {}).value || 'cc',
+        stoolMode: (document.querySelector('input[name="ui-stoolMode"]:checked') || {}).value || 'status',
+        diuretics: curDiuretics.filter(d => String(d.name).trim()).map(d => ({ name: d.name.trim(), aux: !!d.aux })),
+        notices: curNotices.filter(n => String(n.zh).trim() || String(n.id).trim())
+            .map(n => ({ on: !!n.on, zh: n.zh.trim(), id: (n.id || '').trim(), pos: n.pos === 'output' ? 'output' : 'top' })),
+        reminders: curReminders.filter(r => /^\d{2}:\d{2}$/.test(String(r.time)) && (String(r.zh).trim() || String(r.id).trim()))
+            .map(r => ({ on: !!r.on, time: r.time, zh: String(r.zh).trim(), id: String(r.id || '').trim() })),
+        subject: { zh: mfVal('ui-subj-zh').trim() || D.subject.zh, id: mfVal('ui-subj-id').trim() || D.subject.id },
+        show: {}, popup: {}, text: {}, time: {}, num: {}, bp: { early: {}, late: {} }
+    };
+    ['bedRail','catheter','bpGuide','rehabNote','standWarn','enemaWarn','urineRangeInfo'].forEach(k => patch.show[k] = mfChk('ui-show-' + k));
+    ['reminder','intake21','rehabRemind','urineRemind','gridRemind','bowelAlert','bpAlert','fluidOver','urineOver'].forEach(k => patch.popup[k] = mfChk('ui-popup-' + k));
+    ['bedRail','catheter','bpGuide','rehabNote','standWarn','enemaWarn'].forEach(k =>
+        patch.text[k] = { zh: mfVal('ui-text-' + k + '-zh').trim(), id: mfVal('ui-text-' + k + '-id').trim() });
+    Object.keys(D.time).forEach(k => { const v = mfVal('ui-time-' + k); patch.time[k] = /^\d{2}:\d{2}$/.test(v) ? v : D.time[k]; });
+    Object.keys(D.num).forEach(k => patch.num[k] = mfNum('ui-num-' + k, D.num[k]));
+    ['early','late'].forEach(slot => ['sys','dia','hr'].forEach(k => {
+        patch.bp[slot][k] = [mfNum(`ui-bp-${slot}-${k}-0`, D.bp[slot][k][0]), mfNum(`ui-bp-${slot}-${k}-1`, D.bp[slot][k][1])];
+    }));
+    return patch;
+}
+
+/* 容量指示：先在本機試算一次 blob 大小，不動雲端 */
+function updateSize(){
+    const probe = JSON.parse(JSON.stringify(goals || {}));
+    let size = 0;
+    try { size = mfBytes(careSaveUI(probe, readPatch())); } catch (e) { return; }
+    const el = document.getElementById('mf-size');
+    el.textContent = size + ' / ' + MIRROR_BLOB_LIMIT + ' B';
+    el.className = size > MIRROR_BLOB_LIMIT ? 'text-red-600' : (size > MIRROR_BLOB_LIMIT * 0.85 ? 'text-orange-600' : 'text-gray-700');
+}
+
+/* ===== 事件：全頁委派，避免上百個 inline handler ===== */
+function bindEvents(){
+    const body = document.getElementById('mf-body');
+
+    body.addEventListener('input', e => {
+        const el = e.target, act = el.dataset.act;
+        if (act) {
+            const di = el.closest('[data-di]'), no = el.closest('[data-no]'), re = el.closest('[data-re]');
+            if (di) { const i = +di.dataset.di; if (act === 'di-name') curDiuretics[i].name = el.value; }
+            if (no) { const i = +no.dataset.no; if (act === 'no-zh') curNotices[i].zh = el.value; if (act === 'no-id') curNotices[i].id = el.value; }
+            if (re) { const i = +re.dataset.re; if (act === 're-zh') curReminders[i].zh = el.value; if (act === 're-id') curReminders[i].id = el.value; }
+        }
+        repaint();
+    });
+
+    body.addEventListener('change', e => {
+        const el = e.target, act = el.dataset.act;
+        const di = el.closest('[data-di]'), no = el.closest('[data-no]'), re = el.closest('[data-re]');
+        if (di && act === 'di-aux') curDiuretics[+di.dataset.di].aux = (el.value === 'aux');
+        if (no) {
+            const i = +no.dataset.no;
+            if (act === 'no-on') curNotices[i].on = el.checked;
+            if (act === 'no-pos') { curNotices[i].pos = el.value; renderNotices(); }
+        }
+        if (re) {
+            const i = +re.dataset.re;
+            if (act === 're-on') curReminders[i].on = el.checked;
+            if (act === 're-time') curReminders[i].time = el.value;
+        }
+        repaint();
+    });
+
+    body.addEventListener('click', e => {
+        const btn = e.target.closest('[data-act]');
+        if (btn) {
+            const act = btn.dataset.act;
+            const di = btn.closest('[data-di]'), no = btn.closest('[data-no]'), re = btn.closest('[data-re]');
+            if (act === 'di-del') { curDiuretics.splice(+di.dataset.di, 1); renderDiuretics(); repaint(); return; }
+            if (act === 'no-del') { curNotices.splice(+no.dataset.no, 1); renderNotices(); repaint(); return; }
+            if (act === 're-del') { curReminders.splice(+re.dataset.re, 1); renderReminders(); repaint(); return; }
+        }
+        /* 🟠 鎖住時攔截點擊，先要 PIN */
+        const orange = e.target.closest('.mf-orange');
+        if (orange && orange.classList.contains('mf-locked') && !e.target.classList.contains('mf-lock-badge')) {
+            if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) { e.preventDefault(); mfEnsureUnlocked(); }
+        }
+    });
+
+    document.getElementById('btn-add-diuretic').onclick = () => { curDiuretics.push({ name: '', aux: true }); renderDiuretics(); repaint(); };
+    document.getElementById('btn-add-notice-top').onclick = () => { curNotices.push({ on: true, zh: '', id: '', pos: 'top' }); renderNotices(); repaint(); };
+    document.getElementById('btn-add-notice-output').onclick = () => { curNotices.push({ on: true, zh: '', id: '', pos: 'output' }); renderNotices(); repaint(); };
+    document.getElementById('btn-add-reminder').onclick = () => { curReminders.push({ on: true, time: '', zh: '', id: '' }); renderReminders(); repaint(); };
+
+    document.getElementById('btn-save').onclick = function(){
+        const btn = this;
+        btn.disabled = true; btn.textContent = '⏳ 儲存中…';
+        mfPostUi(goals, readPatch())
+            .then(size => { ui = careUI(goals); mfWriteCachedGoals(goals); mfToast(`✅ 已儲存並同步（${size} bytes），正式頁重新整理即生效。`); updateSize(); })
+            .catch(err => mfToast('⚠️ ' + (err.message || '儲存失敗，請檢查網路。'), true))
+            .finally(() => { btn.disabled = false; btn.textContent = SAVE_LABEL; });
+    };
+}
+
+/* ===== 啟動 ===== */
+(function init(){
+    if (sessionStorage.getItem('care_admin_ok') !== '1') {
+        if (!careAskPin('鏡像 U1 需要管理者密碼 / Perlu PIN admin')) { location.href = 'index.html'; return; }
+        sessionStorage.setItem('care_admin_ok', '1');
+    }
+    bindEvents();
+    mfSetSaveReady(false, '⏳ 等雲端設定回來才能存檔…');
+
+    /* 先畫：有快取就用快取，沒有就用預設 —— 使用者立刻能捲、能看、能改 */
+    const cached = mfReadCachedGoals();
+    if (cached) { goals = cached; ui = careUI(goals); }
+    fillForm();
+    document.getElementById('mf-loading').classList.toggle('hidden', !!cached);
+    document.getElementById('mf-body').classList.remove('hidden');
+    try { careRenderGrid(document.getElementById('progress-grid'), careComputeTasks([], careTodayStr(), goals).tasks, 'zh'); } catch (e) {}
+
+    /* 再抓權威值覆蓋；成功才開放存檔 */
+    mfFetchGoals()
+        .then(g => {
+            goals = g; ui = careUI(goals); fillForm();
+            mfSetSaveReady(true);
+            document.getElementById('btn-save').textContent = SAVE_LABEL;
+        })
+        .catch(() => {
+            mfToast('⚠️ 雲端讀取失敗。存檔已停用，避免用舊資料覆蓋雲端；請檢查網路後重新整理。', true);
+            mfSetSaveReady(false, '⚠️ 雲端未同步，存檔停用');
+        })
+        .finally(() => {
+            document.getElementById('mf-loading').classList.add('hidden');
+            repaint();
+        });
+})();
+</script>
+</body>
+</html>
