@@ -271,7 +271,7 @@ const updateSize = mfRaf(function(){
     el.textContent = size + ' / ' + MIRROR_BLOB_LIMIT + ' B';
     el.className = size > MIRROR_BLOB_LIMIT ? 'text-red-600' : (size > MIRROR_BLOB_LIMIT * 0.85 ? 'text-orange-600' : 'text-gray-700');
     document.getElementById('fx-rehab').innerHTML =
-        `運算式：<b>${mfVal('ui-time-rehabFrom')} ≤ 現在 &lt; ${mfVal('ui-time-rehabDeadline')}</b> 且今日運動紀錄為 0 → 提醒；過 <b>${mfVal('ui-time-rehabDeadline')}</b> 仍為 0 → 進度格標「未做」。`;
+        `運算式：<b>${mfEsc(mfVal('ui-time-rehabFrom'))} ≤ 現在 &lt; ${mfEsc(mfVal('ui-time-rehabDeadline'))}</b> 且今日運動紀錄為 0 → 提醒；過 <b>${mfEsc(mfVal('ui-time-rehabDeadline'))}</b> 仍為 0 → 進度格標「未做」。`;
 });
 
 function readPatch(){
