@@ -556,13 +556,13 @@ const repaint = mfRaf(function(){
 
     /* 進度盤點 */
     document.getElementById('fx-grid').innerHTML =
-        `運算式：<b>現在時間 ≥ ${mfVal('ui-time-gridFrom')}</b> 且今日進度格仍有 <b>missed / pending</b> → 跳「今日進度格未完成」紅字提醒。`;
+        `運算式：<b>現在時間 ≥ ${mfEsc(mfVal('ui-time-gridFrom'))}</b> 且今日進度格仍有 <b>missed / pending</b> → 跳「今日進度格未完成」紅字提醒。`;
 
     /* 攝入 */
     const fMin = mfNum('ui-num-fluidMin', 1100), fMax = mfNum('ui-num-fluidMax', 1500);
     const simIntake = mfNum('sim-intake', 0);
     document.getElementById('fx-intake').innerHTML =
-        `運算式：<b>現在 ≥ ${mfVal('ui-time-intakeCheck')}</b> 且 <b>今日總攝入 &lt; goal_總攝入水量</b> → 跳「請檢查今日攝入量」。`;
+        `運算式：<b>現在 ≥ ${mfEsc(mfVal('ui-time-intakeCheck'))}</b> 且 <b>今日總攝入 &lt; goal_總攝入水量</b> → 跳「請檢查今日攝入量」。`;
     const overFluid = simIntake > fMax;
     document.getElementById('fx-fluid').innerHTML =
         `運算式：<b>總攝入 &gt; 上限</b> 即超標。試算 <b>${simIntake}</b> cc ${overFluid ? '&gt;' : '≤'} <b>${fMax}</b> cc → ${overFluid ? '<b style="color:#b91c1c">超標，跳紅色警示</b>' : '未超標'}。<br>說明列文字：💧 正常範圍：<b>${fMin}</b> c.c. ～ <b>${fMax}</b> c.c.`;
@@ -588,7 +588,7 @@ const repaint = mfRaf(function(){
     }));
     const chk = careBpViolations('血壓/心跳(早)', mfNum('sim-sys', 0), mfNum('sim-dia', 0), mfNum('sim-hr', 0), bpUi);
     document.getElementById('fx-bp').innerHTML =
-        `運算式：早壓期限 <b>${mfVal('ui-time-bpMorning')}</b>／晚壓期限 <b>${mfVal('ui-time-bpNight')}</b>；存檔時任一項超出區間即跳紅色彈窗。<br>`
+        `運算式：早壓期限 <b>${mfEsc(mfVal('ui-time-bpMorning'))}</b>／晚壓期限 <b>${mfEsc(mfVal('ui-time-bpNight'))}</b>；存檔時任一項超出區間即跳紅色彈窗。<br>`
         + (chk.violations.length
             ? `試算結果：<b style="color:#b91c1c">${chk.violations.map(v => `${v.zh} ${v.val}（合理 ${v.lo}–${v.hi}）`).join('、')} 超出範圍 → 跳窗</b>`
             : '試算結果：三項皆在合理區間 → 不跳窗');
@@ -601,7 +601,7 @@ const repaint = mfRaf(function(){
         ? '目前為<b>次數制</b>：不計 CC 目標，倍率不生效（只記顏色＋利尿藥）。'
         : `運算式：<b>今日尿液目標 ＝ 今日已達攝入 × 倍率</b><br>無藥 ${simIntake}×${fN} = <b>${uGoal(fN)}</b> cc　輔助 ${simIntake}×${fA} = <b>${uGoal(fA)}</b> cc　完整 ${simIntake}×${fF} = <b>${uGoal(fF)}</b> cc<br>試算尿量 <b>${mfNum('sim-urine', 0)}</b> cc 對「無藥」目標 → ${mfNum('sim-urine', 0) > uGoal(fN) ? '<b style="color:#b91c1c">超標，跳窗</b>' : '未超標'}`;
     document.getElementById('fx-urine-remind').innerHTML =
-        `運算式：<b>現在 ≥ ${mfVal('ui-time-urineFrom')}</b> → 提醒「睡前量測今日最後一次尿液量」。`;
+        `運算式：<b>現在 ≥ ${mfEsc(mfVal('ui-time-urineFrom'))}</b> → 提醒「睡前量測今日最後一次尿液量」。`;
     document.getElementById('prev-urine-med').innerHTML =
         ['<div class="rounded-2xl py-2 px-1 text-xs font-bold text-center border-2 bg-white text-gray-600 border-gray-300">無 / Tidak</div>']
         .concat(curDiuretics.filter(d => String(d.name).trim()).map(d =>
@@ -631,7 +631,7 @@ const repaint = mfRaf(function(){
 
     /* 復健 */
     document.getElementById('fx-rehab').innerHTML =
-        `運算式：<b>${mfVal('ui-time-rehabFrom')} ≤ 現在 &lt; ${mfVal('ui-time-rehabDeadline')}</b> 且今日尚未有任何運動紀錄 → 提醒；<b>過 ${mfVal('ui-time-rehabDeadline')}</b> 仍為 0 → 進度格標記「未做」。`;
+        `運算式：<b>${mfEsc(mfVal('ui-time-rehabFrom'))} ≤ 現在 &lt; ${mfEsc(mfVal('ui-time-rehabDeadline'))}</b> 且今日尚未有任何運動紀錄 → 提醒；<b>過 ${mfEsc(mfVal('ui-time-rehabDeadline'))}</b> 仍為 0 → 進度格標記「未做」。`;
     const rn = document.getElementById('prev-rehabnote');
     rn.style.display = mfChk('ui-show-rehabNote') ? '' : 'none';
     rn.innerHTML = `<p>${mfEsc(txt('rehabNote', 'zh'))}</p><p class="text-[10px] text-gray-500 font-medium">${mfEsc(txt('rehabNote', 'id'))}</p>`;
