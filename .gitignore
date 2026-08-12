@@ -1,0 +1,9 @@
+# AI agent session artifacts（開發工具產生，非本站內容）
+.claude/
+.remember/
+node_modules/
+
+# 本機參考資料／存檔網頁，勿推上公開 repo
+*_files/
+桃園市龍潭區環境氣象與飲食紀錄之七大健康狀態交叉推論分析報告.md
+雇主聘前講習資訊網.html
