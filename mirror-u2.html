@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鏡像 U2 — 復健分級 LEVEL 1–4 / Cermin U2</title>
+    <link rel="preconnect" href="https://script.google.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="care-tasks.js?v=13"></script>
+    <script src="mirror-ui.js?v=1"></script>
+    <style>
+        body { background: #fafafa; font-size: 16px; }
+        .mf-sec { content-visibility: auto; contain-intrinsic-size: auto 900px; }
+
+        .mf-purple { border: 3px solid #a855f7; background: #faf5ff; border-radius: 1.25rem; }
+        .mf-orange { border: 3px solid #f97316; background: #fff7ed; border-radius: 1.25rem; }
+        .mf-red    { border: 3px solid #ef4444; background: #fef2f2; border-radius: 1.25rem; }
+        .mf-tag { font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 999px; letter-spacing: .04em; }
+        .mf-purple > .mf-hd .mf-tag { background: #a855f7; color: #fff; }
+        .mf-orange > .mf-hd .mf-tag { background: #f97316; color: #fff; }
+        .mf-red    > .mf-hd .mf-tag { background: #ef4444; color: #fff; }
+        .mf-hd { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .5rem; }
+        .mf-hd h4 { font-weight: 900; font-size: .8rem; color: #374151; }
+        .mf-orange.mf-locked input, .mf-orange.mf-locked select { background: #f3f4f6; color: #6b7280; cursor: not-allowed; }
+        .mf-lock-badge { cursor: pointer; font-size: 1rem; line-height: 1; }
+
+        .mf-in { width: 100%; background: #fff; border: 1.5px solid #d1d5db; border-radius: .75rem; padding: .4rem .6rem; font-size: 13px; font-weight: 700; color: #1f2937; }
+        .mf-in:focus { outline: 2px solid #6366f1; outline-offset: 1px; }
+        textarea.mf-in { min-height: 7rem; line-height: 1.6; resize: vertical; font-weight: 600; }
+        .mf-lbl { display: inline-flex; align-items: center; gap: .35rem; font-size: 12px; font-weight: 800; color: #374151; }
+        .mf-cap { font-size: 11px; font-weight: 900; color: #6b7280; margin: .5rem 0 .25rem; }
+
+        .lv-head { display: flex; align-items: center; gap: .6rem; margin: 1.6rem 0 .7rem; }
+        .lv-badge { font-weight: 900; font-size: .95rem; color: #fff; padding: .3rem .8rem; border-radius: 999px; }
+        .lv-1 { background: #0ea5e9; } .lv-2 { background: #22c55e; } .lv-3 { background: #f59e0b; } .lv-4 { background: #ef4444; }
+
+        .thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: .75rem; border: 1.5px solid #d1d5db; background: #f3f4f6; }
+        .animate-spin-slow { animation: spin 3s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen pb-28 font-sans">
+
+<div class="max-w-3xl mx-auto px-4 pt-5">
+
+    <div class="text-center mb-3">
+        <h1 class="text-xl font-black text-green-600 tracking-wide">🪞 鏡像 U2 — 復健分級 LEVEL 1–4</h1>
+        <p class="text-[11px] text-gray-500 font-bold mt-0.5">Cermin U2 — Tingkat latihan 1–4，每項都有彈窗、照片與介紹文字</p>
+    </div>
+
+    <div class="grid grid-cols-4 gap-2 mb-3">
+        <a href="index.html" class="bg-rose-50 border border-rose-200 text-rose-600 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">📝 正式日誌</a>
+        <a href="mirror-u1.html" class="bg-purple-50 border border-purple-200 text-purple-600 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">🪞 鏡像 U1 設定</a>
+        <a href="admin-settings.html" class="bg-sky-50 border border-sky-200 text-sky-600 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">⚙️ 舊管理設定</a>
+        <a href="trends.html" class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">📈 趨勢</a>
+    </div>
+
+    <div class="bg-white rounded-2xl border-2 border-gray-200 p-3 mb-4 text-[11px] font-bold text-gray-600 space-y-1">
+        <p><span class="mf-tag" style="background:#a855f7;color:#fff">🟣 紫</span> 項目名稱與介紹文字：直接改，改完按最下方儲存，全裝置同步。</p>
+        <p><span class="mf-tag" style="background:#f97316;color:#fff">🟠 橘</span> 跟計算有關（復健期限／每日目標次數）：點 🔒 輸入管理者密碼才能改。</p>
+        <p><span class="mf-tag" style="background:#ef4444;color:#fff">🔴 紅</span> 由「彈窗／提醒」搬過來的未復健提醒，放在運動內容上方。</p>
+        <p class="text-orange-700">🖼️ <b>照片網址</b>會同步到雲端所有裝置；<b>上傳的照片</b>因雲端單筆上限只有 9KB，只能存在這支手機（會標示「本機」）。要全裝置看得到，請把圖放進 <code>rehab-img/</code> 或圖床後填網址。</p>
+    </div>
+
+    <div id="mf-loading" class="text-center py-4 text-gray-500 text-sm font-bold"><span class="inline-block animate-spin-slow">🔄</span> 讀取雲端設定中…</div>
+
+    <div id="mf-body" class="hidden">
+
+        <!-- 🔴 未復健提醒（搬到運動內容上方） -->
+        <div class="mf-red p-3 mb-3">
+            <div class="mf-hd"><span class="mf-tag">🔴 彈窗／提醒</span><h4>🏃 未復健提醒（與鏡像 U1 同一份設定）</h4></div>
+            <label class="mf-lbl"><input type="checkbox" id="ui-popup-rehabRemind" style="width:1.15rem;height:1.15rem"> 啟用未復健提醒</label>
+            <div class="mf-orange p-2 mt-2">
+                <div class="mf-hd"><span class="mf-tag">🟠 計算</span><h4>提醒時段與完成期限</h4><span class="mf-lock-badge" onclick="mfRequestUnlock()">🔒</span></div>
+                <label class="mf-lbl mr-3">提醒起 <input type="time" id="ui-time-rehabFrom" class="mf-in" style="width:8.5rem"></label>
+                <label class="mf-lbl">期限 <input type="time" id="ui-time-rehabDeadline" class="mf-in" style="width:8.5rem"></label>
+                <div id="fx-rehab" class="text-[11px] font-bold text-orange-800 bg-orange-100 border border-dashed border-orange-400 rounded-xl px-2 py-1.5 mt-2 leading-relaxed"></div>
+            </div>
+        </div>
+
+        <div id="levels"></div>
+
+        <!-- 現行四項（正式頁實際計分的項目） -->
+        <div class="lv-head"><span class="lv-badge" style="background:#6b7280">現行</span><h2 class="font-black text-base text-gray-800">正式頁四項復健（進度格實際計分）</h2></div>
+        <div class="bg-white border-2 border-dashed border-gray-300 rounded-2xl p-3 space-y-2">
+            <div class="grid grid-cols-1 gap-2">
+                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700 flex items-center justify-between">🦵 仰臥抬腿，左右交替10秒<button type="button" data-ref="仰臥抬腿" class="ml-2 shrink-0 bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold">📖 範例</button></div>
+                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700 flex items-center justify-between">🩲 仰躺大腿內收訓練，左右交替10秒<button type="button" data-ref="大腿內收" class="ml-2 shrink-0 bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold">📖 範例</button></div>
+                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700 flex items-center justify-between">🍑 橋式／仰躺雙腳屈膝抬臀10秒<button type="button" data-ref="橋式抬臀" class="ml-2 shrink-0 bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold">📖 範例</button></div>
+                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700 flex items-center justify-between">🧍 站立<button type="button" data-ref="站立" class="ml-2 shrink-0 bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold">📖 範例</button></div>
+            </div>
+            <p class="text-[11px] font-bold text-gray-500">※ LEVEL 1–4 是分級教材與彈窗內容；正式頁進度格仍以上面四項計分（care-tasks.js <code>CARE_EX_TYPES</code>）。要把某個 LEVEL 項目也納入計分，需一併改 <code>CARE_EX_TYPES</code> 與後端欄位，講一聲我再接。</p>
+        </div>
+    </div>
+</div>
+
+<!-- 固定存檔列 -->
+<div class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t-2 border-gray-200 px-4 py-2.5">
+    <div class="max-w-3xl mx-auto flex items-center gap-2">
+        <div class="text-[10px] font-black text-gray-500 leading-tight shrink-0">雲端容量<br><span id="mf-size" class="text-gray-700">—</span></div>
+        <button type="button" id="btn-save" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl py-3 text-sm shadow-lg active:scale-95">💾 儲存 LEVEL 1–4 設定</button>
+    </div>
+</div>
+
+<!-- 範例彈窗（與正式頁 index.html #rehab-modal 同結構） -->
+<div id="rehab-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="absolute inset-0 bg-black/50" data-close></div>
+    <div class="relative bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
+            <h3 id="rehab-modal-title" class="font-black text-gray-800 text-base leading-tight pr-2">動作範例</h3>
+            <button type="button" data-close class="shrink-0 w-9 h-9 rounded-full bg-gray-100 text-gray-500 text-xl font-bold flex items-center justify-center active:scale-95">×</button>
+        </div>
+        <div class="rehab-modal-scroll overflow-y-auto px-4 py-4"><div id="rehab-modal-body"></div></div>
+        <div class="px-4 py-3 border-t border-gray-100 shrink-0">
+            <button type="button" data-close class="w-full bg-stone-500 text-white rounded-2xl py-2.5 font-bold text-sm active:scale-95">關閉 / Tutup</button>
+        </div>
+    </div>
+</div>
+
+<div id="mf-toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-black py-3 px-5 rounded-full transition-opacity duration-300 opacity-0 z-[60] pointer-events-none"></div>
+
+<script>
+"use strict";
+
+let goals = {};
+let ui = careUI({});
+let levels = mfExMerge(ui);
+const SAVE_LABEL = '💾 儲存 LEVEL 1–4 設定';
+const byKey = {};   // itemKey → item 物件（同一份參考，編輯就地改）
+
+/* 錯誤示範／間隔按摩：與 index.html REHAB_WARN_ITEMS 同一組圖，彈窗末尾附上 */
+const WARN_ITEMS = [
+    { img: 'rehab-img/error-posture-1.jpg', bad: true, zh: '錯誤姿勢：應抬頭挺胸，勿駝背翹屁股' },
+    { img: 'rehab-img/error-posture-2.jpg', bad: true, zh: '錯誤姿勢：雙腳應與肩同寬，膝蓋彎曲小於90度並稍內收' },
+    { img: 'rehab-img/error-behavior-1.jpg', bad: true, zh: '錯誤行為：床圍欄放下時，禁止離開病患1公尺遠' },
+    { img: 'rehab-img/massage-1.jpg', bad: false, zh: '運動間隔按摩' },
+    { img: 'rehab-img/massage-2.jpg', bad: false, zh: '運動間隔按摩' }
+];
+
+/* ===== 渲染 ===== */
+function renderLevels(){
+    const box = document.getElementById('levels');
+    box.innerHTML = levels.map((lv, li) => {
+        const cards = lv.items.map(it => {
+            byKey[it.key] = it;
+            return itemCard(it);
+        }).join('');
+        return `<section class="mf-sec">
+            <div class="lv-head">
+                <span class="lv-badge lv-${li + 1}">${mfEsc(lv.zh)}</span>
+                <h2 class="font-black text-base text-gray-800">${mfEsc(lv.hint)}　<span class="text-[11px] font-bold text-gray-500">共 ${lv.items.length} 項</span></h2>
+            </div>
+            <div class="space-y-3">${cards}</div>
+        </section>`;
+    }).join('');
+    renderAllLocalImgs();
+    mfPaintLocks();
+}
+
+function itemCard(it){
+    return `<div class="mf-purple p-3" data-item="${it.key}">
+        <div class="mf-hd">
+            <span class="mf-tag">🟣 可編輯</span>
+            <h4 id="ttl-${it.key}">${mfEsc(it.zh)}</h4>
+            <button type="button" data-act="preview" class="ml-auto bg-white border-2 border-purple-300 text-purple-600 rounded-full px-3 py-1.5 text-xs font-black active:scale-95">📖 範例彈窗</button>
+        </div>
+
+        <p class="mf-cap">項目名稱 / Nama</p>
+        <div class="grid grid-cols-2 gap-2">
+            <input type="text" data-act="zh" value="${mfEsc(it.zh)}" placeholder="中文名稱" class="mf-in">
+            <input type="text" data-act="id" value="${mfEsc(it.id)}" placeholder="Indonesia" class="mf-in">
+        </div>
+
+        <p class="mf-cap">🖼️ 照片網址（同步到全裝置；相對路徑如 rehab-img/xxx.jpg 或 https://…）</p>
+        <div data-urls class="space-y-1.5"></div>
+        <button type="button" data-act="add-url" class="mt-1.5 bg-white border border-purple-300 text-purple-600 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95">＋ 新增照片網址</button>
+
+        <p class="mf-cap">📤 上傳照片（自動縮到 800px；<span class="text-orange-700">只存在這支手機，不同步</span>）</p>
+        <div class="flex items-center gap-2 flex-wrap">
+            <label class="bg-white border border-orange-300 text-orange-700 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95 cursor-pointer">
+                📁 選擇照片<input type="file" accept="image/*" multiple data-act="upload" class="hidden">
+            </label>
+            <button type="button" data-act="clear-local" class="bg-white border border-gray-300 text-gray-600 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95">🗑️ 清除本機照片</button>
+        </div>
+        <div data-local class="grid grid-cols-3 gap-2 mt-2"></div>
+
+        <p class="mf-cap">📝 介紹內容 / Deskripsi（每行一個步驟，彈窗會自動編號）</p>
+        <textarea data-act="dzh" placeholder="中文步驟，一行一步" class="mf-in mb-1.5">${mfEsc(it.dzh)}</textarea>
+        <textarea data-act="did" placeholder="Indonesia (satu langkah per baris)" class="mf-in">${mfEsc(it.did)}</textarea>
+    </div>`;
+}
+
+function renderUrls(key){
+    const it = byKey[key];
+    const box = document.querySelector(`[data-item="${key}"] [data-urls]`);
+    if (!box) return;
+    box.innerHTML = it.imgs.length
+        ? it.imgs.map((u, i) => `<div class="flex items-center gap-1.5" data-url-i="${i}">
+                <input type="text" data-act="url" value="${mfEsc(u)}" placeholder="rehab-img/xxx.jpg" class="mf-in flex-1 min-w-0">
+                <button type="button" data-act="url-del" class="shrink-0 text-red-500 text-lg px-1 active:scale-90">🗑️</button>
+            </div>`).join('')
+        : '<p class="text-[11px] text-gray-500 font-bold">尚無照片網址</p>';
+}
+
+function renderLocalImgs(key){
+    const box = document.querySelector(`[data-item="${key}"] [data-local]`);
+    if (!box) return;
+    const list = mfLocalImgList(key);
+    box.innerHTML = list.length
+        ? list.map(o => `<div><img src="${o.src}" class="thumb" alt="本機照片" loading="lazy" decoding="async"><p class="text-[10px] font-black text-orange-600 text-center mt-0.5">本機</p></div>`).join('')
+        : '<p class="text-[11px] text-gray-500 font-bold col-span-3">尚無本機照片</p>';
+}
+function renderAllLocalImgs(){
+    levels.forEach(lv => lv.items.forEach(it => { renderUrls(it.key); renderLocalImgs(it.key); }));
+}
+
+/* ===== 範例彈窗：內容直接吃當下表單值，改完馬上能看到照顧者會看到什麼 ===== */
+function openPreview(key){
+    const it = byKey[key];
+    const stepsZh = String(it.dzh || '').split('\n').map(s => s.trim()).filter(Boolean);
+    const stepsId = String(it.did || '').split('\n').map(s => s.trim()).filter(Boolean);
+    const imgs = it.imgs.filter(Boolean).map(u => ({ src: u, local: false }))
+        .concat(mfLocalImgList(key).map(o => ({ src: o.src, local: true })));
+
+    document.getElementById('rehab-modal-title').textContent = it.id ? `${it.zh} / ${it.id}` : it.zh;
+    const imgHtml = imgs.length
+        ? imgs.map(o => `<div><img src="${o.src}" alt="${mfEsc(it.zh)}" loading="lazy" decoding="async" class="w-full rounded-2xl border border-gray-200 shadow-sm">${o.local ? '<p class="text-[10px] font-black text-orange-600 mt-0.5">本機照片（不同步）</p>' : ''}</div>`).join('')
+        : '<p class="text-xs font-bold text-gray-400 text-center py-6 border border-dashed rounded-2xl">尚未加入照片</p>';
+    const stepHtml = stepsZh.length
+        ? stepsZh.map((s, i) => `<div class="flex gap-2.5">
+                <span class="shrink-0 w-6 h-6 rounded-full bg-stone-500 text-white text-xs font-bold flex items-center justify-center mt-0.5">${i + 1}</span>
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-gray-700 leading-snug">${mfEsc(s)}</p>
+                    ${stepsId[i] ? `<p class="text-[11px] text-gray-500 font-medium leading-snug mt-0.5">${mfEsc(stepsId[i])}</p>` : ''}
+                </div></div>`).join('')
+        : '<p class="text-xs font-bold text-gray-400 text-center py-4">尚未填寫介紹內容</p>';
+    const warnHtml = `<div class="mt-4 pt-4 border-t border-gray-100 space-y-3">
+        <p class="text-sm font-black text-red-600">⚠️ 錯誤示範／運動間隔按摩</p>
+        ${WARN_ITEMS.map(w => `<div>
+            <img src="${w.img}" alt="${w.zh}" loading="lazy" decoding="async" class="w-full rounded-2xl border border-gray-200 shadow-sm">
+            <p class="text-[11px] font-bold mt-1 ${w.bad ? 'text-red-600' : 'text-emerald-600'}">${w.bad ? '❌' : '💆'} ${w.zh}</p>
+        </div>`).join('')}
+    </div>`;
+
+    document.getElementById('rehab-modal-body').innerHTML =
+        `<div class="space-y-2.5 mb-4">${imgHtml}</div><div class="space-y-3">${stepHtml}</div>${warnHtml}`;
+    const modal = document.getElementById('rehab-modal');
+    modal.classList.remove('hidden');
+    modal.querySelector('.rehab-modal-scroll').scrollTop = 0;
+    document.body.style.overflow = 'hidden';
+}
+/* 現行四項：直接用 mirror-ui.js 的原版教材（與正式頁一字不差） */
+function openRefPreview(ref){
+    const r = MIRROR_EX_REF[ref];
+    if (!r) return;
+    byKey.__ref = { key: '__ref', zh: ref, id: '', imgs: r.images.slice(), dzh: r.zh, did: r.id };
+    openPreview('__ref');
+}
+function closePreview(){
+    document.getElementById('rehab-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+/* ===== 容量指示 ===== */
+const updateSize = mfRaf(function(){
+    const probe = JSON.parse(JSON.stringify(goals || {}));
+    let size = 0;
+    try { size = mfBytes(careSaveUI(probe, readPatch())); } catch (e) { return; }
+    const el = document.getElementById('mf-size');
+    el.textContent = size + ' / ' + MIRROR_BLOB_LIMIT + ' B';
+    el.className = size > MIRROR_BLOB_LIMIT ? 'text-red-600' : (size > MIRROR_BLOB_LIMIT * 0.85 ? 'text-orange-600' : 'text-gray-700');
+    document.getElementById('fx-rehab').innerHTML =
+        `運算式：<b>${mfEsc(mfVal('ui-time-rehabFrom'))} ≤ 現在 &lt; ${mfEsc(mfVal('ui-time-rehabDeadline'))}</b> 且今日運動紀錄為 0 → 提醒；過 <b>${mfEsc(mfVal('ui-time-rehabDeadline'))}</b> 仍為 0 → 進度格標「未做」。`;
+});
+
+function readPatch(){
+    const D = CARE_UI_DEFAULTS;
+    return {
+        popup: { rehabRemind: mfChk('ui-popup-rehabRemind') },
+        time: {
+            rehabFrom: /^\d{2}:\d{2}$/.test(mfVal('ui-time-rehabFrom')) ? mfVal('ui-time-rehabFrom') : D.time.rehabFrom,
+            rehabDeadline: /^\d{2}:\d{2}$/.test(mfVal('ui-time-rehabDeadline')) ? mfVal('ui-time-rehabDeadline') : D.time.rehabDeadline
+        },
+        exLevels: mfExDiff(levels)
+    };
+}
+
+/* ===== 事件：整頁委派 ===== */
+function bindEvents(){
+    const body = document.getElementById('mf-body');
+
+    const itemOf = el => { const w = el.closest('[data-item]'); return w ? byKey[w.dataset.item] : null; };
+
+    body.addEventListener('input', e => {
+        const el = e.target, act = el.dataset.act, it = itemOf(el);
+        if (it && act === 'zh') { it.zh = el.value; const t = document.getElementById('ttl-' + it.key); if (t) t.textContent = el.value; }
+        else if (it && act === 'id') it.id = el.value;
+        else if (it && act === 'dzh') it.dzh = el.value;
+        else if (it && act === 'did') it.did = el.value;
+        else if (it && act === 'url') { const row = el.closest('[data-url-i]'); it.imgs[+row.dataset.urlI] = el.value.trim(); }
+        updateSize();
+    });
+
+    body.addEventListener('change', e => {
+        if (e.target.dataset.act === 'upload') {
+            const it = itemOf(e.target);
+            const files = Array.from(e.target.files || []);
+            e.target.value = '';
+            if (!it || !files.length) return;
+            files.reduce((p, f) => p.then(() => mfShrinkImage(f).then(d => mfSaveLocalImg(it.key, d))), Promise.resolve())
+                .then(() => { renderLocalImgs(it.key); mfToast('✅ 已存入本機照片（不同步到其他裝置）'); })
+                .catch(err => mfToast('⚠️ ' + err.message, true));
+            return;
+        }
+        updateSize();
+    });
+
+    body.addEventListener('click', e => {
+        const btn = e.target.closest('[data-act]');
+        if (btn) {
+            const act = btn.dataset.act, it = itemOf(btn);
+            if (act === 'preview' && it) { openPreview(it.key); return; }
+            if (act === 'add-url' && it) { it.imgs.push(''); renderUrls(it.key); updateSize(); return; }
+            if (act === 'url-del' && it) { it.imgs.splice(+btn.closest('[data-url-i]').dataset.urlI, 1); renderUrls(it.key); updateSize(); return; }
+            if (act === 'clear-local' && it) {
+                if (!confirm(`清除「${it.zh}」在這支手機上的所有上傳照片？此動作只影響本機，雲端網址不受影響。`)) return;
+                mfLocalImgClear(it.key); renderLocalImgs(it.key); mfToast('已清除本機照片'); return;
+            }
+        }
+        const ref = e.target.closest('[data-ref]');
+        if (ref) { openRefPreview(ref.dataset.ref); return; }
+
+        const orange = e.target.closest('.mf-orange');
+        if (orange && orange.classList.contains('mf-locked') && !e.target.classList.contains('mf-lock-badge')) {
+            if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) { e.preventDefault(); mfEnsureUnlocked(); }
+        }
+    });
+
+    document.getElementById('rehab-modal').addEventListener('click', e => { if (e.target.closest('[data-close]')) closePreview(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closePreview(); });
+
+    document.getElementById('btn-save').onclick = function(){
+        const btn = this;
+        btn.disabled = true; btn.textContent = '⏳ 儲存中…';
+        mfPostUi(goals, readPatch())
+            .then(size => { ui = careUI(goals); mfWriteCachedGoals(goals); mfToast(`✅ 已儲存並同步（${size} bytes）。`); updateSize(); })
+            .catch(err => mfToast('⚠️ ' + (err.message || '儲存失敗，請檢查網路。'), true))
+            .finally(() => { btn.disabled = false; btn.textContent = SAVE_LABEL; });
+    };
+}
+
+function fillForm(){
+    document.getElementById('ui-popup-rehabRemind').checked = !!ui.popup.rehabRemind;
+    document.getElementById('ui-time-rehabFrom').value = ui.time.rehabFrom;
+    document.getElementById('ui-time-rehabDeadline').value = ui.time.rehabDeadline;
+    levels = mfExMerge(ui);
+    renderLevels();
+    updateSize();
+}
+
+(function init(){
+    if (sessionStorage.getItem('care_admin_ok') !== '1') {
+        if (!careAskPin('鏡像 U2 需要管理者密碼 / Perlu PIN admin')) { location.href = 'index.html'; return; }
+        sessionStorage.setItem('care_admin_ok', '1');
+    }
+    bindEvents();
+    mfSetSaveReady(false, '⏳ 等雲端設定回來才能存檔…');
+
+    /* 先畫快取／預設，立刻可操作 */
+    const cached = mfReadCachedGoals();
+    if (cached) { goals = cached; ui = careUI(goals); }
+    fillForm();
+    document.getElementById('mf-loading').classList.toggle('hidden', !!cached);
+    document.getElementById('mf-body').classList.remove('hidden');
+
+    /* 權威值回來才開放存檔，避免舊 blob 覆蓋雲端 */
+    mfFetchGoals()
+        .then(g => {
+            goals = g; ui = careUI(goals); fillForm();
+            mfSetSaveReady(true);
+            document.getElementById('btn-save').textContent = SAVE_LABEL;
+        })
+        .catch(() => {
+            mfToast('⚠️ 雲端讀取失敗。存檔已停用，避免用舊資料覆蓋雲端；請檢查網路後重新整理。', true);
+            mfSetSaveReady(false, '⚠️ 雲端未同步，存檔停用');
+        })
+        .finally(() => document.getElementById('mf-loading').classList.add('hidden'));
+})();
+</script>
+</body>
+</html>
