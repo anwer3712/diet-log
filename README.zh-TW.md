@@ -64,11 +64,12 @@ No frameworks. No build tools. No dependencies to install. Opens directly in any
 
 ## Screenshots
 
-| Daily Tracking | Target Dashboard | Reminder System |
+| Daily tracking | Bilingual guided entry | Trend analysis |
 |---|---|---|
-| Fluid intake log with category selection | Real-time progress toward daily goal | Time-based care reminders |
+| <img src="docs/screenshots/daily-log.png" alt="Daily care log: progress strip for the day, fluid intake target with progress bar, and category selection for water, medication, nutrition and meals" width="260"> | <img src="docs/screenshots/bilingual-guided.png" alt="Guided entry screen showing every instruction in Traditional Chinese and Indonesian side by side, with numbered steps" width="260"> | <img src="docs/screenshots/trend-analysis.png" alt="Health trend analysis page with a 7/14/30 day range picker and fifteen selectable cross-variable charts" width="260"> |
+| Progress strip, fluid target and category logging | Every string in zh-TW and Indonesian, step by step | 15 cross-variable charts over 7/14/30 days |
 
-*(Live demo: https://anwer3712.github.io/diet-log/)*
+*(Live demo: https://anwer3712.github.io/diet-log/ — screenshots taken on a 414×896 phone viewport)*
 
 ---
 
@@ -80,14 +81,14 @@ Built out of necessity. When a family member required 24/7 home care with strict
 
 ## Roadmap
 
-Planned improvements (community input welcome):
+Planned improvements — each one is an open issue, community input welcome:
 
-- [ ] **AI-assisted health analysis** — integrate Claude to detect abnormal trends across fluid intake, urine output, and blood pressure data, and translate raw numbers into plain-language guida[...]
-- [ ] **AI caregiver Q&A** — let caregivers ask questions in their own language ("her urine was dark today, should I worry?") grounded in the patient's actual logged data
-- [ ] **Additional language pairs** — English, Vietnamese, Tagalog, Thai for multicultural caregiving households
-- [ ] **Offline mode** — service worker caching for unstable connections
-- [ ] **Printable weekly reports** — one-page summaries for doctor visits
-- [ ] **Multi-patient support** — for households or small care facilities tracking more than one person
+- [ ] [#15](https://github.com/anwer3712/diet-log/issues/15) **AI-assisted health analysis** — integrate Claude to detect abnormal trends across fluid intake, urine output, and blood pressure data, and translate raw numbers into plain-language guida[...]
+- [ ] [#16](https://github.com/anwer3712/diet-log/issues/16) **AI caregiver Q&A** — let caregivers ask questions in their own language ("her urine was dark today, should I worry?") grounded in the patient's actual logged data
+- [ ] [#17](https://github.com/anwer3712/diet-log/issues/17) **Additional language pairs** — English, Vietnamese, Tagalog, Thai for multicultural caregiving households
+- [ ] [#18](https://github.com/anwer3712/diet-log/issues/18) **Offline mode** — service worker caching for unstable connections
+- [ ] [#19](https://github.com/anwer3712/diet-log/issues/19) **Printable weekly reports** — one-page summaries for doctor visits
+- [ ] [#20](https://github.com/anwer3712/diet-log/issues/20) **Multi-patient support** — for households or small care facilities tracking more than one person
 
 ---
 
@@ -96,6 +97,13 @@ Planned improvements (community input welcome):
 Pull requests welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for how to help (translations especially appreciated). This project follows a [Code of Conduct](CODE_OF_CONDUCT.md).
 
 If you care for an elderly family member and need a feature — [open an issue](https://github.com/anwer3712/diet-log/issues).
+
+---
+
+## Security
+
+Found a vulnerability? Please report it privately — see [SECURITY.md](SECURITY.md).
+Do not open a public issue, and never include real patient data in a report.
 
 ---
 
