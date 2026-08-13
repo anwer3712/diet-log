@@ -77,21 +77,35 @@ Reporters are credited in the advisory unless they ask not to be.
 These are properties of the architecture, not bugs. They are documented so that
 anyone self-hosting understands what they are deploying.
 
-1. **The backend is unauthenticated.** A Google Apps Script Web App deployed with
-   *"Anyone"* access has no login step. Anyone who knows the `/exec` URL can read
-   and write records. There is no per-user identity; the U1–U4 buttons are
-   caregiver labels, not accounts.
-2. **A static frontend cannot keep a secret.** The `GAS_URL` constant lives in
+1. **The backend authenticates in the app layer, not at the deployment layer.**
+   The Web App stays deployed as *"Anyone"* — switching it to *"Anyone with a
+   Google Account"* makes Apps Script answer with a 302 to `accounts.google.com`,
+   which a cross-origin `fetch` cannot follow, so the app would simply stop
+   working. Instead `care-auth.js` attaches a Google ID token and
+   `gas/google-auth-patch.gs` verifies it against Google plus an email allowlist.
+   Enforcement is controlled by the `AUTH_ENFORCE` script property; with it off,
+   the backend verifies and logs but does not block.
+   **A deployment that has not applied that patch is fully open: anyone who knows
+   the `/exec` URL can read and write records.** The U1–U4 buttons are caregiver
+   labels, not accounts, and never were.
+2. **Device keys are a deliberate hole, sized to the household.** Caregivers
+   without a Google account can be given a long random key
+   (`AUTH_DEVICE_TOKENS`) that their device stores and sends instead of an ID
+   token. Anyone holding that string has full read/write access, it does not
+   expire, and it identifies a device rather than a person. Keep it out of the
+   repository, hand it over on the device itself, and rotate the property if it
+   leaks.
+3. **A static frontend cannot keep a secret.** The `GAS_URL` constant lives in
    client-side JavaScript. Any value the browser needs is a value the visitor can
    read. Do not add API keys, tokens, or passwords to these files — they will be
    public.
-3. **Therefore: treat your own `/exec` URL as sensitive.** If you fork this
+4. **Therefore: treat your own `/exec` URL as sensitive.** If you fork this
    project, deploy your own Apps Script backend and **do not publish that URL**.
    Restrict the Web App to your Google account or workspace where possible, and
    keep the spreadsheet itself private (not "anyone with the link").
-4. **No encryption at rest beyond Google's.** Records live in your Google Sheet
+5. **No encryption at rest beyond Google's.** Records live in your Google Sheet
    under your Google account. Access control is whatever you set on that file.
-5. **This is not a medical device.** Thresholds and the urine-target algorithm are
+6. **This is not a medical device.** Thresholds and the urine-target algorithm are
    caregiving aids, not diagnoses. See the in-app disclaimers.
 
 ## Automated security checks

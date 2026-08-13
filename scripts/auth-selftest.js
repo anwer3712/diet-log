@@ -22,9 +22,16 @@ const SOFT_LINE = /var CARE_AUTH_SOFT = true;/;
 function loadFrontend(seedToken, opts) {
   opts = opts || {};
   const store = seedToken ? { care_idt: seedToken } : {};
+  const local = opts.devkey ? { care_devkey: opts.devkey } : {};
+  const replaced = [];
   const calls = [];
   const bodyAppends = [];
-  const el = () => ({ style: {}, textContent: '', setAttribute() {}, appendChild() {}, set innerHTML(v) {} });
+  const el = () => ({
+    style: {}, textContent: '', value: '',
+    setAttribute() {}, appendChild() {}, addEventListener() {},
+    querySelector() { return el(); },
+    set innerHTML(v) {}
+  });
   const sandbox = {
     console,
     Promise, JSON, Date, Object, encodeURIComponent, Request: function (u) { return { url: u }; },
@@ -34,13 +41,19 @@ function loadFrontend(seedToken, opts) {
       setItem: (k, v) => { store[k] = v; },
       removeItem: (k) => { delete store[k]; }
     },
+    localStorage: {
+      getItem: (k) => (k in local ? local[k] : null),
+      setItem: (k, v) => { local[k] = v; },
+      removeItem: (k) => { delete local[k]; }
+    },
+    history: { replaceState(a, b, url) { replaced.push(url); } },
     document: {
       head: { appendChild() {} },
       body: { appendChild(node) { bodyAppends.push(node); } },
       getElementById: () => null,
       createElement: () => el()
     },
-    location: { reload() {} }
+    location: { reload() {}, pathname: '/diet-log/index.html', search: opts.search || '', hash: '' }
   };
   sandbox.window = sandbox;
   sandbox.fetch = function (input, init) {
@@ -56,7 +69,7 @@ function loadFrontend(seedToken, opts) {
   const vm = require('vm');
   vm.createContext(sandbox);
   vm.runInContext(src, sandbox);
-  return { sandbox, calls, store, bodyAppends };
+  return { sandbox, calls, store, local, replaced, bodyAppends };
 }
 
 async function frontendTests() {
@@ -150,6 +163,40 @@ async function frontendTests() {
     ok('soft=false：沒 token → 擋住請求等登入');
   }
 
+  // 7b. 這支裝置有裝置金鑰 → 不需要 Google 帳號，請求帶 dt 而不是 idt
+  {
+    const { sandbox, calls } = loadFrontend(null, { soft: false, devkey: 'k7Qm2vXp9LrT4wZa8NcB1dEf' });
+    await sandbox.fetch('https://script.google.com/macros/s/X/exec?date=2026-08-13');
+    assert.strictEqual(calls.length, 1, '有裝置金鑰就不該被擋');
+    assert.ok(calls[0].url.includes('&dt='), '應帶 dt：' + calls[0].url);
+    assert.ok(!calls[0].url.includes('idt='), '不該同時帶 idt');
+    ok('裝置金鑰：沒有 Google 帳號也能用（帶 dt 不帶 idt）');
+  }
+
+  // 7c. ?devkey= 只用一次：存進 localStorage 後從網址擦掉
+  {
+    const { sandbox, local, replaced } = loadFrontend(null, { search: '?devkey=k7Qm2vXp9LrT4wZa8NcB1dEf&x=1' });
+    assert.strictEqual(local.care_devkey, 'k7Qm2vXp9LrT4wZa8NcB1dEf');
+    assert.ok(replaced.length === 1 && replaced[0].indexOf('devkey') === -1,
+      '網址應已擦掉金鑰：' + replaced[0]);
+    assert.ok(replaced[0].indexOf('x=1') !== -1, '其他查詢參數要保留');
+    ok('?devkey= 一次性：存起來並從網址擦掉（不留在瀏覽紀錄）');
+    void sandbox;
+  }
+
+  // 7d. POST 也走裝置金鑰
+  {
+    const { sandbox, calls } = loadFrontend(null, { soft: false, devkey: 'k7Qm2vXp9LrT4wZa8NcB1dEf' });
+    await sandbox.fetch('https://script.google.com/macros/s/X/exec', {
+      method: 'POST', body: JSON.stringify({ action: 'insert', amount: 250 })
+    });
+    const body = JSON.parse(calls[0].init.body);
+    assert.strictEqual(body.dt, 'k7Qm2vXp9LrT4wZa8NcB1dEf');
+    assert.strictEqual(body.amount, 250);
+    assert.strictEqual(body.idt, undefined);
+    ok('裝置金鑰：POST body 帶 dt，原欄位保留');
+  }
+
   // 8. 後端回 {error:'auth'} → 自動升級成硬性閘門，下一次請求被擋
   {
     const { sandbox, calls } = loadFrontend(null, { serverSays: { error: 'auth', reason: 'not_allowed' } });
@@ -199,14 +246,50 @@ function backendTests() {
   assert.strictEqual(empty.careAuthCheckEmail_('owner@gmail.com', empty.PropertiesService.getScriptProperties()).reason, 'empty_allowlist');
   ok('白名單空 → 拒絕（不是放行）');
 
-  assert.strictEqual(sb.careAuthExtractToken_({ parameter: { idt: 'T1' } }), 'T1');
+  assert.strictEqual(sb.careAuthExtractToken_({ parameter: { idt: 'T1' } }).idt, 'T1');
   ok('GET 取得 idt');
-  assert.strictEqual(sb.careAuthExtractToken_({ postData: { contents: JSON.stringify({ action: 'insert', idt: 'T2' }) } }), 'T2');
+  assert.strictEqual(sb.careAuthExtractToken_({ postData: { contents: JSON.stringify({ action: 'insert', idt: 'T2' }) } }).idt, 'T2');
   ok('POST body 取得 idt');
-  assert.strictEqual(sb.careAuthExtractToken_({ postData: { contents: 'not json' } }), '');
-  ok('body 不是 JSON → 視為沒帶 token（不炸）');
-  assert.strictEqual(sb.careAuthExtractToken_({}), '');
+  assert.strictEqual(sb.careAuthExtractToken_({ postData: { contents: 'not json' } }).idt, '');
+  ok('body 不是 JSON → 視為沒帶憑證（不炸）');
+  assert.strictEqual(sb.careAuthExtractToken_({}).idt, '');
   ok('完全沒帶 → 空字串');
+  assert.strictEqual(sb.careAuthExtractToken_({ parameter: { dt: 'D1' } }).dt, 'D1');
+  ok('GET 取得裝置金鑰 dt');
+  assert.strictEqual(sb.careAuthExtractToken_({ postData: { contents: JSON.stringify({ action: 'insert', dt: 'D2' }) } }).dt, 'D2');
+  ok('POST body 取得裝置金鑰 dt');
+
+  /* --- 裝置金鑰（沒有 Google 帳號的照顧者） --- */
+  const SECRET = 'k7Qm2vXp9LrT4wZa8NcB1dEf';
+  const dev = loadBackend({
+    AUTH_ENFORCE: 'true', AUTH_CLIENT_ID: 'cid', AUTH_ALLOWLIST: 'a@b.c',
+    AUTH_DEVICE_TOKENS: 'U4手機:' + SECRET + ', 平板:' + SECRET.split('').reverse().join('')
+  });
+  const devProps = dev.PropertiesService.getScriptProperties();
+
+  const hit = dev.careAuthCheckDevice_(SECRET, devProps);
+  assert.strictEqual(hit.ok, true);
+  assert.strictEqual(hit.email, 'device:U4手機');
+  ok('正確裝置金鑰 → 放行，log 記標籤不記金鑰');
+
+  assert.strictEqual(dev.careAuthCheckDevice_('wrong-but-long-enough-key', devProps).reason, 'bad_device_key');
+  ok('錯誤裝置金鑰 → bad_device_key');
+
+  const shortKey = loadBackend({ AUTH_DEVICE_TOKENS: 'x:1234' });
+  assert.strictEqual(
+    shortKey.careAuthCheckDevice_('1234', shortKey.PropertiesService.getScriptProperties()).ok, false);
+  ok('金鑰短於 16 字 → 一律不收（防止填 1234 就以為擋得住）');
+
+  assert.strictEqual(dev.careAuthCheck_({ parameter: { dt: SECRET } }).ok, true);
+  ok('強制模式下帶裝置金鑰 → 放行（且完全不呼叫 UrlFetchApp，沙箱會炸）');
+
+  assert.strictEqual(dev.careAuthCheck_({ parameter: { dt: 'nope-nope-nope-nope' } }).ok, false);
+  ok('強制模式下錯誤裝置金鑰 → 擋下');
+
+  const noDev = loadBackend({ AUTH_ENFORCE: 'true', AUTH_CLIENT_ID: 'cid', AUTH_ALLOWLIST: 'a@b.c' });
+  assert.strictEqual(
+    noDev.careAuthCheckDevice_('anything-long-enough-here', noDev.PropertiesService.getScriptProperties()).ok, false);
+  ok('沒設 AUTH_DEVICE_TOKENS → 任何裝置金鑰都不收（fail closed）');
 
   // 觀察模式：驗證失敗也放行
   const observe = loadBackend({ AUTH_ENFORCE: 'false', AUTH_CLIENT_ID: 'cid', AUTH_ALLOWLIST: 'a@b.c' });
