@@ -24,6 +24,7 @@ function loadFrontend(seedToken, opts) {
   const store = seedToken ? { care_idt: seedToken } : {};
   const local = opts.devkey ? { care_devkey: opts.devkey } : {};
   const replaced = [];
+  const alerts = [];
   const calls = [];
   const bodyAppends = [];
   const el = () => ({
@@ -47,6 +48,8 @@ function loadFrontend(seedToken, opts) {
       removeItem: (k) => { delete local[k]; }
     },
     history: { replaceState(a, b, url) { replaced.push(url); } },
+    alert(msg) { alerts.push(msg); },
+    setTimeout: (fn) => fn(),
     document: {
       head: { appendChild() {} },
       body: { appendChild(node) { bodyAppends.push(node); } },
@@ -69,7 +72,7 @@ function loadFrontend(seedToken, opts) {
   const vm = require('vm');
   vm.createContext(sandbox);
   vm.runInContext(src, sandbox);
-  return { sandbox, calls, store, local, replaced, bodyAppends };
+  return { sandbox, calls, store, local, replaced, alerts, bodyAppends };
 }
 
 async function frontendTests() {
@@ -175,12 +178,13 @@ async function frontendTests() {
 
   // 7c. ?devkey= 只用一次：存進 localStorage 後從網址擦掉
   {
-    const { sandbox, local, replaced } = loadFrontend(null, { search: '?devkey=k7Qm2vXp9LrT4wZa8NcB1dEf&x=1' });
+    const { sandbox, local, replaced, alerts } = loadFrontend(null, { search: '?devkey=k7Qm2vXp9LrT4wZa8NcB1dEf&x=1' });
     assert.strictEqual(local.care_devkey, 'k7Qm2vXp9LrT4wZa8NcB1dEf');
     assert.ok(replaced.length === 1 && replaced[0].indexOf('devkey') === -1,
       '網址應已擦掉金鑰：' + replaced[0]);
     assert.ok(replaced[0].indexOf('x=1') !== -1, '其他查詢參數要保留');
-    ok('?devkey= 一次性：存起來並從網址擦掉（不留在瀏覽紀錄）');
+    assert.strictEqual(alerts.length, 1, '手機上要看得到安裝成功的確認');
+    ok('?devkey= 一次性：存起來、從網址擦掉、並在手機上顯示安裝成功');
     void sandbox;
   }
 

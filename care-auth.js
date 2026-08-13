@@ -55,6 +55,11 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
         saveDeviceKey(decodeURIComponent(m[1]));
         var clean = location.pathname + location.search.replace(/([?&])devkey=[^&]*&?/, '$1').replace(/[?&]$/, '');
         try { history.replaceState(null, '', clean + location.hash); } catch (err) { /* ignore */ }
+        // 裝金鑰的人多半不會開 console，給一個手機上看得到的確認
+        // ponytail: alert 夠用，這是一次性的設定路徑
+        setTimeout(function () {
+            alert('裝置金鑰已安裝 ✅\nKunci perangkat tersimpan ✅');
+        }, 300);
     }());
 
     /* ---------- token ---------- */
