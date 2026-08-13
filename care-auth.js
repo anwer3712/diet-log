@@ -5,15 +5,21 @@
  * 所以身分驗證改由「前端拿 Google ID token → 後端驗 token + 比對 email 白名單」完成。
  *
  * ⚠️ 開關：CARE_AUTH_CLIENT_ID 留空 = 這支檔案完全不動作，行為與沒有它一模一樣。
- * 填入 OAuth Client ID 才會啟用登入閘門。啟用前請先確認後端補丁已貼上，
- * 且 Script Property AUTH_ALLOWLIST 已填好所有照顧者的 Gmail。
+ *
+ * CARE_AUTH_SOFT = true（過渡期，預設）：有 token 就帶上，沒有就照樣送出，
+ * 永遠不擋畫面。只有當後端回 {error:'auth'}（＝AUTH_ENFORCE 已開）才會升級成
+ * 硬性登入閘門。這樣「要不要真的擋人」只由後端那一個開關決定，
+ * 前端就算 OAuth 設定還沒弄好（例如 JavaScript 來源還沒登記），
+ * 照顧者也不會因此記不了帳。
  *
  * OAuth Client ID 不是密鑰，公開在前端是 Google 官方設計（靠授權來源網域保護），
- * 放進公開 repo 沒有問題。
+ * 放進公開 repo 沒有問題。⚠️ 這組 client 必須在 Google Cloud Console 的
+ * 「已授權的 JavaScript 來源」加入 https://anwer3712.github.io ，否則登入按鈕不會出現。
  */
 
 /* eslint-disable no-var */
-var CARE_AUTH_CLIENT_ID = '';   // ← 貼上 OAuth 2.0 用戶端 ID（結尾 .apps.googleusercontent.com）
+var CARE_AUTH_CLIENT_ID = '591777420446-hl5hpvd79nna9klklbrpi2lma29skq3s.apps.googleusercontent.com';
+var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORCE 開了才擋
 
 (function () {
     'use strict';
@@ -26,6 +32,7 @@ var CARE_AUTH_CLIENT_ID = '';   // ← 貼上 OAuth 2.0 用戶端 ID（結尾 .a
     var GIS_SRC = 'https://accounts.google.com/gsi/client';
     var waiters = [];                           // 等 token 的 resolver
     var gisLoading = false;
+    var escalated = false;                      // 後端已開始強制驗證
 
     /* ---------- token ---------- */
 
@@ -53,14 +60,34 @@ var CARE_AUTH_CLIENT_ID = '';   // ← 貼上 OAuth 2.0 用戶端 ID（結尾 .a
         pending.forEach(function (resolve) { resolve(tok); });
     }
 
+    /**
+     * 過渡期（soft）＝有 token 就帶、沒有就照送，永遠不擋畫面；
+     * 後端真的回 {error:'auth'} 才升級成硬性閘門（escalated）。
+     * 所以「要不要真的擋人」只由後端那一個開關 AUTH_ENFORCE 決定，
+     * 前端不必再切一次，也不會因為 OAuth 設定沒弄好就讓照顧者記不了帳。
+     */
+    function softNow() { return CARE_AUTH_SOFT && !escalated; }
+
     function getToken() {
         var t = storedToken();
         if (t) { return Promise.resolve(t); }
+        loadGis();                                  // 背景嘗試登入（One Tap）
+        if (softNow()) { return Promise.resolve(''); }   // 過渡期：不擋，先照送
         return new Promise(function (resolve) {
             waiters.push(resolve);
             showGate();
-            loadGis();
         });
+    }
+
+    /** 後端開始強制驗證了 → 這一刻起改成硬性閘門。 */
+    function escalate(reason) {
+        escalated = true;
+        try { sessionStorage.removeItem(TOKEN_KEY); } catch (err) { /* ignore */ }
+        showGate();
+        gateMessage(reason === 'not_allowed'
+            ? '這個帳號沒有被授權 / Akun ini tidak diizinkan'
+            : '請登入後繼續 / Silakan masuk untuk melanjutkan');
+        loadGis();
     }
 
     /* ---------- Google Identity Services ---------- */
@@ -139,6 +166,7 @@ var CARE_AUTH_CLIENT_ID = '';   // ← 貼上 OAuth 2.0 用戶端 ID（結尾 .a
 
     function withToken(url, init, tok) {
         var opts = init ? Object.assign({}, init) : {};
+        if (!tok) { return { url: url, init: opts }; }   // 過渡期還沒拿到 token → 原樣送
         var method = (opts.method || 'GET').toUpperCase();
 
         if (method === 'POST' && typeof opts.body === 'string') {
@@ -168,14 +196,7 @@ var CARE_AUTH_CLIENT_ID = '';   // ← 貼上 OAuth 2.0 用戶端 ID（結尾 .a
             return req.then(function (res) {
                 // 後端拒絕（白名單沒有這個 email / token 無效）要看得見，不能靜默失敗
                 return res.clone().json().then(function (data) {
-                    if (data && data.error === 'auth') {
-                        try { sessionStorage.removeItem(TOKEN_KEY); } catch (err) { /* ignore */ }
-                        showGate();
-                        gateMessage(data.reason === 'not_allowed'
-                            ? '這個帳號沒有被授權 / Akun ini tidak diizinkan'
-                            : '登入已過期，請重新登入 / Sesi berakhir, silakan masuk lagi');
-                        loadGis();
-                    }
+                    if (data && data.error === 'auth') { escalate(data.reason); }
                     return res;
                 }, function () { return res; });     // 不是 JSON 就原樣回傳
             });
@@ -186,7 +207,12 @@ var CARE_AUTH_CLIENT_ID = '';   // ← 貼上 OAuth 2.0 用戶端 ID（結尾 .a
 
     window.careAuthState = function () {
         var t = storedToken();
-        return { enabled: true, signedIn: !!t, expiresAt: t ? new Date(jwtExpMs(t)).toISOString() : null };
+        return {
+            enabled: true,
+            mode: softNow() ? 'soft（過渡期：不擋）' : 'enforced（後端已要求登入）',
+            signedIn: !!t,
+            expiresAt: t ? new Date(jwtExpMs(t)).toISOString() : null
+        };
     };
     window.careAuthSignOut = function () {
         try { sessionStorage.removeItem(TOKEN_KEY); } catch (err) { /* ignore */ }
