@@ -28,11 +28,34 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
     if (!CID) { return; }                       // 未設定 → 完全不掛載，維持現狀
 
     var TOKEN_KEY = 'care_idt';
+    var DEVKEY_KEY = 'care_devkey';             // 沒有 Google 帳號的裝置用（例如 U4 那支手機）
     var SAFETY_MS = 120000;                     // 距到期 2 分鐘就當作過期，避免寫到一半失效
     var GIS_SRC = 'https://accounts.google.com/gsi/client';
     var waiters = [];                           // 等 token 的 resolver
     var gisLoading = false;
     var escalated = false;                      // 後端已開始強制驗證
+
+    /* ---------- 裝置金鑰 ----------
+     * 給沒有 Google 帳號的照顧者：那支裝置存一組長亂數，後端接受「Google 帳號 或 裝置金鑰」。
+     * 發放方式＝一次性網址 index.html?devkey=xxxxx（沿用既有 ?join= 的做法：
+     * 存進 localStorage 後立刻用 replaceState 把網址上的金鑰擦掉，不留在瀏覽紀錄）。
+     */
+
+    function deviceKey() {
+        try { return localStorage.getItem(DEVKEY_KEY) || ''; } catch (err) { return ''; }
+    }
+
+    function saveDeviceKey(k) {
+        try { localStorage.setItem(DEVKEY_KEY, k); } catch (err) { /* 私密瀏覽 → 只當次有效 */ }
+    }
+
+    (function absorbDeviceKeyFromUrl() {
+        var m = location.search.match(/[?&]devkey=([^&]+)/);
+        if (!m) { return; }
+        saveDeviceKey(decodeURIComponent(m[1]));
+        var clean = location.pathname + location.search.replace(/([?&])devkey=[^&]*&?/, '$1').replace(/[?&]$/, '');
+        try { history.replaceState(null, '', clean + location.hash); } catch (err) { /* ignore */ }
+    }());
 
     /* ---------- token ---------- */
 
@@ -54,10 +77,15 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
 
     function acceptToken(tok) {
         try { sessionStorage.setItem(TOKEN_KEY, tok); } catch (err) { /* 私密瀏覽 → 只存記憶體 */ }
+        release({ idt: tok });
+    }
+
+    /** 讓所有等待中的請求繼續。cred = {idt} 或 {dt} 或 {}（過渡期無憑證）。 */
+    function release(cred) {
         hideGate();
         var pending = waiters;
         waiters = [];
-        pending.forEach(function (resolve) { resolve(tok); });
+        pending.forEach(function (resolve) { resolve(cred); });
     }
 
     /**
@@ -70,9 +98,11 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
 
     function getToken() {
         var t = storedToken();
-        if (t) { return Promise.resolve(t); }
+        if (t) { return Promise.resolve({ idt: t }); }
+        var dk = deviceKey();
+        if (dk) { return Promise.resolve({ dt: dk }); }   // 這支裝置走裝置金鑰，不需要 Google 帳號
         loadGis();                                  // 背景嘗試登入（One Tap）
-        if (softNow()) { return Promise.resolve(''); }   // 過渡期：不擋，先照送
+        if (softNow()) { return Promise.resolve({}); }    // 過渡期：不擋，先照送
         return new Promise(function (resolve) {
             waiters.push(resolve);
             showGate();
@@ -83,10 +113,16 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
     function escalate(reason) {
         escalated = true;
         try { sessionStorage.removeItem(TOKEN_KEY); } catch (err) { /* ignore */ }
+        // 裝置金鑰被拒（例如已輪替）→ 清掉，否則會拿舊金鑰一直撞牆
+        if (reason === 'bad_device_key') {
+            try { localStorage.removeItem(DEVKEY_KEY); } catch (err) { /* ignore */ }
+        }
         showGate();
         gateMessage(reason === 'not_allowed'
             ? '這個帳號沒有被授權 / Akun ini tidak diizinkan'
-            : '請登入後繼續 / Silakan masuk untuk melanjutkan');
+            : (reason === 'bad_device_key'
+                ? '裝置金鑰已失效，請重新輸入 / Kunci perangkat tidak berlaku'
+                : '請登入後繼續 / Silakan masuk untuk melanjutkan'));
         loadGis();
     }
 
@@ -145,8 +181,22 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
             '只有被授權的照顧者才能看到與記錄資料。<br>' +
             'Hanya pengasuh yang diizinkan dapat melihat dan mencatat data.</div>' +
             '<div id="care-auth-btn" style="margin-top:6px"></div>' +
-            '<div id="care-auth-msg" style="font-size:12px;color:#b91c1c;min-height:18px"></div>';
+            '<div id="care-auth-msg" style="font-size:12px;color:#b91c1c;min-height:18px"></div>' +
+            '<div style="font-size:11px;color:#a8a29e;margin-top:10px">沒有 Google 帳號？ / Tidak punya akun Google?</div>' +
+            '<div style="display:flex;gap:6px">' +
+            '<input id="care-auth-dev" type="password" autocomplete="off" placeholder="裝置金鑰 / Kunci perangkat"' +
+            ' style="padding:8px;border:1px solid #d6d3d1;border-radius:6px;font-size:13px;width:190px">' +
+            '<button id="care-auth-dev-ok" type="button"' +
+            ' style="padding:8px 14px;border:0;border-radius:6px;background:#be123c;color:#fff;font-size:13px">確定</button>' +
+            '</div>';
         document.body.appendChild(el);
+        el.querySelector('#care-auth-dev-ok').addEventListener('click', function () {
+            var v = (el.querySelector('#care-auth-dev').value || '').trim();
+            if (!v) { return; }
+            saveDeviceKey(v);
+            escalated = false;              // 給這把新金鑰一次機會；後端不收會再退回這裡
+            release({ dt: v });
+        });
         return el;
     }
 
@@ -164,23 +214,25 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
 
     var nativeFetch = window.fetch.bind(window);
 
-    function withToken(url, init, tok) {
+    function withToken(url, init, cred) {
         var opts = init ? Object.assign({}, init) : {};
-        if (!tok) { return { url: url, init: opts }; }   // 過渡期還沒拿到 token → 原樣送
+        var field = cred && cred.idt ? 'idt' : (cred && cred.dt ? 'dt' : '');
+        if (!field) { return { url: url, init: opts }; }   // 過渡期還沒拿到憑證 → 原樣送
+        var value = cred[field];
         var method = (opts.method || 'GET').toUpperCase();
 
         if (method === 'POST' && typeof opts.body === 'string') {
             var payload;
             try { payload = JSON.parse(opts.body); } catch (err) { payload = null; }
             if (payload && typeof payload === 'object') {
-                payload.idt = tok;
+                payload[field] = value;
                 opts.body = JSON.stringify(payload);
                 return { url: url, init: opts };
             }
         }
         // GET，或 body 不是 JSON → 掛在查詢字串
         var sep = url.indexOf('?') === -1 ? '?' : '&';
-        return { url: url + sep + 'idt=' + encodeURIComponent(tok), init: opts };
+        return { url: url + sep + field + '=' + encodeURIComponent(value), init: opts };
     }
 
     window.fetch = function (input, init) {
@@ -188,8 +240,8 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
         if (url.indexOf('script.google.com') === -1) {
             return nativeFetch(input, init);        // 其他請求原樣放行
         }
-        return getToken().then(function (tok) {
-            var signed = withToken(url, init, tok);
+        return getToken().then(function (cred) {
+            var signed = withToken(url, init, cred);
             var req = (typeof input === 'string')
                 ? nativeFetch(signed.url, signed.init)
                 : nativeFetch(new Request(signed.url, input));
@@ -211,8 +263,13 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
             enabled: true,
             mode: softNow() ? 'soft（過渡期：不擋）' : 'enforced（後端已要求登入）',
             signedIn: !!t,
+            deviceKey: deviceKey() ? '已設定（' + deviceKey().length + ' 字）' : '無',
             expiresAt: t ? new Date(jwtExpMs(t)).toISOString() : null
         };
+    };
+    window.careAuthForgetDevice = function () {
+        try { localStorage.removeItem(DEVKEY_KEY); } catch (err) { /* ignore */ }
+        location.reload();
     };
     window.careAuthSignOut = function () {
         try { sessionStorage.removeItem(TOKEN_KEY); } catch (err) { /* ignore */ }
