@@ -1,6 +1,3 @@
-# GitHub 多語言 README 批量生成指南 - 第三批（13 種語言）
-
-## 待完成的語言（13 種）
 
 ### 阿拉伯文 (ar)
 **檔案路徑**: `docs/translations/README.ar.md`
