@@ -242,7 +242,13 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
 
     window.fetch = function (input, init) {
         var url = (typeof input === 'string') ? input : (input && input.url) || '';
-        if (url.indexOf('script.google.com') === -1) {
+        var host = '';
+        try {
+            host = new URL(url, window.location.href).hostname;
+        } catch (err) {
+            host = '';
+        }
+        if (host !== 'script.google.com') {
             return nativeFetch(input, init);        // 其他請求原樣放行
         }
         return getToken().then(function (cred) {
