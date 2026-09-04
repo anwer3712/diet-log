@@ -1,110 +1,113 @@
 # 陽光照護日誌 / Sunshine Care Log
 
-> A free, open-source daily care tracking tool for elderly patients — built for family caregivers.
+> 為銀髮族患者提供的免費開源日常照護追蹤工具 — 專為家庭照護者設計。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/Live-Demo-rose)](https://anwer3712.github.io/diet-log/)
 
 ---
 
-## What is this?
+## 這是什麼？
 
-A bilingual (Traditional Chinese 🇹🇼 / Indonesian 🇮🇩) web app designed to help **family caregivers** track daily health data for elderly patients at home — especially those with chronic conditions requiring fluid monitoring.
+一個雙語（繁體中文 🇹🇼 / 印尼文 🇮🇩）網頁應用程式，設計用來幫助**家庭照護者**在家追蹤銀髮族患者的日常健康數據 — 特別是患有慢性疾病需要嚴格液體管理的患者（心臟衰竭、洗腎、手術後恢復）。
 
-No installation needed. Works on any smartphone browser. Data syncs to Google Sheets via Google Apps Script.
-
----
-
-## Features
-
-- **Fluid intake tracking** — water, medication drinks, nutritional supplements, meals (with daily target & progress bar)
-- **Fluid output tracking** — urine volume + color, bowel movements with status
-- **Intelligent urine target algorithm** — auto-calculates expected urine output based on water intake goal, adjusted for diuretic medication (×1.1–1.5 range) vs. no medication (×0.4–0.6 range)
-- **Fluid overload warning** — red alert when total intake exceeds 1,200 c.c.
-- **Exercise logging** — bottle lifts, foot presses, knee bends, standing assistance (with safety protocol checklist)
-- **Blood pressure & heart rate** — morning and evening measurements with measurement guidelines
-- **Constipation alert system** — auto-triggers warning every 2 hours between 60–72 hours after last bowel movement, with bilingual safety instructions prohibiting unsupervised enema use
-- **Medication state tracking** — diuretics and laxatives, persisted to cloud
-- **Time-based reminder system** — smart reminders for BP measurement, exercise slots, and bedtime urine check
-- **Cloud sync** — all data saved to Google Sheets via Google Apps Script; supports multi-caregiver households
-- **Optimistic UI** — records appear instantly without waiting for server response
-- **Weekly cleaning reminders** — built-in schedule for household hygiene tasks
+無需安裝。在任何智慧型手機的瀏覽器上都能使用。數據透過 Google Apps Script 同步到 Google 試算表。
 
 ---
 
-## Who is this for?
+## 主要功能
 
-- Family members caring for elderly parents or grandparents at home
-- Households with multiple rotating caregivers (especially across language barriers)
-- Patients with conditions requiring strict fluid monitoring (heart failure, dialysis, post-surgery recovery)
+- **液體攝入追蹤** — 水、藥物飲料、營養補充飲料、食物（包含每日目標和進度條）
+- **液體排出追蹤** — 尿量 + 尿色、排便狀況及狀態
+- **智能尿量目標演算法** — 根據水分攝入目標自動計算預期尿量，並根據利尿藥物使用情況進行調整（有使用：×1.1–1.5 倍；未使用：×0.4–0.6 倍）
+- **液體超負荷警告** — 當總攝入超過 1,200 c.c. 時發出紅色警告
+- **運動記錄** — 寶特瓶舉起、腳踩、膝蓋彎曲、站立輔助（含安全檢查清單）
+- **血壓與心率** — 早晚測量，含測量指南
+- **便秘警告系統** — 最後排便後 60–72 小時間，每 2 小時自動觸發警告，提供雙語安全指示（禁止無人監督使用浣腸）
+- **藥物狀態追蹤** — 利尿藥物和瀉藥，數據保存到雲端
+- **時間基礎提醒系統** — 血壓測量、運動時段、睡前尿液檢查的智能提醒
+- **雲端同步** — 所有數據保存到 Google 試算表（透過 Google Apps Script），支持多照護者家庭
+- **樂觀型使用者介面** — 記錄立即出現，無需等待伺服器回應
+- **每週清潔提醒** — 內建家庭衛生工作排程
 
 ---
 
-## Tech Stack
+## 適用對象？
 
-| Layer | Technology |
+- 在家照護年邁父母或祖父母的家庭成員
+- 有多名輪流照護者的家庭（特別是跨越語言障礙的情況）
+- 需要嚴格液體監測的患者（心臟衰竭、洗腎、手術後恢復）
+
+---
+
+## 技術棧
+
+| 層級 | 技術 |
 |-------|-----------|
-| Frontend | Vanilla HTML + JavaScript + Tailwind CSS |
-| Backend | Google Apps Script (serverless) |
-| Database | Google Sheets |
-| Hosting | GitHub Pages (free) |
+| 前端 | 原生 HTML + JavaScript + Tailwind CSS |
+| 後端 | Google Apps Script（無伺服器） |
+| 資料庫 | Google 試算表 |
+| 主機 | GitHub Pages（免費） |
 
-No frameworks. No build tools. No dependencies to install. Opens directly in any browser.
-
----
-
-## Setup / Self-Hosting
-
-1. Fork this repository
-2. Deploy your own Google Apps Script backend (see `GAS_URL` in `index.html`)
-3. Create a Google Sheet for data storage
-4. Update `GAS_URL` and `SPREADSHEET_URL` constants in `index.html`
-5. Enable GitHub Pages on your fork → done
+無框架。無構建工具。無需安裝任何依賴。直接在任何瀏覽器中開啟。
 
 ---
 
-## Screenshots
+## 設定 / 自行部署
 
-| Daily Tracking | Target Dashboard | Reminder System |
+1. Fork 此倉庫
+2. 部署您自己的 Google Apps Script 後端（見 `index.html` 中的 `GAS_URL`）
+3. 建立用於數據儲存的 Google 試算表
+4. 更新 `index.html` 中的 `GAS_URL` 和 `SPREADSHEET_URL` 常數
+5. 在您的 fork 上啟用 GitHub Pages → 完成
+
+---
+
+## 螢幕截圖
+
+| 每日追蹤 | 雙語引導輸入 | 趨勢分析 |
 |---|---|---|
-| Fluid intake log with category selection | Real-time progress toward daily goal | Time-based care reminders |
+| 每日照護日誌：進度條、液體攝入目標與進度、水/藥物/營養/食物分類選擇 | 導引式輸入畫面，顯示繁體中文和印尼文並排指示，按步驟編號 | 健康趨勢分析頁面，提供 7/14/30 天範圍選擇，可選擇 15 個跨變數圖表 |
+| 進度條、液體目標與分類記錄 | 每個字串均提供繁體中文和印尼文，逐步操作 | 15 個跨變數圖表（7/14/30 天） |
 
-*(Live demo: https://anwer3712.github.io/diet-log/)*
-
----
-
-## Motivation
-
-Built out of necessity. When a family member required 24/7 home care with strict fluid management, existing apps were either too complex, English-only, or required monthly subscriptions. This tool aims to be simple, bilingual, and free.
+*（線上示範：https://anwer3712.github.io/diet-log/ — 螢幕截圖取自 414×896 手機視窗）*
 
 ---
 
-## Roadmap
+## 開發動機
 
-Planned improvements — each one is an open issue, community input welcome:
-
-- [ ] [#15](https://github.com/anwer3712/diet-log/issues/15) **AI-assisted health analysis**
-- [ ] [#16](https://github.com/anwer3712/diet-log/issues/16) **AI caregiver Q&A**
-- [ ] [#17](https://github.com/anwer3712/diet-log/issues/17) **Additional language pairs**
-- [ ] [#18](https://github.com/anwer3712/diet-log/issues/18) **Offline mode**
-- [ ] [#19](https://github.com/anwer3712/diet-log/issues/19) **Printable weekly reports**
-- [ ] [#20](https://github.com/anwer3712/diet-log/issues/20) **Multi-patient support**
+出於必要而開發。當家庭成員需要 24/7 在家照護並進行嚴格液體管理時，現有應用程式要麼過於複雜、只有英文版本，要麼需要按月付費。這個工具的目標是：提供簡單、免費、多語言的解決方案，讓照護者能專注於患者，而非應用程式本身。
 
 ---
 
-## Contributing
+## 路線圖
 
-Pull requests welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for how to help (translations especially appreciated). This project follows a [Code of Conduct](CODE_OF_CONDUCT.md).
+計畫中的改進 — 每項都是開放議題，歡迎社區貢獻意見：
+
+- [ ] [#15](https://github.com/anwer3712/diet-log/issues/15) **AI 輔助健康分析** — 整合 Claude 以檢測液體攝入、尿量和血壓數據的異常趨勢，並將原始數據轉譯為平白易懂的照護指南
+- [ ] [#16](https://github.com/anwer3712/diet-log/issues/16) **AI 照護者問答** — 讓照護者用自己的語言提問（例如「她今天尿液很深，應該擔心嗎？」），基於患者實際記錄的數據回答
+- [ ] [#17](https://github.com/anwer3712/diet-log/issues/17) **更多語言對** — 英文、越南文、他加祿文、泰文，適用於多元文化照護家庭
+- [ ] [#18](https://github.com/anwer3712/diet-log/issues/18) **離線模式** — 用 Service Worker 快取解決不穩定連線問題
+- [ ] [#19](https://github.com/anwer3712/diet-log/issues/19) **可列印週報** — 一頁紙總結，用於醫生看診
+- [ ] [#20](https://github.com/anwer3712/diet-log/issues/20) **多患者支持** — 家庭或小型照護設施追蹤多人
 
 ---
 
-## Security
+## 貢獻
 
-Found a vulnerability? Please report it privately — see [SECURITY.md](SECURITY.md).
-Do not open a public issue, and never include real patient data in a report.
+歡迎提交 Pull Request — 詳見 [CONTRIBUTING.md](CONTRIBUTING.md) 了解如何協助（特別歡迎翻譯貢獻）。本項目遵循 [行為守則](CODE_OF_CONDUCT.md)。
+
+如果您照護年邁的家庭成員，需要某項功能 — [開立議題](https://github.com/anwer3712/diet-log/issues)。
 
 ---
 
-## License
+## 安全性
+
+發現安全漏洞？請私下報告 — 詳見 [SECURITY.md](SECURITY.md)。
+請勿開立公開議題，並且不要在報告中包含實際患者數據。
+
+---
+
+## 授權
 
 MIT © 2026 anwer3712
