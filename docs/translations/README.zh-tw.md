@@ -75,20 +75,20 @@ No frameworks. No build tools. No dependencies to install. Opens directly in any
 
 ## Motivation
 
-Built out of necessity. When a family member required 24/7 home care with strict fluid management, existing apps were either too complex, English-only, or required monthly subscriptions. This tool was developed to be simple, bilingual, and free for families.
+Built out of necessity. When a family member required 24/7 home care with strict fluid management, existing apps were either too complex, English-only, or required monthly subscriptions. This tool aims to be simple, bilingual, and free.
 
 ---
 
 ## Roadmap
 
-Planned improvements (community input welcome):
+Planned improvements — each one is an open issue, community input welcome:
 
-- [ ] **AI-assisted health analysis** — integrate Claude to detect abnormal trends across fluid intake, urine output, and blood pressure data, and translate raw numbers into plain-language guidance
-- [ ] **AI caregiver Q&A** — let caregivers ask questions in their own language ("her urine was dark today, should I worry?") grounded in the patient's actual logged data
-- [ ] **Additional language pairs** — English, Vietnamese, Tagalog, Thai for multicultural caregiving households
-- [ ] **Offline mode** — service worker caching for unstable connections
-- [ ] **Printable weekly reports** — one-page summaries for doctor visits
-- [ ] **Multi-patient support** — for households or small care facilities tracking more than one person
+- [ ] [#15](https://github.com/anwer3712/diet-log/issues/15) **AI-assisted health analysis**
+- [ ] [#16](https://github.com/anwer3712/diet-log/issues/16) **AI caregiver Q&A**
+- [ ] [#17](https://github.com/anwer3712/diet-log/issues/17) **Additional language pairs**
+- [ ] [#18](https://github.com/anwer3712/diet-log/issues/18) **Offline mode**
+- [ ] [#19](https://github.com/anwer3712/diet-log/issues/19) **Printable weekly reports**
+- [ ] [#20](https://github.com/anwer3712/diet-log/issues/20) **Multi-patient support**
 
 ---
 
@@ -96,7 +96,12 @@ Planned improvements (community input welcome):
 
 Pull requests welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for how to help (translations especially appreciated). This project follows a [Code of Conduct](CODE_OF_CONDUCT.md).
 
-If you care for an elderly family member and need a feature — [open an issue](https://github.com/anwer3712/diet-log/issues).
+---
+
+## Security
+
+Found a vulnerability? Please report it privately — see [SECURITY.md](SECURITY.md).
+Do not open a public issue, and never include real patient data in a report.
 
 ---
 
