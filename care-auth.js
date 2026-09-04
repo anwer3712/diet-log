@@ -31,6 +31,7 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
     var DEVKEY_KEY = 'care_devkey';             // 沒有 Google 帳號的裝置用（例如 U4 那支手機）
     var SAFETY_MS = 120000;                     // 距到期 2 分鐘就當作過期，避免寫到一半失效
     var GIS_SRC = 'https://accounts.google.com/gsi/client';
+    var ALLOWED_HOSTS = Object.freeze(['script.google.com']);  // 精確域名白名單
     var waiters = [];                           // 等 token 的 resolver
     var gisLoading = false;
     var escalated = false;                      // 後端已開始強制驗證
@@ -219,6 +220,10 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
 
     var nativeFetch = window.fetch.bind(window);
 
+    function isAllowedHost(host) {
+        return ALLOWED_HOSTS.indexOf(host) !== -1;
+    }
+
     function withToken(url, init, cred) {
         var opts = init ? Object.assign({}, init) : {};
         var field = cred && cred.idt ? 'idt' : (cred && cred.dt ? 'dt' : '');
@@ -246,10 +251,12 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
         try {
             host = new URL(url, window.location.href).hostname;
         } catch (err) {
-            host = '';
+            // 無效 URL → 拒絕，防止惡意 URL 規避檢查
+            return nativeFetch(input, init);
         }
-        if (host !== 'script.google.com') {
-            return nativeFetch(input, init);        // 其他請求原樣放行
+        // 精確白名單比對，防止子域名或子串欺騙
+        if (!isAllowedHost(host)) {
+            return nativeFetch(input, init);        // 不在白名單 → 原樣放行
         }
         return getToken().then(function (cred) {
             var signed = withToken(url, init, cred);
