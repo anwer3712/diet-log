@@ -46,6 +46,25 @@
         .bounce-big { display: inline-block; animation: bounce-big 1s infinite; }
         @keyframes bounce-big { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
+        /* 圖片動畫呈現：呼吸動態微浮、懸停縮放微光、載入進場 */
+        @keyframes img-breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        @keyframes img-fade-in {
+            from { opacity: 0; transform: translateY(6px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animated-img {
+            animation: img-fade-in 0.4s ease-out, img-breathe 4s ease-in-out infinite 0.4s;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+        }
+        .animated-img:hover {
+            transform: scale(1.035);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            filter: brightness(1.02);
+        }
+
         /* 標題前頭動畫圖示以提高辨識度 */
         @keyframes icon-bounce-gentle {
             0%, 100% { transform: translateY(0) scale(1); }
@@ -291,7 +310,7 @@
 
                 <div id="math-guide-img" class="hidden space-y-1">
                     <p class="text-[11px] font-bold text-gray-400"><span class="lang-zh">湯湯水水的計量辦法</span><span class="lang-id">Cara ukur makanan berair</span></p>
-                    <img src="math.jpg" class="w-full rounded-2xl border border-gray-200" loading="lazy">
+                    <img src="math.jpg" class="w-full rounded-2xl border border-gray-200 animated-img" loading="lazy">
                 </div>
 
                 <div id="stool-shortcut" class="hidden space-y-1.5">
@@ -1695,7 +1714,7 @@ function checkBpTime() {
                 <p class="text-sm font-black text-red-600">⚠️ <span class="lang-zh">錯誤示範／運動間隔按摩</span><span class="lang-id">Contoh salah / Pijat di sela latihan</span></p>
                 ${REHAB_WARN_ITEMS.map(w => `
                 <div>
-                    <img src="${w.img}" alt="${w.zh}" loading="lazy" class="w-full rounded-2xl border border-gray-200 shadow-sm">
+                    <img src="${w.img}" alt="${w.zh}" loading="lazy" class="w-full rounded-2xl border border-gray-200 shadow-sm animated-img">
                     <p class="text-[11px] font-bold mt-1 ${w.bad ? 'text-red-600' : 'text-emerald-600'}">${w.bad ? '❌' : '💆'} <span class="lang-zh">${w.zh}</span><span class="lang-id">${w.id}</span></p>
                 </div>`).join('')}
             </div>`;
@@ -1706,7 +1725,7 @@ function checkBpTime() {
             if (!g) return;
             document.getElementById('rehab-modal-title').textContent = g.title;
             const imgHtml = g.images.map((src, i) =>
-                `<img src="${src}" alt="${g.title} ${i + 1}" loading="lazy" class="w-full rounded-2xl border border-gray-200 shadow-sm">`
+                `<img src="${src}" alt="${g.title} ${i + 1}" loading="lazy" class="w-full rounded-2xl border border-gray-200 shadow-sm animated-img">`
             ).join('');
             const stepHtml = g.steps.map((s, i) =>
                 `<div class="flex gap-2.5">

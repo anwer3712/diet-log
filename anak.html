@@ -62,6 +62,24 @@
             to   { opacity: 1; transform: translateY(0) scale(1); }
         }
 
+        /* 圖片動畫呈現：呼吸動態微浮、懸停縮放微光、載入進場 */
+        @keyframes img-breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        @keyframes img-fade-in {
+            from { opacity: 0; transform: translateY(6px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animated-img {
+            animation: img-fade-in 0.4s ease-out, img-breathe 4s ease-in-out infinite 0.4s;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+        }
+        .choice:hover .animated-img, .animated-img:hover {
+            transform: scale(1.06);
+            filter: brightness(1.05);
+        }
+
         /* 標題前頭動畫圖示以提高辨識度 */
         @keyframes icon-bounce-gentle {
             0%, 100% { transform: translateY(0) scale(1); }
@@ -187,7 +205,7 @@
                 <!-- 湯湯水水（羅馬拼音）：buding 預設 135cc；其餘由照顧者填 cc -->
                 <div id="quick-food" class="hidden space-y-2">
                     <p class="text-lg font-black text-center text-gray-600" data-t="foodMeasure"></p>
-                    <img src="math.jpg" alt="" loading="lazy" class="w-full rounded-2xl border">
+                    <img src="math.jpg" alt="" loading="lazy" class="w-full rounded-2xl border animated-img">
                     <div id="food-grid" class="grid grid-cols-2 gap-2"></div>
                     <input id="food-other" type="text" class="w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-2xl font-black">
                     <!-- 秤重計算：吃之前的食物重量 - 吃完後食物的重量 = 進食量 -->
@@ -281,27 +299,27 @@
                 <div class="space-y-1.5">
                     <p class="text-xl font-black text-emerald-700">🟢 <span class="lang-zh">初級復健</span><span class="lang-id">Tingkat Dasar</span></p>
                     <div id="item-grid-latihan-basic" class="grid grid-cols-3 gap-2">
-                        <button type="button" onclick="pickItem('botol')" id="item-botol" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/bottle-1.jpg" onerror="this.src='rehab-img/legraise-1.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🍾</span> <span class="text-base font-black" data-t="iBotol"></span></button>
-                        <button type="button" onclick="pickItem('tekan')" id="item-tekan" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/ankle-1.jpg" onerror="this.src='rehab-img/legraise-1.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🦶</span> <span class="text-base font-black" data-t="iTekan"></span></button>
-                        <button type="button" onclick="pickItem('lutut')" id="item-lutut" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/knee-1.jpg" onerror="this.src='rehab-img/legraise-1.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🦵</span> <span class="text-base font-black" data-t="iLutut"></span></button>
+                        <button type="button" onclick="pickItem('botol')" id="item-botol" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/bottle-1.jpg" onerror="this.src='rehab-img/legraise-1.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🍾</span> <span class="text-base font-black" data-t="iBotol"></span></button>
+                        <button type="button" onclick="pickItem('tekan')" id="item-tekan" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/ankle-1.jpg" onerror="this.src='rehab-img/legraise-1.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🦶</span> <span class="text-base font-black" data-t="iTekan"></span></button>
+                        <button type="button" onclick="pickItem('lutut')" id="item-lutut" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/knee-1.jpg" onerror="this.src='rehab-img/legraise-1.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🦵</span> <span class="text-base font-black" data-t="iLutut"></span></button>
                     </div>
                 </div>
                 <!-- 中級 -->
                 <div class="space-y-1.5">
                     <p class="text-xl font-black text-amber-700">🟡 <span class="lang-zh">中級復健</span><span class="lang-id">Tingkat Menengah</span></p>
                     <div id="item-grid-latihan-mid" class="grid grid-cols-3 gap-2">
-                        <button type="button" onclick="pickItem('kaki')"   id="item-kaki"   class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/legraise-1.jpg"  loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🦵</span> <span class="text-base font-black" data-t="iKaki"></span></button>
-                        <button type="button" onclick="pickItem('popok')"  id="item-popok"  class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/adduction-1.jpg" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🩲</span> <span class="text-base font-black" data-t="iPopok"></span></button>
-                        <button type="button" onclick="pickItem('pantat')" id="item-pantat" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/bridge-1.jpg"    loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🍑</span> <span class="text-base font-black" data-t="iPantat"></span></button>
+                        <button type="button" onclick="pickItem('kaki')"   id="item-kaki"   class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/legraise-1.jpg"  loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🦵</span> <span class="text-base font-black" data-t="iKaki"></span></button>
+                        <button type="button" onclick="pickItem('popok')"  id="item-popok"  class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/adduction-1.jpg" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🩲</span> <span class="text-base font-black" data-t="iPopok"></span></button>
+                        <button type="button" onclick="pickItem('pantat')" id="item-pantat" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/bridge-1.jpg"    loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🍑</span> <span class="text-base font-black" data-t="iPantat"></span></button>
                     </div>
                 </div>
                 <!-- 高級 -->
                 <div class="space-y-1.5">
                     <p class="text-xl font-black text-rose-700">🔴 <span class="lang-zh">高級復健</span><span class="lang-id">Tingkat Lanjut</span></p>
                     <div id="item-grid-latihan-adv" class="grid grid-cols-3 gap-2">
-                        <button type="button" onclick="pickItem('diri')"   id="item-diri"   class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-2.jpg"     loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🧍</span> <span class="text-base font-black" data-t="iDiri"></span></button>
-                        <button type="button" onclick="pickItem('goyang')" id="item-goyang" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-sway-1.jpg" onerror="this.src='rehab-img/stand-2.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🕺</span> <span class="text-base font-black" data-t="iGoyang"></span></button>
-                        <button type="button" onclick="pickItem('angkat')" id="item-angkat" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-raise-1.jpg" onerror="this.src='rehab-img/stand-2.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🦿</span> <span class="text-base font-black" data-t="iAngkat"></span></button>
+                        <button type="button" onclick="pickItem('diri')"   id="item-diri"   class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-2.jpg"     loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🧍</span> <span class="text-base font-black" data-t="iDiri"></span></button>
+                        <button type="button" onclick="pickItem('goyang')" id="item-goyang" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-sway-1.jpg" onerror="this.src='rehab-img/stand-2.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🕺</span> <span class="text-base font-black" data-t="iGoyang"></span></button>
+                        <button type="button" onclick="pickItem('angkat')" id="item-angkat" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-raise-1.jpg" onerror="this.src='rehab-img/stand-2.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🦿</span> <span class="text-base font-black" data-t="iAngkat"></span></button>
                     </div>
                 </div>
                 <!-- 復健都要能填數值（次數） -->

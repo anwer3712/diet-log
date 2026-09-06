@@ -36,7 +36,24 @@
         .lv-badge { font-weight: 900; font-size: .95rem; color: #fff; padding: .3rem .8rem; border-radius: 999px; }
         .lv-1 { background: #0ea5e9; } .lv-2 { background: #22c55e; } .lv-3 { background: #f59e0b; } .lv-4 { background: #ef4444; }
 
-        .thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: .75rem; border: 1.5px solid #d1d5db; background: #f3f4f6; }
+        .thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: .75rem; border: 1.5px solid #d1d5db; background: #f3f4f6; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+        .thumb:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+        @keyframes img-breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        @keyframes img-fade-in {
+            from { opacity: 0; transform: translateY(6px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animated-img {
+            animation: img-fade-in 0.4s ease-out, img-breathe 4s ease-in-out infinite 0.4s;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .animated-img:hover {
+            transform: scale(1.035);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
         .animate-spin-slow { animation: spin 3s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
@@ -226,7 +243,7 @@ function openPreview(key){
 
     document.getElementById('rehab-modal-title').textContent = it.id ? `${it.zh} / ${it.id}` : it.zh;
     const imgHtml = imgs.length
-        ? imgs.map(o => `<div><img src="${o.src}" alt="${mfEsc(it.zh)}" loading="lazy" decoding="async" class="w-full rounded-2xl border border-gray-200 shadow-sm">${o.local ? '<p class="text-[10px] font-black text-orange-600 mt-0.5">本機照片（不同步）</p>' : ''}</div>`).join('')
+        ? imgs.map(o => `<div><img src="${o.src}" alt="${mfEsc(it.zh)}" loading="lazy" decoding="async" class="w-full rounded-2xl border border-gray-200 shadow-sm animated-img">${o.local ? '<p class="text-[10px] font-black text-orange-600 mt-0.5">本機照片（不同步）</p>' : ''}</div>`).join('')
         : '<p class="text-xs font-bold text-gray-400 text-center py-6 border border-dashed rounded-2xl">尚未加入照片</p>';
     const stepHtml = stepsZh.length
         ? stepsZh.map((s, i) => `<div class="flex gap-2.5">
@@ -239,7 +256,7 @@ function openPreview(key){
     const warnHtml = `<div class="mt-4 pt-4 border-t border-gray-100 space-y-3">
         <p class="text-sm font-black text-red-600">⚠️ 錯誤示範／運動間隔按摩</p>
         ${WARN_ITEMS.map(w => `<div>
-            <img src="${w.img}" alt="${w.zh}" loading="lazy" decoding="async" class="w-full rounded-2xl border border-gray-200 shadow-sm">
+            <img src="${w.img}" alt="${w.zh}" loading="lazy" decoding="async" class="w-full rounded-2xl border border-gray-200 shadow-sm animated-img">
             <p class="text-[11px] font-bold mt-1 ${w.bad ? 'text-red-600' : 'text-emerald-600'}">${w.bad ? '❌' : '💆'} ${w.zh}</p>
         </div>`).join('')}
     </div>`;
