@@ -12,6 +12,11 @@
         body { background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 45%, #fff1f2 100%); }
         .animate-spin-slow { animation: spin 3s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes icon-bounce-gentle {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-4px) scale(1.08); }
+        }
+        .heading-icon { display: inline-block; animation: icon-bounce-gentle 2s ease-in-out infinite; }
     </style>
 </head>
 <body class="text-gray-800 min-h-screen pb-12 font-sans">
@@ -19,7 +24,7 @@
     <div class="max-w-3xl mx-auto px-4 pt-5">
 
         <div class="text-center mb-3">
-            <a href="admin.html"><h1 class="text-xl font-black text-purple-600 tracking-wide">⚙️ 管理設定</h1></a>
+            <a href="admin.html"><h1 class="text-xl font-black text-purple-600 tracking-wide"><span class="heading-icon">⚙️</span> 管理設定</h1></a>
             <p class="text-[11px] text-gray-400 font-bold mt-0.5">使用者設定／分析連結（點標題回管理者總表）</p>
         </div>
 

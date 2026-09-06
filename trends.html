@@ -37,7 +37,16 @@ body{
   border:1px solid #e5e7eb; background:#fff; color:#6b7280;
 }
 .langsw button.on{ background:#38bdf8; border-color:#38bdf8; color:#fff; }
-h1{ text-align:center; font-size:20px; font-weight:900; color:#e11d48; letter-spacing:.04em; margin-bottom:2px; }
+h1{ text-align:center; font-size:20px; font-weight:900; color:#e11d48; letter-spacing:.04em; margin-bottom:2px; display:flex; align-items:center; justify-content:center; gap:8px; }
+@keyframes icon-float-gentle {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.08); }
+}
+.heading-icon, .chart-title .title-icon, h1 .title-icon, h2 .title-icon {
+  display: inline-block;
+  animation: icon-float-gentle 2.2s infinite ease-in-out;
+  transform-origin: center bottom;
+}
 .sub{ text-align:center; font-size:11px; color:#9ca3af; font-weight:700; margin-bottom:12px; }
 .card{
   background:var(--card); border:1px solid #f3f4f6; border-radius:24px;
@@ -210,13 +219,36 @@ const wash = (hex, a) => hex + Math.round(a * 255).toString(16).padStart(2, '0')
 
 /* ===================== 常數（與 index/anak 的 category 完全一致） ===================== */
 const INTAKE_CATS = ['飲水量', '服藥飲水', '營養飲品', '進食'];
-const EX7 = ['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸', '站立', '仰臥抬腿', '大腿內收', '橋式抬臀'];
+const EX7 = [
+  '舉水瓶', '雙手舉水瓶',
+  '躺式腳底板抬壓', '腳底板抬壓',
+  '躺式膝蓋彎伸', '膝蓋彎伸',
+  '仰臥抬腿',
+  '仰躺大腿內收訓練', '大腿內收',
+  '橋式／仰躺雙腳屈膝抬臀', '橋式抬臀',
+  '站立', '站立搖擺', '站立抬腳'
+];
 const EX_SHORT = {
-  '雙手舉水瓶': ['舉水瓶', 'Angkat Botol'], '腳底板抬壓': ['抬腳壓', 'Tekan Kaki'], '膝蓋彎伸': ['膝彎伸', 'Tekuk Lutut'],
-  '站立': ['站立', 'Berdiri'], '仰臥抬腿': ['仰臥抬腿', 'Angkat Kaki'], '大腿內收': ['大腿內收', 'Adduksi Paha'], '橋式抬臀': ['橋式抬臀', 'Angkat Pinggul']
+  '舉水瓶': ['舉水瓶', 'Botol'], '雙手舉水瓶': ['舉水瓶', 'Botol'],
+  '躺式腳底板抬壓': ['抬腳壓', 'Tekan Kaki'], '腳底板抬壓': ['抬腳壓', 'Tekan Kaki'],
+  '躺式膝蓋彎伸': ['膝彎伸', 'Tekuk Lutut'], '膝蓋彎伸': ['膝彎伸', 'Tekuk Lutut'],
+  '仰臥抬腿': ['仰臥抬腿', 'Angkat Kaki'],
+  '仰躺大腿內收訓練': ['大腿內收', 'Adduksi Paha'], '大腿內收': ['大腿內收', 'Adduksi Paha'],
+  '橋式／仰躺雙腳屈膝抬臀': ['橋式抬臀', 'Angkat Pinggul'], '橋式抬臀': ['橋式抬臀', 'Angkat Pinggul'],
+  '站立': ['站立', 'Berdiri'],
+  '站立搖擺': ['站立搖擺', 'Goyang'],
+  '站立抬腳': ['站立抬腳', 'Angkat Kaki']
 };
-const DISTAL_EX = ['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸'];       // 末梢神經肌肉控制項目
-const LOAD_W = { '站立': 3, '橋式抬臀': 2.5, '大腿內收': 2, '仰臥抬腿': 1.5 };   // 大肌群負荷加權 [需獨立驗證]
+const DISTAL_EX = ['舉水瓶', '雙手舉水瓶', '躺式腳底板抬壓', '腳底板抬壓', '躺式膝蓋彎伸', '膝蓋彎伸'];       // 末梢神經肌肉控制項目
+const LOAD_W = {
+  '站立抬腳': 3.5, '站立搖擺': 3.2, '站立': 3,
+  '橋式／仰躺雙腳屈膝抬臀': 2.5, '橋式抬臀': 2.5,
+  '仰躺大腿內收訓練': 2, '大腿內收': 2,
+  '仰臥抬腿': 1.5,
+  '躺式膝蓋彎伸': 1.0, '膝蓋彎伸': 1.0,
+  '躺式腳底板抬壓': 0.8, '腳底板抬壓': 0.8,
+  '舉水瓶': 0.8, '雙手舉水瓶': 0.8
+};
 const INTAKE_MIN = 1100, INTAKE_MAX = 1500;                       // 限水安全區間（cc）
 const BP_SYS_WARN = 130, BP_DIA_WARN = 80, PP_WARN = 60;          // 血壓/脈壓差警戒
 const RPP_SAFE = 10000, RPP_DANGER = 12000;                       // RPP 分級 [需獨立驗證]
@@ -740,16 +772,46 @@ const CARDS = [
     src: '進階衍生指標：由排便間隔與攝入交叉計算' }
 ];
 
-/* ===================== 研判建構器（P1：層1 選單＋層2 第三變數 UI；逐研判量化交互＝P3） ===================== */
+/* ===================== 研判建構器（P1：層1 選單＋層2 第三變數 UI；逐研判量化交互＝P3） =====================
+ * 將試算表所有分頁中的數值項目納入變數：
+ * 1) 攝入與排出：總攝入水量 intake_tot、進食量 food_w、尿量 urine_vol、淨滯留 net_ret、排便次數 stool_cnt
+ * 2) 血壓與心跳：晨收縮壓 sbp_m、晨舒張壓 dbp_m、晨心跳 hr_m、晨脈壓差 pp_m、晚收縮壓 sbp_e、晚舒張壓 dbp_e、晚心跳 hr_e、晚脈壓差 pp_e、RPP心肌耗氧 rpp、晝夜壓差 bp_dip、晝夜心跳差 d_hr
+ * 3) 復健與運動：運動負荷 ex_load、達標率 ex_rate
+ * 4) 氣象與環境：氣溫 temp、相對濕度 rh、氣壓 press、PM2.5 pm25、WBGT綜合熱指數 wbgt
+ * 5) 藥物：利尿藥物 diur、利便藥物 lax
+ * ========================================================================================= */
 const THIRD_VARS = [
-  { id:'diur',  zh:'利尿藥物',     idn:'Diuretik',        applies:['c1','c2','c5','c6','c7','c10','c11','c12','c15'] },
-  { id:'lax',   zh:'利便藥物',     idn:'Pencahar',        applies:['c5','c15'] },
-  { id:'slot',  zh:'晨/昏時段',    idn:'Pagi/Malam',      applies:['c2','c3','c7','c8','c11','c12','c14'] },
-  { id:'stool', zh:'糞便狀態',     idn:'Status feses',    applies:['c5','c15'] },
-  { id:'foodw', zh:'進食含水占比', idn:'Rasio air makan', applies:['c1','c9','c10','c13','c15'] },
-  { id:'medw',  zh:'服藥飲水占比', idn:'Rasio air obat',  applies:['c1'] },
-  { id:'exvol', zh:'復健運動量',   idn:'Beban latihan',   applies:['c2','c4','c7','c8','c10','c13','c14'] },
-  { id:'eat',   zh:'進食量',       idn:'Jumlah makan',    applies:['c1','c5','c9','c10','c13','c15'] }
+  // 核心藥物與時段
+  { id:'diur',        zh:'利尿藥物',       idn:'Diuretik',          applies:['c1','c2','c5','c6','c7','c10','c11','c12','c15'] },
+  { id:'lax',         zh:'利便藥物',       idn:'Pencahar',          applies:['c5','c15'] },
+  { id:'slot',        zh:'晨/昏時段',      idn:'Pagi/Malam',        applies:['c2','c3','c7','c8','c11','c12','c14'] },
+  { id:'stool',       zh:'糞便狀態',       idn:'Status feses',      applies:['c5','c15'] },
+
+  // 攝入與排出 (原始紀錄 & 月總覽)
+  { id:'net_ret',     zh:'淨滯留 (cc)',    idn:'Retensi bersih',    applies:['c1','c2','c6','c10'] },
+  { id:'intake_tot',  zh:'總攝入水量 (cc)', idn:'Total asupan',      applies:['c1','c9','c10','c13','c15'] },
+  { id:'food_w',      zh:'進食量 (g/cc)',  idn:'Jumlah makan',      applies:['c1','c9','c10','c13','c15'] },
+  { id:'urine_vol',   zh:'尿量 (cc)',      idn:'Volume urine',      applies:['c1','c6','c10'] },
+  { id:'stool_cnt',   zh:'排便次數',       idn:'Jumlah BAB',        applies:['c5','c15'] },
+  { id:'foodw',       zh:'進食含水占比',   idn:'Rasio air makan',   applies:['c1','c9','c10','c13','c15'] },
+  { id:'medw',        zh:'服藥飲水占比',   idn:'Rasio air obat',    applies:['c1'] },
+
+  // 血壓與心脈 (血壓總覽)
+  { id:'sbp_m',       zh:'晨收縮壓 (mmHg)', idn:'Tensi pagi sistol', applies:['c2','c3','c10','c11','c12'] },
+  { id:'dbp_m',       zh:'晨舒張壓 (mmHg)', idn:'Tensi pagi diastol', applies:['c2','c6','c11'] },
+  { id:'pp_m',        zh:'晨脈壓差 (mmHg)', idn:'Tekanan nadi pagi', applies:['c6','c11'] },
+  { id:'rpp',         zh:'RPP心肌耗氧',    idn:'RPP miokard',       applies:['c7','c14'] },
+  { id:'bp_dip',      zh:'晝夜壓差節律',   idn:'Ritme tensi (dip)', applies:['c2','c10'] },
+  { id:'d_hr',        zh:'晝夜心跳差',     idn:'Selisih detak nadi', applies:['c3','c8','c14'] },
+
+  // 復健運動
+  { id:'ex_load',     zh:'運動負荷積分',   idn:'Beban latihan',     applies:['c2','c4','c7','c8','c10','c13','c14'] },
+  { id:'ex_rate',     zh:'復健達標率 (%)', idn:'Capaian latihan %', applies:['c4','c9','c13'] },
+
+  // 氣象環境 (氣象)
+  { id:'temp',        zh:'氣溫 (°C)',      idn:'Suhu (°C)',         applies:['c2','c6','c10'] },
+  { id:'wbgt',        zh:'WBGT綜合熱指數', idn:'Indeks panas WBGT', applies:['c1','c5','c9'] },
+  { id:'pm25',        zh:'PM2.5 (μg/m³)',  idn:'PM2.5',             applies:['c7','c14'] }
 ];
 let jpFocus = null;            // 目前聚焦研判 card id；null＝全部
 const jpTV = new Set();        // 已選第三變數 id
@@ -849,7 +911,7 @@ function renderSkeleton(){
       if (c.radar) boxes += `<div class="radar-caption" id="${c.id}r-cap"></div><div class="chart-box h260 panel-gap" id="${c.id}r-box"><canvas id="${c.id}r"></canvas></div>`;
     }
     sec.innerHTML = `
-      <h2 class="chart-title">${c.icon} <span>${L(c.title[0], c.title[1])}</span></h2>
+      <h2 class="chart-title"><span class="title-icon">${c.icon}</span> <span>${L(c.title[0], c.title[1])}</span></h2>
       ${c.interplay ? `<p class="interplay">${L('🔗 兩項一起看：', '🔗 Dua indikator bersama: ')}${L(c.interplay[0], c.interplay[1])}</p>` : ''}
       <p class="purpose">${L(c.purpose[0], c.purpose[1])}</p>
       ${boxes}
@@ -1667,7 +1729,7 @@ function analyzeRange(DAYS){
 
 /* ===================== 主流程 ===================== */
 function renderChrome(){
-  document.getElementById('page-title').textContent = '📈 ' + L('健康趨勢分析', 'Analisis Tren Kesehatan');
+  document.getElementById('page-title').innerHTML = '<span class="title-icon">📈</span> ' + L('健康趨勢分析', 'Analisis Tren Kesehatan');
   document.getElementById('page-sub').textContent = L('多重慢性病照護 9 大趨勢圖（心臟擴大／心律不整／髖關節術後／限水）', '9 grafik tren perawatan penyakit kronis §S§');
   document.getElementById('back-link').textContent = '← ' + L('回照護日誌', 'Kembali');
   document.getElementById('print-btn').textContent = '🖨️ ' + L('列印報告', 'Cetak laporan');
@@ -1779,13 +1841,29 @@ function chartMetric(cardId, d){
 }
 function tvClassify(tvId, d){
   switch (tvId) {
-    case 'diur':  return { has: !!(d.diuretic || d.diureticAux) };
-    case 'lax':   return { has: !!(d.laxPills > 0 || d.stoolMarks.lax) };
-    case 'stool': return { has: !!(d.stoolMarks.hard || d.stoolMarks.loose) };
-    case 'exvol': return { val: d.load || 0 };
-    case 'foodw': return { val: d.intake ? Math.round((d.cat ? d.cat.food : 0) / d.intake * 100) : 0 };
-    case 'medw':  return { val: d.cat ? d.cat.med : 0 };
-    case 'eat':   return { val: d.cat ? d.cat.food : 0 };
+    case 'diur':        return { has: !!(d.diuretic || d.diureticAux) };
+    case 'lax':         return { has: !!(d.laxPills > 0 || d.stoolMarks.lax) };
+    case 'stool':       return { has: !!(d.stoolMarks.hard || d.stoolMarks.loose) };
+    case 'exvol':       return { val: d.load || 0 };
+    case 'ex_load':     return { val: d.load || 0 };
+    case 'ex_rate':     return { val: d.overallPct == null ? undefined : d.overallPct };
+    case 'foodw':       return { val: d.intake ? Math.round((d.cat ? d.cat.food : 0) / d.intake * 100) : 0 };
+    case 'food_w':      return { val: d.cat ? d.cat.food : 0 };
+    case 'eat':         return { val: d.cat ? d.cat.food : 0 };
+    case 'medw':        return { val: d.cat ? d.cat.med : 0 };
+    case 'net_ret':     return { val: d.net == null ? undefined : d.net };
+    case 'intake_tot':  return { val: d.intake == null ? undefined : d.intake };
+    case 'urine_vol':   return { val: d.urine == null ? undefined : d.urine };
+    case 'stool_cnt':   return { val: d.stool == null ? undefined : d.stool };
+    case 'sbp_m':       return { val: (d.am && d.am.sys) ? d.am.sys : undefined };
+    case 'dbp_m':       return { val: (d.am && d.am.dia) ? d.am.dia : undefined };
+    case 'pp_m':        return { val: d.ppAm == null ? undefined : d.ppAm };
+    case 'rpp':         return { val: Math.max(d.rppAm == null ? 0 : d.rppAm, d.rppPm == null ? 0 : d.rppPm) || undefined };
+    case 'bp_dip':      return { val: (d.am && d.pm) ? (d.am.sys - d.pm.sys) : undefined };
+    case 'd_hr':        return { val: d.dHr == null ? undefined : d.dHr };
+    case 'temp':        return { val: (d.weather && d.weather.temp != null) ? d.weather.temp : undefined };
+    case 'wbgt':        return { val: (d.weather && d.weather.wbgt != null) ? d.weather.wbgt : undefined };
+    case 'pm25':        return { val: (d.weather && d.weather.pm25 != null) ? d.weather.pm25 : undefined };
     default: return {};
   }
 }

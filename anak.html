@@ -62,6 +62,17 @@
             to   { opacity: 1; transform: translateY(0) scale(1); }
         }
 
+        /* 標題前頭動畫圖示以提高辨識度 */
+        @keyframes icon-bounce-gentle {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-4px) scale(1.15); }
+        }
+        .heading-icon, h1 .heading-icon, h2 .heading-icon, h3 .heading-icon {
+            display: inline-block;
+            animation: icon-bounce-gentle 2s infinite ease-in-out;
+            transform-origin: center bottom;
+        }
+
         /* 緊急警示動態：深紅強光暈＋進場搖晃，務必醒目 */
         .alert-banner { animation: shake .5s ease 2, glow-red 1.2s infinite ease-in-out; }
         .glow-red { animation: glow-red 1.2s infinite ease-in-out; }
@@ -179,6 +190,24 @@
                     <img src="math.jpg" alt="" loading="lazy" class="w-full rounded-2xl border">
                     <div id="food-grid" class="grid grid-cols-2 gap-2"></div>
                     <input id="food-other" type="text" class="w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-2xl font-black">
+                    <!-- 秤重計算：吃之前的食物重量 - 吃完後食物的重量 = 進食量 -->
+                    <div class="bg-orange-50 border-4 border-orange-300 rounded-2xl p-3 space-y-2 text-left">
+                        <p class="text-xl font-black text-orange-900">⚖️ <span class="lang-zh">進食秤重計算</span><span class="lang-id">Hitung Berat Makanan</span></p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-sm font-black text-gray-600 mb-1">吃之前 (g)</label>
+                                <input id="anak-food-before" type="number" step="any" min="0" placeholder="0" oninput="calcAnakFood()" class="w-full border-4 border-gray-800 rounded-xl p-2 text-2xl font-black text-center bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-black text-gray-600 mb-1">吃完後 (g)</label>
+                                <input id="anak-food-after" type="number" step="any" min="0" placeholder="0" oninput="calcAnakFood()" class="w-full border-4 border-gray-800 rounded-xl p-2 text-2xl font-black text-center bg-white">
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-lg font-black bg-white rounded-xl p-2 border-2 border-orange-200">
+                            <span>＝ 進食量 / Asupan:</span>
+                            <span id="anak-food-diff" class="text-2xl font-black text-[#0f766e]">0 g/cc</span>
+                        </div>
+                    </div>
                     <!-- 胃口（必選）：好/普通/差 -->
                     <p class="text-2xl font-black">😋 <span data-t="appTitle"></span></p>
                     <div id="appetite-grid" class="grid grid-cols-3 gap-2">
@@ -246,15 +275,36 @@
                 </div>
             </div>
 
-            <!-- c. 運動（實照＋圖示，做完填次數） -->
-            <div id="panel-latihan" class="space-y-3 hidden">
-                <div id="item-grid-latihan" class="grid grid-cols-2 gap-3">
-                    <button type="button" onclick="pickItem('kaki')"   id="item-kaki"   class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/legraise-1.jpg"  loading="lazy" alt="" class="w-full h-24 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-3xl align-middle">🦵</span> <span class="text-lg" data-t="iKaki"></span></button>
-                    <button type="button" onclick="pickItem('popok')"  id="item-popok"  class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/adduction-1.jpg" loading="lazy" alt="" class="w-full h-24 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-3xl align-middle">🩲</span> <span class="text-lg" data-t="iPopok"></span></button>
-                    <button type="button" onclick="pickItem('pantat')" id="item-pantat" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/bridge-1.jpg"    loading="lazy" alt="" class="w-full h-24 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-3xl align-middle">🍑</span> <span class="text-lg" data-t="iPantat"></span></button>
-                    <button type="button" onclick="pickItem('diri')"   id="item-diri"   class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-2.jpg"     loading="lazy" alt="" class="w-full h-24 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-3xl align-middle">🧍</span> <span class="text-lg" data-t="iDiri"></span></button>
+            <!-- c. 運動（分級復健：初級/中級/高級，實照＋圖示，做完填次數） -->
+            <div id="panel-latihan" class="space-y-4 hidden">
+                <!-- 初級 -->
+                <div class="space-y-1.5">
+                    <p class="text-xl font-black text-emerald-700">🟢 <span class="lang-zh">初級復健</span><span class="lang-id">Tingkat Dasar</span></p>
+                    <div id="item-grid-latihan-basic" class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="pickItem('botol')" id="item-botol" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/bottle-1.jpg" onerror="this.src='rehab-img/legraise-1.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🍾</span> <span class="text-base font-black" data-t="iBotol"></span></button>
+                        <button type="button" onclick="pickItem('tekan')" id="item-tekan" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/ankle-1.jpg" onerror="this.src='rehab-img/legraise-1.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🦶</span> <span class="text-base font-black" data-t="iTekan"></span></button>
+                        <button type="button" onclick="pickItem('lutut')" id="item-lutut" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/knee-1.jpg" onerror="this.src='rehab-img/legraise-1.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🦵</span> <span class="text-base font-black" data-t="iLutut"></span></button>
+                    </div>
                 </div>
-                <!-- 四項復健都要能填數值（次數） -->
+                <!-- 中級 -->
+                <div class="space-y-1.5">
+                    <p class="text-xl font-black text-amber-700">🟡 <span class="lang-zh">中級復健</span><span class="lang-id">Tingkat Menengah</span></p>
+                    <div id="item-grid-latihan-mid" class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="pickItem('kaki')"   id="item-kaki"   class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/legraise-1.jpg"  loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🦵</span> <span class="text-base font-black" data-t="iKaki"></span></button>
+                        <button type="button" onclick="pickItem('popok')"  id="item-popok"  class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/adduction-1.jpg" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🩲</span> <span class="text-base font-black" data-t="iPopok"></span></button>
+                        <button type="button" onclick="pickItem('pantat')" id="item-pantat" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/bridge-1.jpg"    loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🍑</span> <span class="text-base font-black" data-t="iPantat"></span></button>
+                    </div>
+                </div>
+                <!-- 高級 -->
+                <div class="space-y-1.5">
+                    <p class="text-xl font-black text-rose-700">🔴 <span class="lang-zh">高級復健</span><span class="lang-id">Tingkat Lanjut</span></p>
+                    <div id="item-grid-latihan-adv" class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="pickItem('diri')"   id="item-diri"   class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-2.jpg"     loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🧍</span> <span class="text-base font-black" data-t="iDiri"></span></button>
+                        <button type="button" onclick="pickItem('goyang')" id="item-goyang" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-sway-1.jpg" onerror="this.src='rehab-img/stand-2.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🕺</span> <span class="text-base font-black" data-t="iGoyang"></span></button>
+                        <button type="button" onclick="pickItem('angkat')" id="item-angkat" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-raise-1.jpg" onerror="this.src='rehab-img/stand-2.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none"><span class="text-2xl align-middle">🦿</span> <span class="text-base font-black" data-t="iAngkat"></span></button>
+                    </div>
+                </div>
+                <!-- 復健都要能填數值（次數） -->
                 <div id="ex-extra" class="hidden space-y-2">
                     <p class="text-2xl font-black">🔢 <span data-t="howMany"></span></p>
                     <div class="grid grid-cols-4 gap-2">
@@ -336,19 +386,32 @@ const CARE_USER = '5';   // 本頁固定身分：👤U5（存進同一張 sheet�
 
 /* 項目 → sheet 同名 category 私下轉換表（跟 index.html 完全一致，分頁讀取才不會錯） */
 const ITEM_MAP = {
-    air:   { type:'攝入', category:'飲水量' },
-    obat:  { type:'攝入', category:'服藥飲水' },
-    susu:  { type:'攝入', category:'營養飲品' },
-    food:  { type:'攝入', category:'進食' },
-    pipis: { type:'排出', category:'尿液' },
-    pup:   { type:'排出', category:'排便' },
-    kaki:  { type:'運動', category:'仰臥抬腿' },
-    popok: { type:'運動', category:'大腿內收' },
-    pantat:{ type:'運動', category:'橋式抬臀' },
-    diri:  { type:'運動', category:'站立' }
+    air:    { type:'攝入', category:'飲水量' },
+    obat:   { type:'攝入', category:'服藥飲水' },
+    susu:   { type:'攝入', category:'營養飲品' },
+    food:   { type:'攝入', category:'進食' },
+    pipis:  { type:'排出', category:'尿液' },
+    pup:    { type:'排出', category:'排便' },
+    // 初級
+    botol:  { type:'運動', category:'舉水瓶' },
+    tekan:  { type:'運動', category:'躺式腳底板抬壓' },
+    lutut:  { type:'運動', category:'躺式膝蓋彎伸' },
+    // 中級
+    kaki:   { type:'運動', category:'仰臥抬腿' },
+    popok:  { type:'運動', category:'仰躺大腿內收訓練' },
+    pantat: { type:'運動', category:'橋式／仰躺雙腳屈膝抬臀' },
+    // 高級
+    diri:   { type:'運動', category:'站立' },
+    goyang: { type:'運動', category:'站立搖擺' },
+    angkat: { type:'運動', category:'站立抬腳' }
 };
 /* 尿液用 🚽 與飲水 💧 區隔；進食（湯湯水水）用 🥣 */
-const CAT_EMOJI = { '飲水量':'💧','服藥飲水':'💊','營養飲品':'🥛','進食':'🥣','尿液':'🚽','排便':'💩','仰臥抬腿':'🦵','大腿內收':'🩲','橋式抬臀':'🍑','站立':'🧍' };
+const CAT_EMOJI = {
+    '飲水量':'💧','服藥飲水':'💊','營養飲品':'🥛','進食':'🥣','尿液':'🚽','排便':'💩',
+    '舉水瓶':'🍾','雙手舉水瓶':'🍾','躺式腳底板抬壓':'🦶','腳底板抬壓':'🦶','躺式膝蓋彎伸':'🦵','膝蓋彎伸':'🦵',
+    '仰臥抬腿':'🦵','仰躺大腿內收訓練':'🩲','大腿內收':'🩲','橋式／仰躺雙腳屈膝抬臀':'🍑','橋式抬臀':'🍑',
+    '站立':'🧍','站立搖擺':'🕺','站立抬腳':'🦿'
+};
 
 /* 湯湯水水（羅馬拼音）：buding 固定預設 135cc，其餘由照顧者填寫容量。
  * 備註一律存「中文 / 拼音」雙語，管理者總表與報表都讀得懂 */
@@ -380,10 +443,16 @@ const T = {
     iFood:    { zh:'湯湯水水',       id:'MAKANAN BERAIR' },
     iPipis:   { zh:'尿尿',           id:'PIPIS' },
     iPup:     { zh:'大便',           id:'PUP' },
+    // 復健動作
+    iBotol:   { zh:'舉水瓶',         id:'ANGKAT BOTOL' },
+    iTekan:   { zh:'抬腳壓',         id:'TEKAN KAKI' },
+    iLutut:   { zh:'膝彎伸',         id:'TEKUK LUTUT' },
     iKaki:    { zh:'抬腿',           id:'ANGKAT KAKI' },
     iPopok:   { zh:'夾腿',           id:'JEPIT POPOK' },
     iPantat:  { zh:'抬屁股',         id:'ANGKAT PANTAT' },
     iDiri:    { zh:'站立',           id:'BERDIRI' },
+    iGoyang:  { zh:'搖擺',           id:'GOYANG' },
+    iAngkat:  { zh:'站抬腳',         id:'ANGKAT KAKI BERDIRI' },
     halfCan:  { zh:'半罐<br>120 cc', id:'½ KALENG<br>120 cc' },
     fullCan:  { zh:'1 罐<br>240 cc', id:'1 KALENG<br>240 cc' },
     otherFood:{ zh:'✏️ 寫別的食物…', id:'✏️ Tulis makanan lain…' },
@@ -451,13 +520,13 @@ function toast(msg, err){
     setTimeout(() => { el.classList.add('opacity-0'); el.classList.remove('show'); }, 3000);
 }
 
-/* ===== 12 小時制顯示：00–12 ☀️ 白天、13–00 🌙 夜晚（內部與 sheet 仍存 24 小時制） ===== */
+/* ===== 24 小時制顯示：00–23（時:分 / HH:mm） ===== */
 function hourIcon(h){ return (h >= 6 && h < 18) ? '☀️' : '🌙'; }  /* 06:00–18:00 太陽／18:00–06:00 月亮 */
-function hour12(h){ return (h % 12 === 0) ? 12 : (h % 12); }
-function hourLabel(h){ return `${hourIcon(h)} ${hour12(h)}`; }
+function hourLabel(h){ return `${hourIcon(h)} ${String(h).padStart(2,'0')}:00`; }
 function fmt12(hhmm){
-    const h = parseInt(hhmm.slice(0,2), 10), m = hhmm.slice(3,5);
-    return `${hourIcon(h)} ${hour12(h)}:${m}`;
+    if (!hhmm) return '';
+    const h = parseInt(hhmm.slice(0,2), 10);
+    return `${hourIcon(h)} ${hhmm}`;
 }
 function updateDayNight(){ $('daynight').innerText = hourIcon(parseInt($('sel-hour').value, 10)); }
 
@@ -556,6 +625,16 @@ function setAmount(v){ $('input-amount').value = v; refresh(); }
 function setExAmount(v){
     $('ex-amount').value = v;
     document.querySelectorAll('.ex-chip').forEach(b => b.classList.toggle('selected', parseInt(b.innerText,10) === v));
+    refresh();
+}
+function calcAnakFood(){
+    const b = parseFloat($('anak-food-before').value) || 0;
+    const a = parseFloat($('anak-food-after').value) || 0;
+    const diff = Math.max(0, Math.round((b - a) * 10) / 10);
+    $('anak-food-diff').innerText = diff + ' g/cc';
+    if (b > 0 || a > 0) {
+        $('input-amount').value = diff > 0 ? diff : '';
+    }
     refresh();
 }
 function renderFoodGrid(){
@@ -704,7 +783,7 @@ function updateGuide(){
             steps.push(grp('.glis-btn', '.glis-btn.ringed'));
         }
     } else if (S.type === 'latihan') {
-        steps.push(grp('#item-grid-latihan .item-btn', '#item-grid-latihan .item-btn.selected'));
+        steps.push(grp('#panel-latihan .item-btn', '#panel-latihan .item-btn.selected'));
         steps.push(inp('ex-amount'));
     }
 
@@ -808,27 +887,16 @@ function renderAll(){
             <div class="h-3 rounded-full bg-gray-200 overflow-hidden mt-0.5"><div class="h-full rounded-full transition-all duration-700" style="width:${pct}%;background:${col}"></div></div>
         </div>`;
     };
-    const uCount = UI.urineMode === 'count';
-    let strips = strip('💧', wGoal, intake, 'cc', UI.popup.fluidOver && intake > UI.num.fluidMax)
-               + strip('🚽', uCount ? 0 : uGoal, uCount ? records.filter(r=>r.category==='尿液').length : urine, uCount ? t('times') : 'cc', !uCount && urine > 0 && uGoal > 0 && urine > uGoal)
-               + strip('💩', sGoal, stoolN, t('times'), false);
-    strips += `<div class="grid grid-cols-4 gap-1 pt-0.5">` + CARE_EX_TYPES.map(ex => {
-        const gEx = parseFloat(goals['goal_' + ex]) || 0;
-        const done = sumCat([ex]);
-        const hit = gEx > 0 && done >= gEx;
-        return `<div class="rounded-xl border-[3px] ${hit ? 'border-green-600 bg-green-50' : 'border-gray-300 bg-white'} text-center py-0.5">
-            <span class="block text-xl leading-none">${CAT_EMOJI[ex]}</span>
-            <span class="block text-[13px] font-black leading-none">✅${done}</span>
-            <span class="block text-[13px] font-black text-gray-500 leading-none">🎯${gEx > 0 ? gEx : '…'}</span>
-        </div>`;
-    }).join('') + `</div>`;
+    // 兒童版調整：今日目標跟目前已達只留水分攝入量
+    const strips = strip('💧', wGoal, intake, 'cc', UI.popup.fluidOver && intake > UI.num.fluidMax);
     $('goal-strips').innerHTML = strips;
-    // 紀錄列：依時段分框（同管理者總表），時間一律 12 小時制＋☀️/🌙
+    // 紀錄列：依時段分框（同管理者總表），時間一律 24 小時制＋☀️/🌙
     const SLOT_EMOJI = { dawn:'🌙', morning:'🌅', midday:'☀️', evening:'🌇', night:'🛏️', late:'💤' };
     const recRow = r => {
         const isBP = (r.category || '').includes('血壓');
         const emoji = isBP ? '❤️' : (CAT_EMOJI[r.category] || '📝');
-        const unit = isBP ? '' : (['排便','仰臥抬腿','大腿內收','橋式抬臀','站立'].includes(r.category) ? t('times') : ' cc');
+        const isExOrStool = ['排便','舉水瓶','雙手舉水瓶','躺式腳底板抬壓','腳底板抬壓','躺式膝蓋彎伸','膝蓋彎伸','仰臥抬腿','仰躺大腿內收訓練','大腿內收','橋式／仰躺雙腳屈膝抬臀','橋式抬臀','站立','站立搖擺','站立抬腳'].includes(r.category);
+        const unit = isBP ? '' : (isExOrStool ? t('times') : ' cc');
         const note = careNoteDisplay(r.note || '', LANG);
         return `<div class="flex items-center gap-2 border-[3px] border-gray-400 rounded-2xl p-3 bg-white">
             <div class="flex-1 min-w-0">

@@ -19,9 +19,41 @@ const CARE_SLOTS = [
 ];
 function careInSlot(time, slot){ return time >= slot.start && time <= slot.end; }
 
-/* 2026-07-05 復健項目換新（舊資料保留顯示：雙手舉水瓶/腳底板抬壓/膝蓋彎伸 仍認得，只是不再列入任務） */
-const CARE_EX_TYPES = ['仰臥抬腿','大腿內收','橋式抬臀','站立'];
-const CARE_EX_SHORT = { '仰臥抬腿':['抬腿','Angkat'], '大腿內收':['內收','Adduksi'], '橋式抬臀':['橋式','Pinggul'], '站立':['站立','Berdiri'] };
+/* 復健分級項目（初級 / 中級 / 高級）與任務定義 */
+const REHAB_LEVELS = {
+    basic: { zh: '初級', id: 'Tingkat Dasar', items: ['舉水瓶', '躺式腳底板抬壓', '躺式膝蓋彎伸'] },
+    intermediate: { zh: '中級', id: 'Tingkat Menengah', items: ['仰臥抬腿', '仰躺大腿內收訓練', '橋式／仰躺雙腳屈膝抬臀'] },
+    advanced: { zh: '高級', id: 'Tingkat Lanjut', items: ['站立', '站立搖擺', '站立抬腳'] }
+};
+const CARE_EX_TYPES = [
+    '舉水瓶', '躺式腳底板抬壓', '躺式膝蓋彎伸',
+    '仰臥抬腿', '仰躺大腿內收訓練', '橋式／仰躺雙腳屈膝抬臀',
+    '站立', '站立搖擺', '站立抬腳'
+];
+const CARE_EX_SHORT = {
+    '舉水瓶': ['舉水瓶', 'Botol'],
+    '雙手舉水瓶': ['舉水瓶', 'Botol'],
+    '躺式腳底板抬壓': ['抬腳壓', 'Tekan Kaki'],
+    '腳底板抬壓': ['抬腳壓', 'Tekan Kaki'],
+    '躺式膝蓋彎伸': ['膝彎伸', 'Tekuk Lutut'],
+    '膝蓋彎伸': ['膝彎伸', 'Tekuk Lutut'],
+    '仰臥抬腿': ['抬腿', 'Angkat'],
+    '仰躺大腿內收訓練': ['內收', 'Adduksi'],
+    '大腿內收': ['內收', 'Adduksi'],
+    '橋式／仰躺雙腳屈膝抬臀': ['橋式', 'Pinggul'],
+    '橋式抬臀': ['橋式', 'Pinggul'],
+    '站立': ['站立', 'Berdiri'],
+    '站立搖擺': ['搖擺', 'Goyang'],
+    '站立抬腳': ['站抬腳', 'Angkat Kaki']
+};
+const CARE_EX_ALIASES = {
+    '雙手舉水瓶': '舉水瓶',
+    '腳底板抬壓': '躺式腳底板抬壓',
+    '膝蓋彎伸': '躺式膝蓋彎伸',
+    '大腿內收': '仰躺大腿內收訓練',
+    '橋式抬臀': '橋式／仰躺雙腳屈膝抬臀'
+};
+function careNormEx(cat){ return CARE_EX_ALIASES[cat] || cat; }
 const careIsBP = r => r.category && r.category.includes('血壓/心跳');
 
 /* 應完成任務：
@@ -41,20 +73,25 @@ function careTaskDefs(goals){
         need:(rs,t)=> rs.filter(r=>careIsBP(r)&&r.time<t).length>=1, rec:rs=>nth(rs,careIsBP,1) });
 
     /* 2026-07-14 復健判定改為「累計次數」：睡前若未達今日目標次數→視為未完成(missed)。
-     * 目標取 goals['goal_<項目>']；未設定目標時退回舊規則「有做即算」。 */
-    CARE_EX_TYPES.forEach((ex, ti) => {
-        const sh = CARE_EX_SHORT[ex];
+     * 若設定目標 (goal_<項目>) > 0 則列入任務檢驗，若未特別設定目標則預設檢驗核心項目。 */
+    const taskExTypes = CARE_EX_TYPES.filter(ex => {
         const goalN = goals ? (parseFloat(goals['goal_' + ex]) || 0) : 0;
+        return goalN > 0 || ['仰臥抬腿', '仰躺大腿內收訓練', '橋式／仰躺雙腳屈膝抬臀', '站立'].includes(ex);
+    });
+    taskExTypes.forEach((ex, ti) => {
+        const sh = CARE_EX_SHORT[ex] || [ex, ex];
+        const goalN = goals ? (parseFloat(goals['goal_' + ex]) || 0) : 0;
+        const matchEx = r => careNormEx(r.category) === ex;
         const sumEx = (rs, before) => rs
-            .filter(r => r.category === ex && (!before || r.time < before))
+            .filter(r => matchEx(r) && (!before || r.time < before))
             .reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
         defs.push({ slot:'night', deadline:ui.time.rehabDeadline, order:ti+1, zh:sh[0], id:sh[1],
             full_zh:`睡前${ex}`, full_id:`${sh[1]} (Sblm tidur)`,
-            need:(rs,t)=> goalN > 0 ? sumEx(rs, t) >= goalN : rs.some(r=>r.category===ex && r.time<t),
+            need:(rs,t)=> goalN > 0 ? sumEx(rs, t) >= goalN : rs.some(r=>matchEx(r) && r.time<t),
             rec:rs=>{
-                const met = goalN > 0 ? sumEx(rs, null) >= goalN : rs.some(r=>r.category===ex);
+                const met = goalN > 0 ? sumEx(rs, null) >= goalN : rs.some(r=>matchEx(r));
                 if (!met) return null;   // 未達目標→不算補齊，讓狀態落到 missed
-                const s = rs.filter(r=>r.category===ex).sort((a,b)=>a.time.localeCompare(b.time));
+                const s = rs.filter(r=>matchEx(r)).sort((a,b)=>a.time.localeCompare(b.time));
                 return s.length>0 ? s[s.length-1] : null;
             } });
     });

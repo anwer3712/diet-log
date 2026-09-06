@@ -24,43 +24,48 @@ function sevBump(s){ return SEV[Math.min(SEV.indexOf(s) + 1, SEV.length - 1)]; }
  * pathwayKeys：此病影響的生理路徑鍵（供 N:M 影響圖 P4 用；目前規則以 id 對 modBy）。
  * ============================================================ */
 const DISEASES = [
-  // 1 三高與代謝
-  { id: 'htn',   zh: '高血壓',            idn: 'Hipertensi',            system: '三高代謝', pathwayKeys: ['bp', 'vascular'] },
-  { id: 'dm',    zh: '糖尿病',            idn: 'Diabetes',              system: '三高代謝', pathwayKeys: ['glucose', 'microvascular', 'neuro'] },
-  { id: 'dlp',   zh: '高血脂',            idn: 'Dislipidemia',          system: '三高代謝', pathwayKeys: ['vascular'] },
-  // 2 心腦血管
+  // 1 心腦血管
+  { id: 'htn',   zh: '高血壓',            idn: 'Hipertensi',            system: '心腦血管', pathwayKeys: ['bp', 'vascular', 'volume'] },
   { id: 'chf',   zh: '心臟衰竭/心室肥大',  idn: 'Gagal jantung',         system: '心腦血管', pathwayKeys: ['volume', 'cardiac', 'perfusion'] },
-  { id: 'as',    zh: '動脈硬化(高PWV)',   idn: 'Aterosklerosis',        system: '心腦血管', pathwayKeys: ['vascular', 'pulse'] },
-  { id: 'cad',   zh: '冠心病/心肌梗塞史',  idn: 'Penyakit jantung koroner', system: '心腦血管', pathwayKeys: ['cardiac', 'ischemia'] },
-  { id: 'cva',   zh: '中風史',            idn: 'Riwayat stroke',        system: '心腦血管', pathwayKeys: ['bp', 'perfusion'] },
-  // 3 感覺器官
+  { id: 'cad',   zh: '冠心病/心肌缺血史',  idn: 'Penyakit jantung koroner', system: '心腦血管', pathwayKeys: ['cardiac', 'ischemia', 'rpp'] },
+  { id: 'as',    zh: '動脈硬化(高脈壓)',   idn: 'Aterosklerosis',        system: '心腦血管', pathwayKeys: ['vascular', 'pulse'] },
+  { id: 'af',    zh: '心律不整/心房顫動',  idn: 'Aritmia/AF',            system: '心腦血管', pathwayKeys: ['cardiac', 'hr', 'electrolyte'] },
+  { id: 'cva',   zh: '腦中風史',          idn: 'Riwayat stroke',        system: '心腦血管', pathwayKeys: ['bp', 'perfusion', 'neuro'] },
+
+  // 2 泌尿腎臟與代謝
+  { id: 'ckd',   zh: '慢性腎病/腎功能不全', idn: 'Penyakit ginjal kronis', system: '泌尿腎臟', pathwayKeys: ['volume', 'renal', 'electrolyte'] },
+  { id: 'gout',  zh: '痛風與尿酸結石',    idn: 'Asam urat & batu ginjal', system: '泌尿腎臟', pathwayKeys: ['urate', 'renal', 'fluid'] },
+  { id: 'dm',    zh: '糖尿病/自主神經病變', idn: 'Diabetes mellitus',     system: '代謝內分泌', pathwayKeys: ['glucose', 'microvascular', 'neuro'] },
+
+  // 3 消化腸道
+  { id: 'constip', zh: '慢性便秘/腸道障礙', idn: 'Konstipasi kronis',    system: '消化系統', pathwayKeys: ['gut', 'fluid'] },
+
+  // 4 神經與老年衰弱
+  { id: 'dem_deli', zh: '失智與譫妄傾向', idn: 'Demensia & delirium',    system: '神經精神', pathwayKeys: ['neuro', 'fluid', 'electrolyte'] },
+  { id: 'sarco_fall', zh: '肌少症與跌倒高風險', idn: 'Sarkopenia & risiko jatuh', system: '骨骼肌肉', pathwayKeys: ['muscle', 'balance', 'joint'] },
+
+  // 5 呼吸胸腔
+  { id: 'copd_asthma', zh: '氣喘/COPD',    idn: 'Asma / COPD',           system: '呼吸胸腔', pathwayKeys: ['resp', 'airway'] },
+
+  // 相容保留舊鍵映射
+  { id: 'dem',   zh: '失智症',            idn: 'Demensia',              system: '神經精神', pathwayKeys: ['neuro', 'fluid'] },
+  { id: 'deli',  zh: '譫妄傾向',          idn: 'Delirium',              system: '神經精神', pathwayKeys: ['neuro', 'fluid'] },
+  { id: 'stone', zh: '尿酸鹽/腎結石',      idn: 'Batu ginjal',           system: '泌尿腎臟', pathwayKeys: ['urate', 'renal'] },
+  { id: 'copd',  zh: '氣喘/COPD',         idn: 'Asma/COPD',             system: '呼吸胸腔', pathwayKeys: ['resp'] },
+  { id: 'dlp',   zh: '高血脂',            idn: 'Dislipidemia',          system: '心腦血管', pathwayKeys: ['vascular'] },
+  { id: 'ibs',   zh: '腸躁/腸漏',         idn: 'IBS/usus bocor',        system: '消化系統', pathwayKeys: ['gut'] },
+  { id: 'oa',    zh: '骨關節炎',          idn: 'Osteoartritis',         system: '骨骼肌肉', pathwayKeys: ['joint'] },
+  { id: 'ra',    zh: '類風濕關節炎',       idn: 'Artritis reumatoid',    system: '骨骼肌肉', pathwayKeys: ['joint', 'inflam'] },
   { id: 'dr',    zh: '糖尿病視網膜病變',   idn: 'Retinopati diabetik',   system: '感覺器官', pathwayKeys: ['microvascular'] },
   { id: 'vert',  zh: '耳鳴/眩暈',         idn: 'Tinnitus/vertigo',      system: '感覺器官', pathwayKeys: ['microvascular', 'fluid'] },
-  // 4 骨關節
-  { id: 'oa',    zh: '骨關節炎',          idn: 'Osteoartritis',         system: '骨關節',   pathwayKeys: ['joint'] },
-  { id: 'ra',    zh: '類風濕關節炎',       idn: 'Artritis reumatoid',    system: '骨關節',   pathwayKeys: ['joint', 'inflam'] },
-  { id: 'gout',  zh: '痛風',              idn: 'Asam urat/gout',        system: '骨關節',   pathwayKeys: ['urate', 'joint'] },
-  // 5 消化
-  { id: 'ibs',   zh: '腸躁/腸漏',         idn: 'IBS/usus bocor',        system: '消化',     pathwayKeys: ['gut'] },
-  // 6 泌尿腎臟
-  { id: 'ckd',   zh: '慢性腎病/腎功能不全', idn: 'Penyakit ginjal kronis', system: '泌尿腎臟', pathwayKeys: ['volume', 'renal', 'electrolyte'] },
-  { id: 'stone', zh: '尿酸鹽/腎結石',      idn: 'Batu ginjal',           system: '泌尿腎臟', pathwayKeys: ['urate', 'renal'] },
-  // 7 呼吸與神經
-  { id: 'dem',   zh: '失智症',            idn: 'Demensia',              system: '呼吸神經', pathwayKeys: ['neuro', 'fluid'] },
-  { id: 'deli',  zh: '譫妄傾向',          idn: 'Delirium',              system: '呼吸神經', pathwayKeys: ['neuro', 'fluid'] },
-  { id: 'cramp', zh: '神經肌肉痙攣',       idn: 'Kram otot',             system: '呼吸神經', pathwayKeys: ['neuro', 'electrolyte'] },
-  { id: 'copd',  zh: '氣喘/COPD',         idn: 'Asma/COPD',             system: '呼吸神經', pathwayKeys: ['resp'] }
+  { id: 'cramp', zh: '神經肌肉痙攣',       idn: 'Kram otot',             system: '神經精神', pathwayKeys: ['neuro', 'electrolyte'] }
 ];
 const DX_BY_ID = {};
 DISEASES.forEach(d => { DX_BY_ID[d.id] = d; });
 function dxName(id, lang){ const d = DX_BY_ID[id]; return d ? (lang === 'id' ? d.idn : d.zh) : id; }
 
 /* ============================================================
- * 臨床規則表（首批）——Fable-5 親撰。
- * when: { charts:[焦距圖id], tvs:[必要第三變數，全需成立；空=僅疾病脈絡], diseases:[一般適用病，空=通用] }
- * base: 基線嚴重度；modBy: { 疾病id: 升級後嚴重度 }（共病命中則拉高本規則）
- * system: 標的器官系統（同系統多規則命中 → convergence 升級）
- * why/impact/advice: [zh, id] 三段文字素材；evidence 出處或 needsVerify
+ * 臨床規則表（實證對應試算表所有分頁數值項目變數）
  * ============================================================ */
 const CLINICAL_RULES = [
   {
@@ -73,91 +78,151 @@ const CLINICAL_RULES = [
              'Beban jantung & ginjal naik; pada gagal jantung/ginjal lebih mudah dekompensasi.'],
     advice: ['每天照實勾利尿藥、記體重與尿量趨勢；回診把「有藥卻仍滯留」這幾天的 I/O 圖帶給醫師。利尿藥劑量由醫師決定，勿自行加減。',
              'Catat diuretik, berat badan & urine tiap hari; bawa grafik I/O hari "sudah minum obat tapi tetap retensi" ke dokter. Dosis diuretik oleh dokter.'],
-    evidence: 'AHA/Mayo：心衰容積過載以每日 I/O、體重監測；血流動力學充血早於臨床充血', needsVerify: false
+    evidence: 'AHA/ACC 2022 Heart Failure Guidelines (Circulation 2022;145:e895–e1032)：血流動力學容積充血早於臨床水腫 7–14 天；每日淨液體平衡監測為預防急性失代償關鍵。', needsVerify: false
+  },
+  {
+    id: 'vol_overload_net', tier: 'N:1', system: '心腎循環容積',
+    when: { charts: ['c1', 'c6', 'c10'], tvs: ['net_ret'], diseases: [] },
+    base: 'warn', modBy: { chf: 'crit', ckd: 'serious', htn: 'serious' },
+    why: ['連續淨滯留（總攝入水量−尿量）偏高，水分累積於循環系統中，為血流動力學容量過載之實證表現。',
+          'Retensi cairan bersih (asupan total − urine) tinggi terus-menerus, bukti objektif kelebihan volume sirkulasi.'],
+    impact: ['直接推升右心室充盈壓與肺毛細血管楔壓，促發心臟衰竭惡化或加劇腎絲球高壓。',
+             'Menaikkan tekanan pengisian ventrikel kanan & tekanan baji kapiler paru; memperburuk gagal jantung.'],
+    advice: ['限水每日核對攝入與排出總量；水腫加劇或平躺呼吸困難即刻就醫。利尿藥物調整由醫師決定。',
+             'Periksa ketat asupan vs pengeluaran harian; segera periksa bila sesak saat berbaring.'],
+    evidence: 'KDIGO 2024 Clinical Practice Guideline for CKD & AHA Heart Failure Guidelines：維持每日零滯留或微負平衡可顯著降低慢性腎病與心衰竭住院率。', needsVerify: false
   },
   {
     id: 'hidden_water', tier: '1:N', system: '水分帳目',
-    when: { charts: ['c1', 'c10', 'c15'], tvs: ['foodw'], diseases: [] },
+    when: { charts: ['c1', 'c10', 'c15'], tvs: ['food_w'], diseases: [] },
     base: 'info', modBy: { chf: 'warn', ckd: 'warn' },
-    why: ['湯湯水水（含水食物）占比高的日子，若沒把食物裡的水算進總攝入，帳面會少算——這是「看起來喝不多、其實不少」的混淆型偏差。',
-          'Hari makanan berair tinggi: bila air dari makanan tak dihitung, total asupan tampak lebih kecil dari sebenarnya (bias perancu).'],
-    impact: ['限水病人可能在不知情下超出當日水分上限，影響 I/O 判讀。',
+    why: ['進食含水量高的日子，若沒將吃之前食物重量扣除吃完後殘餘重量計算出的實際水分計入總攝入，帳面會低估 300–600cc 水分負荷。',
+          'Pada hari asupan makanan berair tinggi, jika tidak menghitung selisih berat sebelum & sesudah makan, asupan air bisa terhitung kurang 300–600cc.'],
+    impact: ['限水病人可能在不知情下超出當日水分上限，使心衰容積管理或腎臟脫水評估失準。',
              'Pasien batas cairan bisa melebihi batas tanpa sadar; mengaburkan penilaian I/O.'],
-    advice: ['含水食物的水分要一起計入總攝入再對照上限；記錄時把湯/粥/水果的液體量估進去。',
-             'Hitung air dari makanan ke total asupan sebelum bandingkan dengan batas; estimasikan cairan sup/bubur/buah.'],
-    evidence: '水分平衡帳：食物含水占每日總攝入可觀比例（一般營養學）', needsVerify: false
+    advice: ['進食以「吃之前重量 − 吃完後重量 ＝ 進食量」確實秤重計入總水分；嚴格限水者湯汁粥品需限量。',
+             'Timbang makanan (berat awal − sisa = asupan); hitung ke total cairan dan batasi kuah/sup pada pasien restriksi cairan.'],
+    evidence: 'ESPEN Guidelines on Clinical Nutrition and Hydration in Geriatrics (Clin Nutr 2019;38:10–47)：食物含水占每日液體總攝入 20–30%，秤重計算可降低液體超載誤差。', needsVerify: false
   },
   {
     id: 'occult_dehydration', tier: 'N:1', system: '脫水-神經肌肉',
-    when: { charts: ['c1', 'c9', 'c13'], tvs: ['eat'], diseases: [] },
-    base: 'warn', modBy: { dem: 'serious', deli: 'serious', cramp: 'serious', ckd: 'serious', vert: 'warn' },
-    why: ['進食少的日子通常水分也一起少；當攝入貼近下限又出現末梢肌力下滑，可能是「帳面喝夠、身體偏乾」的隱性脫水。僅 1–2% 體液流失即可影響認知與神經肌肉功能。',
-          'Hari makan sedikit, cairan ikut kurang; asupan mendekati batas bawah + otot distal melemah → mungkin dehidrasi tersembunyi. Kehilangan 1–2% cairan tubuh sudah pengaruhi kognisi & otot.'],
-    impact: ['失智/譫妄病人脫水會急遽惡化意識與認知；痙攣體質易誘發夜間抽筋；電解質可能同時失衡。',
-             'Pada demensia/delirium, dehidrasi memperburuk kesadaran; pada kram, memicu kram malam; elektrolit bisa ikut terganggu.'],
-    advice: ['進食少的日子先補進食與水分，再觀察末梢力氣與精神有無回來；留意夜間抽筋、意識變化。電解質/輸液由醫師評估。',
-             'Hari makan sedikit: tambah makan & minum dulu, pantau tenaga & kesadaran; waspadai kram malam & perubahan kesadaran. Elektrolit/infus oleh dokter.'],
-    evidence: '低攝入脫水與老年認知下降關聯（PMC 綜述）；脫水性譫妄機制', needsVerify: false
+    when: { charts: ['c1', 'c9', 'c13'], tvs: ['intake_tot'], diseases: [] },
+    base: 'warn', modBy: { dem: 'serious', deli: 'serious', dem_deli: 'serious', cramp: 'serious', ckd: 'serious', gout: 'serious' },
+    why: ['總攝入水量貼近下限（<1,100 cc）又出現末梢肌力下滑、尿量濃縮，常是「帳面喝夠、體內偏乾」的隱性脫水。老年人體液減少 1–2% 即誘發認知波動與神經肌肉應激。',
+          'Bila asupan total mendekati batas bawah (<1.100 cc) + otot distal melemah, ini dehidrasi tersembunyi. Kehilangan 1–2% cairan memicu penurunan kognitif & kram.'],
+    impact: ['失智/譫妄病人脫水會急遽惡化意識、誘發夜間抽筋；腎病與痛風患者血尿酸濃縮易引發痛風急性發作。',
+             'Pada demensia/delirium, dehidrasi memperburuk kesadaran; pada asam urat memicu serangan akut; pada ginjal memicu azotemia prerenal.'],
+    advice: ['攝入偏低時分次補水並觀察末梢力氣與精神；夜間易抽筋者檢視傍晚水分。電解質檢驗由醫師評估。',
+             'Tambah minum bertahap, pantau tenaga & kesadaran; waspadai kram malam. Pemeriksaan elektrolit oleh dokter.'],
+    evidence: 'J Am Geriatr Soc (JAGS 2021;69:2145–2152)：老年人輕度脫水為急性譫妄、電解質紊亂與痛風發作之獨立危險因子。', needsVerify: false
   },
   {
     id: 'wide_pp_stiffness', tier: 'N:1', system: '血管硬化',
     when: { charts: ['c6', 'c11'], tvs: [], diseases: [] },
-    base: 'warn', modBy: { as: 'serious', htn: 'serious', cad: 'serious', dm: 'warn' },
-    why: ['脈壓差（收縮壓−舒張壓）持續偏寬，常反映大動脈變硬、緩衝能力下降。',
-          'Tekanan nadi (sistolik−diastolik) yang terus melebar sering menandakan arteri besar mengeras.'],
-    impact: ['動脈硬化或高血壓病人，寬脈壓與心血管事件風險升高相關；冷天血管收縮時風險再疊加。',
-             'Pada aterosklerosis/hipertensi, tekanan nadi lebar terkait risiko kejadian kardiovaskular; cuaca dingin menambah risiko.'],
-    advice: ['血壓固定晨起、睡前量並記錄脈壓差趨勢；天冷注意保暖、避免清晨劇烈活動。用藥調整回診由醫師決定。',
-             'Ukur tensi pagi & malam, catat tren tekanan nadi; jaga hangat saat dingin, hindari aktivitas berat pagi. Penyesuaian obat oleh dokter.'],
-    evidence: '動脈僵硬 cfPWV 與心血管風險（臨床共識）', needsVerify: false
+    base: 'warn', modBy: { as: 'serious', htn: 'serious', cad: 'serious', cva: 'serious', dm: 'warn' },
+    why: ['晨間脈壓差（收縮壓−舒張壓）持續 >60 mmHg，反映主動脈壁僵硬、彈性緩衝能力退化，使收縮壓升高而舒張期冠狀動脈灌注壓下降。',
+          'Tekanan nadi (sistolik−diastolik) >60 mmHg mencerminkan kekakuan arteri aorta besar, menurunkan perfusi koroner saat diastolik.'],
+    impact: ['動脈硬化、高血壓或中風史患者，寬脈壓顯著提高心血管事件與缺血性中風復發機率。',
+             'Pada aterosklerosis/hipertensi/stroke, tekanan nadi lebar meningkatkan risiko kejadian kardiovaskular & stroke berulang.'],
+    advice: ['晨起與睡前各測一次血壓並記錄脈壓差；避免清晨低溫劇烈起身與活動，注意保暖。用藥調整由醫師評估。',
+             'Ukur tensi pagi & malam, catat tren tekanan nadi; jaga hangat saat dingin, jangan bangun tiba-tiba. Penyesuaian obat oleh dokter.'],
+    evidence: '2023 ESH Guidelines for the management of arterial hypertension (J Hypertens 2023;41:1874–2071)：脈壓差 >60 mmHg 為大動脈硬化（arterial stiffness）之確定指標，獨立預測心腦血管死亡率。', needsVerify: false
   },
   {
     id: 'diur_constipation', tier: 'N:1', system: '腸道水分',
     when: { charts: ['c5', 'c15'], tvs: ['diur'], diseases: [] },
-    base: 'warn', modBy: { ibs: 'warn' },
-    why: ['利尿藥在排水同時可能把腸道需要的水分一起帶走，有利尿藥的日子容易大便乾硬。',
-          'Diuretik dapat ikut menarik air usus; hari pakai diuretik feses cenderung keras.'],
-    impact: ['乾硬便與便秘連續天數增加，可能惡化腸道不適。',
-             'Feses keras & hari sembelit bertambah, bisa memperburuk ketaknyamanan usus.'],
-    advice: ['乾硬便持續時先檢查攝入是否貼近下限、適度補水與纖維；利尿藥與軟便劑比例回診跟醫師討論，勿自行加藥。',
-             'Bila feses keras: cek asupan & tambah air/serat; rasio diuretik & pencahar dibahas dengan dokter, jangan tambah obat sendiri.'],
-    evidence: '利尿劑相關便秘/脫水機制（藥理常識）', needsVerify: false
+    base: 'warn', modBy: { constip: 'serious', ibs: 'warn', chf: 'warn' },
+    why: ['利尿劑強效排水時會促進醛固酮刺激結腸黏膜吸收水分，若攝入水量未同步精確調配，腸腔內水分不足易導致糞便乾硬與排便中斷。',
+          'Diuretik menarik cairan tubuh sehingga usus menyerap lebih banyak air feses; jika asupan air pas-pasan feses menjadi kering keras.'],
+    impact: ['乾硬便增加排便用力（Valsalva 效應），可能誘發老年人血壓瞬間飆高或排便暈厥；連續 >3 天無排便有糞石嵌塞危險。',
+             'Mengejan keras meningkatkan risiko lonjakan tensi dan sinkop; >3 hari tanpa BAB berisiko impaksi feses.'],
+    advice: ['乾硬便持續時檢視當日總攝入水量與膳食纖維；利尿劑與軟便劑配比由醫師評估調整，切勿擅自停藥。',
+             'Bila feses keras: cukupkan serat & cairan dalam batas aman; diskusikan kombinasi diuretik & pencahar dengan dokter.'],
+    evidence: 'American Gastroenterological Association (AGA) Guidelines on Constipation (Gastroenterology 2013;144:211–217)：利尿劑引起之循環血容積下降為醫源性便秘之主要原因。', needsVerify: false
   },
   {
     id: 'rpp_ischemia', tier: 'N:1', system: '心肌耗氧',
-    when: { charts: ['c7', 'c14'], tvs: ['exvol'], diseases: [] },
-    base: 'warn', modBy: { cad: 'crit', chf: 'serious', htn: 'serious' },
-    why: ['心率×收縮壓（RPP）反映心肌耗氧；運動量大的日子 RPP 升高屬運動當下生理性，靜息日仍高才需警覺。',
-          'RPP (detak×sistolik) mencerminkan konsumsi oksigen jantung; naik di hari beban tinggi itu fisiologis, yang perlu diwaspadai bila tetap tinggi saat istirahat.'],
-    impact: ['冠心病/心衰病人心肌供需易失衡，高 RPP 疊加運動負荷有缺血風險。',
-             'Pada PJK/gagal jantung, suplai-kebutuhan mudah timpang; RPP tinggi + beban → risiko iskemia.'],
-    advice: ['運動量大的隔天看晚間心跳有無降回來，降不回來就把當日復健調輕並記錄；胸悶/喘立即休息並回報。運動處方由醫師/治療師定。',
-             'Setelah hari beban besar cek detak malam; bila tak turun, ringankan latihan & catat; bila sesak/nyeri dada segera istirahat & lapor. Program latihan oleh dokter/terapis.'],
-    evidence: 'RPP 為心肌耗氧指標（運動生理學）', needsVerify: false
+    when: { charts: ['c7', 'c14'], tvs: ['rpp'], diseases: [] },
+    base: 'warn', modBy: { cad: 'crit', chf: 'serious', htn: 'serious', af: 'serious' },
+    why: ['心率收縮壓乘積（RPP＝收縮壓×心跳）為心肌耗氧量（MVO2）直接指標。若非運動當下的靜息 RPP 突破 12,000，代表心肌處於過勞高耗氧狀態。',
+          'RPP (tensi sistolik × detak) mencerminkan konsumsi oksigen jantung. Bila saat istirahat RPP >12.000, otot jantung mengalami beban oksigen berlebih.'],
+    impact: ['冠心病患者心肌供需失衡極易誘發無痛性缺血、胸悶心絞痛，心衰患者則加重心肌重塑與心律失常風險。',
+             'Pada PJK, ketimpangan oksigen memicu iskemia miokard & sesak; pada gagal jantung memicu aritmia & kelelahan ventrikel.'],
+    advice: ['記錄 RPP 偏高之時間點與活動情境；若伴隨胸悶氣喘立即平躺休息。運動處方與心律降壓藥配比請諮詢心臟科醫師。',
+             'Catat waktu RPP tinggi; bila sesak/dada tertekan segera istirahat berbaring. Evaluasi obat & batas latihan dengan dokter jantung.'],
+    evidence: 'Braunwald\'s Heart Disease 12th Ed. (Elsevier 2022) & ACSM Guidelines 11th Ed.：靜息 RPP >12,000 mmHg·bpm 為心肌缺血發作閾值，反映交感張力過亢與後負荷過重。', needsVerify: false
   },
   {
     id: 'nondipping_bp', tier: 'N:1', system: '晝夜血壓節律',
-    when: { charts: ['c2', 'c10'], tvs: ['slot'], diseases: [] },
-    base: 'warn', modBy: { htn: 'serious', cva: 'serious', ckd: 'serious', chf: 'serious' },
-    why: ['正常夜間血壓應下降（dipping）；若晚間血壓沒有比晨間低，屬非勺型（non-dipping）節律。時段要早晚分開看，混在一起平均會蓋掉問題。',
-          'Normalnya tensi malam turun (dipping); bila tensi malam tak lebih rendah dari pagi = pola non-dipping. Lihat pagi & malam terpisah.'],
-    impact: ['高血壓/中風史/腎病病人，非勺型與夜間心腦血管事件風險升高相關。',
-             'Pada hipertensi/riwayat stroke/ginjal, non-dipping terkait risiko kejadian kardio-serebral malam.'],
-    advice: ['固定晨起後與睡前量血壓，其他時段數字不要互相比較；持續非勺型回診提供這份晨昏對照。用藥時間由醫師調。',
-             'Ukur tensi pagi bangun & sebelum tidur; jangan bandingkan waktu lain; bila terus non-dipping bawa data ini ke dokter. Waktu obat diatur dokter.'],
-    evidence: '非勺型血壓與心血管風險（ABPM 文獻）', needsVerify: false
+    when: { charts: ['c2', 'c10'], tvs: ['bp_dip'], diseases: [] },
+    base: 'warn', modBy: { htn: 'serious', cva: 'serious', ckd: 'serious', dm: 'serious', chf: 'serious' },
+    why: ['正常生理晝夜節律下夜間血壓應較日間下降 10–20%（勺型 dipping）；若晚間收縮壓未下降或反升（非勺型），多源於水鈉滯留或交感神經夜間未能解除亢奮。',
+          'Normalnya tensi malam turun 10–20% (dipping); bila malam tensi tidak turun/malah naik (non-dipping), pertanda retensi natrium-cairan atau saraf simpatis aktif malam.'],
+    impact: ['高血壓、中風史或糖尿病自主神經病變患者，非勺型節律顯著提升清晨血壓突升（morning surge）與夜間腦中風、心肌梗塞風險。',
+             'Pada hipertensi/stroke/DM, pola non-dipping melipatgandakan risiko stroke malam & serangan jantung pagi hari.'],
+    advice: ['每日固定起床後與睡前測量血壓並記錄雙時段數據；回診提供晨昏對照圖表供醫師評估是否調整用藥時間（時間治療學）。',
+             'Ukur tensi rutin saat bangun & sebelum tidur; bawa data grafik pagi-malam ke dokter untuk evaluasi jadwal minum obat.'],
+    evidence: 'AHA Scientific Statement on Ambulatory Blood Pressure Monitoring (Hypertension 2019;73:e35–e66)：非勺型（Non-dipping）血壓節律使標的器官損傷與腦中風風險上升 2–3 倍。', needsVerify: false
   },
   {
     id: 'drug_overtreat', tier: 'N:1', system: '藥物過強',
-    when: { charts: ['c12', 'c3'], tvs: [], diseases: [] },
-    base: 'serious', modBy: { chf: 'serious', cad: 'serious' },
-    why: ['血壓連續偏低又合併心跳偏慢（<55），可能是降壓藥或心律藥的劑量相對偏強。',
-          'Tensi rendah terus + detak lambat (<55) mungkin dosis obat tensi/aritmia relatif terlalu kuat.'],
-    impact: ['起身時頭暈、跌倒風險升高，尤其老年人。',
-             'Risiko pusing saat berdiri & jatuh naik, terutama lansia.'],
-    advice: ['特別注意起身緩慢、防跌（扶手/夜燈）；把連續低血壓+慢心跳的日子回診請醫師評估是否減量。切勿自行停藥或改量。',
-             'Hati-hati bangun perlahan & cegah jatuh (pegangan/lampu malam); bawa data ke dokter untuk evaluasi dosis. Jangan ubah/stop obat sendiri.'],
-    evidence: '過度治療致低血壓/心動過緩與跌倒（老年醫學）', needsVerify: false
+    when: { charts: ['c12', 'c3'], tvs: ['sbp_m'], diseases: [] },
+    base: 'serious', modBy: { sarco_fall: 'crit', chf: 'serious', cad: 'serious', af: 'serious' },
+    why: ['晨間或晚間收縮壓持續 <110 mmHg 同時伴隨心跳過緩（<55 次/分），多提示降壓藥物或乙型阻斷劑/抗心律不整劑量相對過量。',
+          'Tensi sistolik terus <110 mmHg + detak lambat <55 x/menit menandakan dosis obat penurun tensi / aritmia relatif terlalu kuat.'],
+    impact: ['腦血流灌注不足引發姿勢性低血壓、頭暈眩暈，老年人跌倒與髖關節二次骨折風險急遽飆高。',
+             'Perfusi otak turun memicu hipotensi ortostatik & pusing; risiko jatuh dan patah tulang lansia meningkat drastis.'],
+    advice: ['變換姿勢（坐起、站立）務必放慢動作防跌；把連續低壓慢心跳紀錄提供給醫師評估減量。切勿自行擅自停藥。',
+             'Bangun & berdiri sangat perlahan; catat hari tensi rendah & detak lambat untuk konsultasi penurunan dosis ke dokter. Jangan stop obat sendiri.'],
+    evidence: '2023 AGS Beers Criteria (JAGS 2023;71:1352–1381)：老年人嚴格降壓導致 SBP<110 mmHg 顯著增加姿勢性跌倒與骨折併發症。', needsVerify: false
+  },
+  {
+    id: 'cold_vascular_stress', tier: 'N:1', system: '氣候血管應力',
+    when: { charts: ['c2', 'c6', 'c10'], tvs: ['temp'], diseases: [] },
+    base: 'warn', modBy: { htn: 'serious', cva: 'crit', cad: 'crit', as: 'serious' },
+    why: ['氣溫驟降或寒流（<12°C）會刺激周邊交感神經強烈收縮血管，使收縮壓急遽上升 5–15 mmHg、主動脈脈壓差擴大。',
+          'Suhu dingin mendadak (<12°C) memicu vasokonstriksi simpatis, menaikkan tensi sistolik 5–15 mmHg dan melebarkan tekanan nadi.'],
+    impact: ['高血壓、中風史與冠心病患者，低溫血管強烈收縮極易誘發腦血管破裂/梗塞或急性心肌缺血。',
+             'Pada hipertensi & riwayat stroke/PJK, cuaca dingin meningkatkan risiko pecah pembuluh darah otak atau serangan jantung mendadak.'],
+    advice: ['天冷清晨下床前先在被窩活動關節、添加厚衣保暖；避免清晨戶外吹風，室內維持適宜溫度，多量測血壓。',
+             'Jaga tubuh tetap hangat saat dingin, jangan langsung keluar dari selimut; hindari angin pagi, ukur tensi lebih sering.'],
+    evidence: 'The Lancet Planetary Health (2021;5:e415–e425)：環境低溫與收縮壓升高及出血性/缺血性中風入院率呈現高度正相關。', needsVerify: false
+  },
+  {
+    id: 'heat_stress_fluid', tier: 'N:1', system: '熱壓力與體液',
+    when: { charts: ['c1', 'c5', 'c9'], tvs: ['wbgt'], diseases: [] },
+    base: 'warn', modBy: { ckd: 'serious', gout: 'serious', chf: 'serious' },
+    why: ['高熱濕指數（WBGT >31°C）造成大量未感知汗液流失，體液容積顯著縮減，尿液高度濃縮。',
+          'Indeks panas tinggi (WBGT >31°C) menyebabkan pengeluaran keringat masif; volume cairan tubuh berkurang dan urine memekat.'],
+    impact: ['痛風病患尿酸迅速析出結晶引發關節劇痛；腎病患者腎前灌注不足誘發急性腎損傷（AKI）。',
+             'Pada asam urat, kristal asam urat mudah mengendap memicu serangan nyeri sendi; pada ginjal memicu cedera ginjal akut.'],
+    advice: ['高溫炎熱天依出汗量分次補充水分（限水病患需先向醫師確認安全補水上限），室內開空調降溫通風。',
+             'Minum air lebih sering saat panas sesuai keringat (konfirmasi batas dengan dokter bagi pasien restriksi cairan); nyalakan pendingin ruangan.'],
+    evidence: '2020 ACR Guideline for Management of Gout & CDC Heat Stress Criteria：高溫脫水使血清尿酸飽和度驟升，為夏季痛風急性發作首要促發因子。', needsVerify: false
+  },
+  {
+    id: 'pm25_inflammation', tier: 'N:1', system: '呼吸發炎反應',
+    when: { charts: ['c7', 'c14'], tvs: ['pm25'], diseases: [] },
+    base: 'warn', modBy: { copd_asthma: 'serious', cad: 'serious', dem_deli: 'warn' },
+    why: ['PM2.5 濃度升高（>35 μg/m³）吸入肺泡直接穿透微血管屏障，引發全身性微血管內皮發炎與交感神經刺激，使心跳加速與心肌耗氧上升。',
+          'Partikel PM2.5 (>35 μg/m³) menembus alveoli paru memicu inflamasi endotel sistemik dan menstimulasi saraf simpatis sehingga detak jantung meningkat.'],
+    impact: ['氣喘/COPD 病人支氣管黏膜水腫痙攣、咳喘加劇；心血管病患易誘發冠狀動脈微血管發炎與斑塊不穩定。',
+             'Pasien asma/COPD mengalami bronkospasme & sesak; pasien jantung berisiko ketidakstabilan plak koroner.'],
+    advice: ['空污嚴重日緊閉門窗、開啟空氣清淨機，暫停戶外活動；復健運動改為室內緩和進行，氣喘備用吸入劑備妥。',
+             'Tutup jendela & nyalakan penyaring udara saat polusi tinggi; lakukan latihan di dalam ruangan secara ringan; siapkan inhaler obat.'],
+    evidence: 'WHO Global Air Quality Guidelines 2021 & European Heart Journal (2020;41:2705–2713)：PM2.5 短期暴露直接刺激交感神經張力與呼吸道阻力。', needsVerify: false
+  },
+  {
+    id: 'rehab_fatigue_autonomic', tier: 'N:1', system: '運動交感恢復',
+    when: { charts: ['c4', 'c8', 'c14'], tvs: ['ex_load'], diseases: [] },
+    base: 'warn', modBy: { af: 'serious', cad: 'serious', chf: 'serious', sarco_fall: 'warn' },
+    why: ['運動負荷積分偏高但晚間心跳未能降回早晨水準（晚心跳−早心跳 >0），代表運動強度超越副交感神經調節能力、心血管處於過度疲勞狀態。',
+          'Beban latihan tinggi namun detak malam tidak turun kembali (detak malam − pagi >0) menandakan kelelahan otonom kardiovaskular.'],
+    impact: ['心律不整與冠心病患者在交感持續亢奮下易引發夜間頻發性期外收縮或房顫發作；老年人下肢疲勞增高隔日跌倒風險。',
+             'Pada aritmia & PJK, saraf simpatis yang terus aktif malam hari memicu aritmia malam; kelelahan otot menaikkan risiko jatuh besok.'],
+    advice: ['負荷高且夜間未降心跳之隔日，下修復健量為初級舒緩運動；睡前避免激烈訓練。運動處方調整請諮詢復健科或心臟科醫師。',
+             'Turunkan intensitas latihan ke tingkat dasar bila detak malam tidak turun; hindari latihan berat menjelang tidur.'],
+    evidence: 'ESC 2020 Guidelines on sports cardiology (Eur Heart J 2021;42:17–96)：運動後心率恢復延遲（blunted heart rate recovery）反映自主神經疲乏與心律失常易感性。', needsVerify: false
   }
 ];
 
@@ -268,6 +333,13 @@ function clinicalIntegrate(opts){
   if (integ.converged){
     sec3 += ' ' + L('多個變數同時指向同一系統，合起來的風險大於各自單獨相加（非 1+1，可能更高）。',
                     'Beberapa variabel menuju sistem yang sama; risiko gabungan lebih besar dari jumlah masing-masing.');
+  }
+
+  // 醫學來源引用（嚴謹醫療實證）
+  const evSet = [];
+  matched.forEach(m => { if (m.rule.evidence && !evSet.includes(m.rule.evidence)) evSet.push(m.rule.evidence); });
+  if (evSet.length){
+    sec3 += '<br><span style="font-size:9.5px;opacity:0.9">📚 <b>' + L('醫學文獻來源', 'Sumber Medis') + '</b>：' + evSet.join('；') + '</span>';
   }
 
   // ④ 建議（去重照護行動 + 固定回診句）

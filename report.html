@@ -11,6 +11,11 @@
         body { background: linear-gradient(180deg, #fff1f2 0%, #ffffff 45%, #eff6ff 100%); }
         .animate-spin-slow { animation: spin 3s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes icon-bounce-gentle {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-4px) scale(1.08); }
+        }
+        .heading-icon { display: inline-block; animation: icon-bounce-gentle 2s ease-in-out infinite; }
         @media print { .no-print { display: none !important; } body { background: #fff; } }
     </style>
 </head>
@@ -77,7 +82,7 @@ function unitOf(cat){
 }
 
 function renderChrome(){
-    document.getElementById('page-title').textContent = '📅 ' + L('每日時段報表','Laporan Harian per Periode');
+    document.getElementById('page-title').innerHTML = '<span class="heading-icon">📅</span> ' + L('每日時段報表','Laporan Harian per Periode');
     document.getElementById('back-link').textContent = '← ' + L('回照護日誌','Kembali');
     document.getElementById('print-btn').textContent = '🖨️ ' + L('列印','Cetak');
     const sw = document.getElementById('lang-switch');
