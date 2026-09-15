@@ -19,39 +19,52 @@ const CARE_SLOTS = [
 ];
 function careInSlot(time, slot){ return time >= slot.start && time <= slot.end; }
 
-/* 復健分級項目（初級 / 中級 / 高級）與任務定義 */
+/* 復健分級項目（LEVEL 1～4）與任務定義 */
 const REHAB_LEVELS = {
-    basic: { zh: '初級', id: 'Tingkat Dasar', items: ['舉水瓶', '躺式腳底板抬壓', '躺式膝蓋彎伸'] },
-    intermediate: { zh: '中級', id: 'Tingkat Menengah', items: ['仰臥抬腿', '仰躺大腿內收訓練', '橋式／仰躺雙腳屈膝抬臀'] },
-    advanced: { zh: '高級', id: 'Tingkat Lanjut', items: ['站立', '站立搖擺', '站立抬腳'] }
+    L1: { zh: 'LEVEL 1', id: 'LEVEL 1', hint: '床上被動／暖身', items: ['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸'] },
+    L2: { zh: 'LEVEL 2', id: 'LEVEL 2', hint: '仰臥主動肌力', items: ['仰臥抬腿', '仰躺大腿內收訓練', '橋式／仰躺雙腳屈膝抬臀'] },
+    L3: { zh: 'LEVEL 3', id: 'LEVEL 3', hint: '坐姿轉位', items: ['舉物練習', '坐式抬腿', '坐式大腿內收', '站立'] },
+    L4: { zh: 'LEVEL 4', id: 'LEVEL 4', hint: '站姿平衡', items: ['站立', '站立搖擺', '站立抬腳'] },
+    // 舊 key 相容
+    basic: { zh: 'LEVEL 1', id: 'LEVEL 1', items: ['雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸'] },
+    intermediate: { zh: 'LEVEL 2', id: 'LEVEL 2', items: ['仰臥抬腿', '仰躺大腿內收訓練', '橋式／仰躺雙腳屈膝抬臀'] },
+    advanced: { zh: 'LEVEL 4', id: 'LEVEL 4', items: ['站立', '站立搖擺', '站立抬腳'] }
 };
 const CARE_EX_TYPES = [
-    '舉水瓶', '躺式腳底板抬壓', '躺式膝蓋彎伸',
+    '雙手舉水瓶', '腳底板抬壓', '膝蓋彎伸',
     '仰臥抬腿', '仰躺大腿內收訓練', '橋式／仰躺雙腳屈膝抬臀',
-    '站立', '站立搖擺', '站立抬腳'
+    '舉物練習', '坐式抬腿', '坐式大腿內收',
+    '站立', '站立搖擺', '站立抬腳',
+    // 舊稱呼相容
+    '舉水瓶', '躺式腳底板抬壓', '躺式膝蓋彎伸', '橋式'
 ];
 const CARE_EX_SHORT = {
-    '舉水瓶': ['舉水瓶', 'Botol'],
     '雙手舉水瓶': ['舉水瓶', 'Botol'],
-    '躺式腳底板抬壓': ['抬腳壓', 'Tekan Kaki'],
+    '舉水瓶': ['舉水瓶', 'Botol'],
     '腳底板抬壓': ['抬腳壓', 'Tekan Kaki'],
-    '躺式膝蓋彎伸': ['膝彎伸', 'Tekuk Lutut'],
+    '躺式腳底板抬壓': ['抬腳壓', 'Tekan Kaki'],
     '膝蓋彎伸': ['膝彎伸', 'Tekuk Lutut'],
+    '躺式膝蓋彎伸': ['膝彎伸', 'Tekuk Lutut'],
     '仰臥抬腿': ['抬腿', 'Angkat'],
     '仰躺大腿內收訓練': ['內收', 'Adduksi'],
     '大腿內收': ['內收', 'Adduksi'],
     '橋式／仰躺雙腳屈膝抬臀': ['橋式', 'Pinggul'],
     '橋式抬臀': ['橋式', 'Pinggul'],
+    '橋式': ['橋式', 'Pinggul'],
+    '舉物練習': ['舉物', 'Benda'],
+    '坐式抬腿': ['坐抬腿', 'Duduk Angkat'],
+    '坐式大腿內收': ['坐內收', 'Duduk Adduksi'],
     '站立': ['站立', 'Berdiri'],
     '站立搖擺': ['搖擺', 'Goyang'],
     '站立抬腳': ['站抬腳', 'Angkat Kaki']
 };
 const CARE_EX_ALIASES = {
-    '雙手舉水瓶': '舉水瓶',
-    '腳底板抬壓': '躺式腳底板抬壓',
-    '膝蓋彎伸': '躺式膝蓋彎伸',
+    '舉水瓶': '雙手舉水瓶',
+    '躺式腳底板抬壓': '腳底板抬壓',
+    '躺式膝蓋彎伸': '膝蓋彎伸',
     '大腿內收': '仰躺大腿內收訓練',
-    '橋式抬臀': '橋式／仰躺雙腳屈膝抬臀'
+    '橋式抬臀': '橋式／仰躺雙腳屈膝抬臀',
+    '橋式': '橋式／仰躺雙腳屈膝抬臀'
 };
 function careNormEx(cat){ return CARE_EX_ALIASES[cat] || cat; }
 const careIsBP = r => r.category && r.category.includes('血壓/心跳');

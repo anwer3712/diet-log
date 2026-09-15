@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="care-auth.js?v=1"></script>
-    <script src="care-tasks.js?v=13"></script>
-    <script src="mirror-ui.js?v=1"></script>
+    <script src="care-tasks.js?v=14"></script>
+    <script src="mirror-ui.js?v=2"></script>
     <style>
         body { background: #fafafa; font-size: 16px; }
         /* 長頁面效能：每個區塊離開視窗就不算版面／不上色，捲動才渲染 */
@@ -187,6 +187,16 @@
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="font-bold text-gray-700 text-base">🎯 【總攝入水量】今日目標</h3>
                     <span id="prev-percent" class="text-xs font-black bg-stone-50 text-[#F4726B] px-2.5 py-0.5 rounded-full">0%</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2.5 mb-3 text-center">
+                    <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-2.5 flex flex-col justify-center">
+                        <p class="text-[11px] text-amber-800 font-black">🎯 今日目標 / Gol hari ini</p>
+                        <p class="mt-1 text-2xl font-black text-amber-950">1500 <span class="text-xs font-bold text-amber-700">c.c.</span></p>
+                    </div>
+                    <div class="bg-teal-50 border-2 border-teal-300 rounded-2xl p-2.5 flex flex-col justify-center">
+                        <p class="text-[11px] text-teal-800 font-black">✅ 目前已達 / Kemajuan</p>
+                        <p class="mt-1 text-2xl font-black text-[#0f766e]">300 <span class="text-xs font-bold text-teal-700">c.c.</span></p>
+                    </div>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden mb-2"><div id="prev-bar" class="bg-[#FB8B7A] h-full w-0 rounded-full transition-all"></div></div>
                 <div id="prev-fluid-warn" class="hidden bg-red-100 text-red-700 p-2.5 rounded-2xl text-xs font-black mt-2 text-center border border-red-200"></div>
@@ -394,14 +404,35 @@
         </div>
 
         <div class="mf-prev">
-            <p class="mf-prev-label">↓ 正式頁對應內容：四項復健（範例彈窗與 LEVEL 1–4 分級請到鏡像 U2 編輯）</p>
-            <div class="grid grid-cols-1 gap-2">
-                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700">🦵 仰臥抬腿，左右交替10秒</div>
-                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700">🩲 仰躺大腿內收訓練，左右交替10秒</div>
-                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700">🍑 橋式／仰躺雙腳屈膝抬臀10秒</div>
-                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700">🧍 站立</div>
+            <p class="mf-prev-label">↓ 正式頁對應內容：LEVEL 1～4 全 13 項復健（範例彈窗與分級內容請至鏡像 U2 編輯）</p>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold text-gray-700">
+                <div class="bg-sky-50 border border-sky-200 rounded-xl p-2 space-y-1">
+                    <p class="text-sky-800 font-black text-[11px]">LEVEL 1 床上被動</p>
+                    <p>🍼 雙手舉水瓶</p>
+                    <p>🦶 腳底板抬壓</p>
+                    <p>🦵 膝蓋彎伸</p>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2 space-y-1">
+                    <p class="text-emerald-800 font-black text-[11px]">LEVEL 2 仰臥肌力</p>
+                    <p>🦵 仰臥抬腿</p>
+                    <p>🩲 大腿內收訓練</p>
+                    <p>🍑 橋式抬臀</p>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-2 space-y-1">
+                    <p class="text-amber-800 font-black text-[11px]">LEVEL 3 坐姿轉位</p>
+                    <p>📦 舉物練習</p>
+                    <p>🪑 坐式抬腿</p>
+                    <p>🩲 坐式大腿內收</p>
+                    <p>🧍 站立</p>
+                </div>
+                <div class="bg-rose-50 border border-rose-200 rounded-xl p-2 space-y-1">
+                    <p class="text-rose-800 font-black text-[11px]">LEVEL 4 站姿平衡</p>
+                    <p>🧍 站立</p>
+                    <p>🧘 站立搖擺</p>
+                    <p>🚶 站立抬腳</p>
+                </div>
             </div>
-            <a href="mirror-u2.html" class="mt-2 block text-center bg-green-50 border-2 border-green-300 text-green-700 rounded-2xl py-2.5 text-xs font-black active:scale-95">🪞 前往鏡像 U2：LEVEL 1–4 分級項目 · 彈窗 · 照片 · 介紹文字 →</a>
+            <a href="mirror-u2.html" class="mt-2 block text-center bg-green-50 border-2 border-green-300 text-green-700 rounded-2xl py-2.5 text-xs font-black active:scale-95">🪞 前往鏡像 U2：LEVEL 1–4 全 13 項分級 · 彈窗 · 照片 · 步驟文字對照編輯 →</a>
         </div>
     </section>
 

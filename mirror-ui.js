@@ -102,35 +102,50 @@ function mfPostUi(goals, patch){
 }
 
 /* ===== 復健分級目錄（U2）=====
- * 使用者指定：LEVEL1 三項、LEVEL2 三項、LEVEL3 四項、LEVEL4 三項。
+ * 使用者指定：LEVEL1 三項、LEVEL2 三項、LEVEL3 四項、LEVEL4 三項（共 13 項）。
  * 「站立」同時出現在 LEVEL3 / LEVEL4，故用獨立 key（l3-stand / l4-stand）分開存，可各自編輯。
- * ref 對得上舊 REHAB_GUIDE 的項目 → 預設帶入現成圖片與步驟；其餘留空給使用者填。 */
+ * 全部 13 項皆提供預設示範照片與步驟；照顧者點選「📖 範例」彈窗與正式日誌 100% 完整對照。 */
 const MIRROR_EX_LEVELS = [
-    { key: 'L1', zh: 'LEVEL 1', id: 'LEVEL 1', hint: '床上被動／暖身', items: [
-        { key: 'l1-bottle', zh: '雙手舉水瓶', id: 'Angkat Botol Dua Tangan' },
-        { key: 'l1-sole',   zh: '腳底板抬壓', id: 'Tekan Telapak Kaki' },
-        { key: 'l1-knee',   zh: '膝蓋彎伸',   id: 'Tekuk & Luruskan Lutut' }
+    { key: 'L1', zh: 'LEVEL 1', id: 'LEVEL 1', hint: '床上被動／暖身', color: 'sky', items: [
+        { key: 'l1-bottle', zh: '雙手舉水瓶', id: 'Angkat Botol Dua Tangan', icon: '🍼', ref: '雙手舉水瓶' },
+        { key: 'l1-sole',   zh: '腳底板抬壓', id: 'Tekan Telapak Kaki', icon: '🦶', ref: '腳底板抬壓' },
+        { key: 'l1-knee',   zh: '膝蓋彎伸',   id: 'Tekuk & Luruskan Lutut', icon: '🦵', ref: '膝蓋彎伸' }
     ]},
-    { key: 'L2', zh: 'LEVEL 2', id: 'LEVEL 2', hint: '仰臥主動肌力', items: [
-        { key: 'l2-legraise',  zh: '仰臥抬腿',         id: 'Angkat Kaki Telentang', ref: '仰臥抬腿' },
-        { key: 'l2-adduction', zh: '仰躺大腿內收訓練', id: 'Adduksi Paha Telentang', ref: '大腿內收' },
-        { key: 'l2-bridge',    zh: '橋式',             id: 'Jembatan (Angkat Pinggul)', ref: '橋式抬臀' }
+    { key: 'L2', zh: 'LEVEL 2', id: 'LEVEL 2', hint: '仰臥主動肌力', color: 'emerald', items: [
+        { key: 'l2-legraise',  zh: '仰臥抬腿',         id: 'Angkat Kaki Telentang', icon: '🦵', ref: '仰臥抬腿' },
+        { key: 'l2-adduction', zh: '仰躺大腿內收訓練', id: 'Adduksi Paha Telentang', icon: '🩲', ref: '大腿內收' },
+        { key: 'l2-bridge',    zh: '橋式／仰躺雙腳屈膝抬臀', id: 'Jembatan (Angkat Pinggul)', icon: '🍑', ref: '橋式抬臀' }
     ]},
-    { key: 'L3', zh: 'LEVEL 3', id: 'LEVEL 3', hint: '坐姿轉位', items: [
-        { key: 'l3-lift',      zh: '舉物練習',     id: 'Latihan Angkat Benda' },
-        { key: 'l3-sitleg',    zh: '坐式抬腿',     id: 'Angkat Kaki Duduk' },
-        { key: 'l3-sitadduct', zh: '坐式大腿內收', id: 'Adduksi Paha Duduk' },
-        { key: 'l3-stand',     zh: '站立',         id: 'Berdiri', ref: '站立' }
+    { key: 'L3', zh: 'LEVEL 3', id: 'LEVEL 3', hint: '坐姿轉位', color: 'amber', items: [
+        { key: 'l3-lift',      zh: '舉物練習',     id: 'Latihan Angkat Benda', icon: '📦', ref: '舉物練習' },
+        { key: 'l3-sitleg',    zh: '坐式抬腿',     id: 'Angkat Kaki Duduk', icon: '🪑', ref: '坐式抬腿' },
+        { key: 'l3-sitadduct', zh: '坐式大腿內收', id: 'Adduksi Paha Duduk', icon: '🩲', ref: '坐式大腿內收' },
+        { key: 'l3-stand',     zh: '站立',         id: 'Berdiri', icon: '🧍', ref: '站立' }
     ]},
-    { key: 'L4', zh: 'LEVEL 4', id: 'LEVEL 4', hint: '站姿平衡', items: [
-        { key: 'l4-stand',      zh: '站立',     id: 'Berdiri', ref: '站立' },
-        { key: 'l4-standsway',  zh: '站立搖擺', id: 'Berdiri Bergoyang' },
-        { key: 'l4-standleg',   zh: '站立抬腿', id: 'Berdiri Angkat Kaki' }
+    { key: 'L4', zh: 'LEVEL 4', id: 'LEVEL 4', hint: '站姿平衡', color: 'rose', items: [
+        { key: 'l4-stand',      zh: '站立',     id: 'Berdiri', icon: '🧍', ref: '站立' },
+        { key: 'l4-standsway',  zh: '站立搖擺', id: 'Berdiri Bergoyang', icon: '🧘', ref: '站立搖擺' },
+        { key: 'l4-standleg',   zh: '站立抬腳', id: 'Berdiri Angkat Kaki', icon: '🚶', ref: '站立抬腳' }
     ]}
 ];
 
-/* 舊有四項的圖片／步驟（與 index.html REHAB_GUIDE 同源），供 ref 帶入預設值 */
+/* 全 12 項動作（含 13 個項目）的預設示範照片／步驟，供 ref 帶入預設值 */
 const MIRROR_EX_REF = {
+    '雙手舉水瓶': {
+        images: ['rehab-img/adduction-1.jpg'],
+        zh: '1. 平躺準備：病患平躺床上，雙手握持水瓶置於腹前。\n2. 緩慢上舉：手肘微屈，平穩向上舉過胸前至微高處。\n3. 維持計時：在最高點穩定維持 5 秒。\n4. 緩慢復原：緩慢放下放鬆，每次練習 10～15 回。',
+        id: '1. Persiapan: Pasien berbaring telentang, pegang botol air dengan kedua tangan di atas perut.\n2. Angkat perlahan: Siku sedikit ditekuk, angkat botol stabil di atas dada.\n3. Tahan: Pertahankan di posisi tertinggi selama 5 detik.\n4. Turunkan: Turunkan perlahan dan rileks, ulangi 10-15 kali.'
+    },
+    '腳底板抬壓': {
+        images: ['rehab-img/legraise-1.jpg'],
+        zh: '1. 平躺準備：平躺於床面，雙腿自然放鬆伸直。\n2. 腳踝勾起：腳踝用力向上勾起（背屈）維持 5 秒。\n3. 腳踝下踩：腳踝向下踩壓（蹠屈）維持 5 秒。\n4. 建議次數：左右交替或同時進行 15～20 回，促進下肢血液循環防血栓。',
+        id: '1. Persiapan: Berbaring telentang di tempat tidur, kedua kaki lurus dan rileks.\n2. Tekuk ke atas: Tekuk pergelangan kaki ke atas selama 5 detik.\n3. Tekan ke bawah: Tekan pergelangan kaki ke bawah selama 5 detik.\n4. Repetisi: Lakukan bergantian atau bersamaan 15-20 kali untuk melancarkan sirkulasi darah.'
+    },
+    '膝蓋彎伸': {
+        images: ['rehab-img/bridge-1.jpg'],
+        zh: '1. 平躺準備：平躺於床面，雙腿伸直放鬆。\n2. 腳跟滑動：單腳腳跟貼著床面緩慢向臀部滑動彎曲膝蓋。\n3. 頂端維持：彎曲至舒適極限，維持 3 秒。\n4. 緩慢伸直：沿床面慢慢伸直放平，左右交替各 10 回。',
+        id: '1. Persiapan: Berbaring telentang dengan kedua kaki lurus dan rileks.\n2. Geser tumit: Geser tumit perlahan di atas kasur ke arah pinggul untuk menekuk lutut.\n3. Tahan: Tahan di posisi tekuk selama 3 detik.\n4. Luruskan: Luruskan kembali perlahan, lakukan bergantian tiap sisi 10 kali.'
+    },
     '仰臥抬腿': {
         images: ['rehab-img/legraise-1.jpg', 'rehab-img/legraise-2.jpg'],
         zh: '1. 平躺準備：病患平躺床上，雙腿伸直。\n2. 單腳抬起：彎曲單一膝蓋向上抬，使小腿與床面平行。\n3. 注意：若病肢無力，照顧者輕托「腳踝」與「膝窩」稍微輔助，避免拉傷。\n4. 計時十秒：維持姿勢，照顧者倒數 10 秒。\n5. 換腳交替：緩慢放下，換另一隻腳重覆相同動作。\n6. 建議訓練量：左右各做完 1 次為 1 回，每次進行 10～15 回。',
@@ -146,10 +161,35 @@ const MIRROR_EX_REF = {
         zh: '1. 平躺準備：病患平躺在床上，上半身自然放鬆。\n2. 雙腳立起：兩腳膝蓋彎曲向上立起，腳掌平貼床面。\n3. 臀部抬起：用臀部與大腿後側的力量把臀部抬離床面。\n4. 計時十秒：維持抬臀姿勢穩定。\n5. 緩慢放下休息。\n6. 建議訓練量：做完 1 次為 1 回，每次 10～15 回。',
         id: '1. Berbaring telentang, tubuh atas rileks.\n2. Tekuk kedua lutut, telapak kaki rata di tempat tidur.\n3. Angkat pinggul memakai otot bokong dan belakang paha.\n4. Tahan 10 detik.\n5. Turunkan perlahan untuk istirahat.\n6. 1 repetisi = 1 set, 10-15 set tiap kali.'
     },
+    '舉物練習': {
+        images: ['rehab-img/adduction-1.jpg'],
+        zh: '1. 坐姿準備：病患端坐床沿或穩固椅子，雙腳踏實地面。\n2. 雙手持物：雙手平握輕量物品或水瓶。\n3. 平穩上舉：手肘微屈，平緩向前上方舉起至肩膀高度，維持 5 秒。\n4. 緩慢放下：緩慢放回大腿上方，每組 10～15 次。',
+        id: '1. Persiapan: Duduk tegak di tepi ranjang atau kursi kokoh, kaki menapak lantai.\n2. Pegang benda: Pegang benda ringan atau botol air dengan kedua tangan.\n3. Angkat: Angkat perlahan ke depan setinggi bahu, tahan 5 detik.\n4. Turunkan: Turunkan kembali ke atas paha, lakukan 10-15 kali.'
+    },
+    '坐式抬腿': {
+        images: ['rehab-img/legraise-1.jpg'],
+        zh: '1. 坐姿準備：端坐於床沿或穩固座椅，背部挺直不駝背。\n2. 單腿抬平：單腳膝蓋緩慢伸直，將小腿抬高至與大腿近乎水平，腳尖朝上。\n3. 維持計時：大腿股四頭肌用力維持 5 秒。\n4. 左右交替：緩慢放下放平，換邊進行，左右各 10 回。',
+        id: '1. Persiapan: Duduk tegak di tepi tempat tidur atau kursi kokoh, punggung lurus.\n2. Angkat kaki: Luruskan lutut perlahan, angkat betis hingga sejajar paha, jari kaki mengarah ke atas.\n3. Tahan: Kencangkan otot paha selama 5 detik.\n4. Bergantian: Turunkan perlahan, ganti sisi lain, lakukan 10 kali tiap sisi.'
+    },
+    '坐式大腿內收': {
+        images: ['rehab-img/adduction-2.jpg'],
+        zh: '1. 坐姿準備：端坐於床沿，雙腳與肩同寬平踏地面。\n2. 膝間夾物：在雙膝之間夾入毛巾卷或軟球。\n3. 用力內夾：大腿內側主動用力向內夾緊，維持 10 秒。\n4. 放鬆重複：緩慢放鬆 3 秒，重複 10～15 次。',
+        id: '1. Persiapan: Duduk di tepi ranjang, kedua kaki selebar bahu menapak lantai.\n2. Jepit benda: Letakkan gulungan handuk atau bantal kecil di antara kedua lutut.\n3. Jepit kuat: Remas kedua lutut ke dalam menggunakan otot paha dalam selama 10 detik.\n4. Rileks: Kendurkan perlahan 3 detik, ulangi 10-15 kali.'
+    },
     '站立': {
         images: ['rehab-img/stand-1.jpg', 'rehab-img/stand-2.jpg', 'rehab-img/stand-3.jpg', 'rehab-img/stand-4.jpg', 'rehab-img/stand-5.jpg'],
         zh: '1. 降床準備：電動床降到最低，放下一邊床欄，協助病患坐至床沿，雙腳平穩踩地。\n2. 注意：全程留意導尿管位置，避免壓迫、牽拉或高於膀胱水平。\n3. 膝蓋頂防：照顧者站正前方，以膝蓋抵住病患膝蓋防止滑跪。\n4. 抱頸站起：病患雙手環抱照顧者頸部（或抓穩助行器）自行發力站起。\n5. 姿勢維持：抬頭挺胸、眼睛直視前方，照顧者持續戒護。\n6. 坐下休息：體力耗盡即協助緩慢坐回床沿。',
         id: '1. Turunkan tempat tidur ke posisi terendah, turunkan satu rel, bantu pasien duduk di tepi dengan kaki menapak lantai.\n2. Perhatikan kateter: hindari tertekan, tertarik, atau lebih tinggi dari kandung kemih.\n3. Pengasuh berdiri di depan, lutut menopang lutut pasien.\n4. Pasien memeluk leher pengasuh (atau pegang walker) lalu berdiri sendiri.\n5. Kepala tegak, dada membusung, mata lurus ke depan; pengasuh mengawasi.\n6. Bila lelah, bantu duduk kembali perlahan.'
+    },
+    '站立搖擺': {
+        images: ['rehab-img/stand-1.jpg', 'rehab-img/stand-3.jpg'],
+        zh: '1. 雙人戒護：在照顧者協助下平穩站立，雙腳與肩同寬。\n2. 雙手扶穩：雙手牢固扶持床欄或支撐物，抬頭挺胸。\n3. 重心微移：身體重心微幅緩慢左右輕搖，感受腳底平衡受力。\n4. 安全守則：搖擺幅度以不失衡為原則，感到酸累立即坐下休息。',
+        id: '1. Bantuan dua orang: Berdiri stabil dengan bantuan pengasuh, kaki selebar bahu.\n2. Berpegangan: Pegang rel ranjang atau penyangga dengan kuat, dada tegak.\n3. Goyang perlahan: Geser beban tubuh perlahan ke kiri dan kanan untuk melatih keseimbangan.\n4. Keamanan: Goyangan tidak boleh berlebih, segera duduk jika merasa lelah.'
+    },
+    '站立抬腳': {
+        images: ['rehab-img/stand-2.jpg', 'rehab-img/stand-4.jpg'],
+        zh: '1. 雙人戒護：雙人戒護站立，雙手扶穩牢固支撐物。\n2. 重心轉移：將重心平穩移至單腳支撐。\n3. 單腳微離：另一腳緩慢微離地面 2～5 公分，維持 3 秒。\n4. 左右交替：放平後換邊，若感到腳軟或疲勞立刻協助坐下休息。',
+        id: '1. Pengawasan: Berdiri di bawah pengawasan dua orang, pegang kotak kokoh/penyangga.\n2. Pindah tumpuan: Pindahkan berat badan ke satu kaki secara stabil.\n3. Angkat sedikit: Angkat kaki lainnya 2-5 cm dari lantai, tahan 3 detik.\n4. Bergantian: Turunkan dan ganti sisi; segera duduk bila kaki terasa lemas.'
     }
 };
 
@@ -157,7 +197,7 @@ const MIRROR_EX_REF = {
 function mfExDefault(item){
     const r = item.ref ? MIRROR_EX_REF[item.ref] : null;
     return {
-        zh: item.zh, id: item.id,
+        zh: item.zh, id: item.id, icon: item.icon || '🏃',
         imgs: r ? r.images.slice() : [],
         dzh: r ? r.zh : '',
         did: r ? r.id : ''
@@ -167,8 +207,8 @@ function mfExDefault(item){
 function mfExMerge(ui){
     const saved = (ui && ui.exLevels) || {};
     return MIRROR_EX_LEVELS.map(lv => ({
-        key: lv.key, zh: lv.zh, id: lv.id, hint: lv.hint,
-        items: lv.items.map(it => Object.assign(mfExDefault(it), saved[it.key] || {}, { key: it.key, ref: it.ref }))
+        key: lv.key, zh: lv.zh, id: lv.id, hint: lv.hint, color: lv.color,
+        items: lv.items.map(it => Object.assign(mfExDefault(it), saved[it.key] || {}, { key: it.key, ref: it.ref, icon: it.icon || '🏃' }))
     }));
 }
 /* 反向：與預設相同的欄位不寫入，blob 才不會爆 */

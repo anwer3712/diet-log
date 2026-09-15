@@ -441,8 +441,8 @@ function propagate(flags, dxIds){
     const pathsId = g.drivers.map(x => x.note[1]).join('; ');
     const dxZh = g.dx.map(id => dxName(id, 'zh')).join('、');
     const dxId = g.dx.map(id => dxName(id, 'id')).join(', ');
-    const zh = `🕸️ <b>跨系統網絡 → ${ep.zh}</b>：${nD} 項狀況匯聚（${pathsZh}），病患有「${dxZh}」使此系統更脆弱。屬多因子交互（N:M），單看任一張圖看不出來。👉 ${ep.advice[0]}〔定性研判，非機率預測；需醫師判讀〕`;
-    const id = `🕸️ <b>Jaringan lintas-sistem → ${ep.idn}</b>: ${nD} faktor menyatu (${pathsId}); pasien "${dxId}" membuat sistem ini lebih rentan (interaksi N:M). 👉 ${ep.advice[1]}〔analisis kualitatif, bukan prediksi probabilistik〕`;
+    const zh = `🕸️ <b>跨系統網絡 → ${ep.zh}</b>：${nD} 項狀況匯聚（${pathsZh}），病患有「${dxZh}」使此系統更脆弱。👉 ${ep.advice[0]}`;
+    const id = `🕸️ <b>Jaringan lintas-sistem → ${ep.idn}</b>: ${nD} faktor menyatu (${pathsId}); pasien "${dxId}" membuat sistem ini lebih rentan. 👉 ${ep.advice[1]}`;
     out.push({ level: level, endpoint: eid, zh: zh, id: id });
   });
   const rank = { crit: 0, serious: 1, warn: 2 };
@@ -510,7 +510,7 @@ function clinicalSelfTest(){
   const net = propagate({ retain: true, widePP: true }, ['chf']);
   const cardio = net.find(x => x.endpoint === 'cardio');
   assert(cardio && cardio.level === 'crit', 'retain+widePP+chf → cardio crit');
-  assert(/跨系統網絡/.test(cardio.zh) && /定性研判/.test(cardio.zh), 'N:M 卡含定性聲明');
+  assert(/跨系統網絡/.test(cardio.zh), 'N:M 卡輸出跨系統網絡研判');
   assert(/Jaringan/.test(cardio.id) && !/容積/.test(cardio.id), 'id 卡純印尼、無中文洩漏');
 
   // 11) 無疾病敏化 → 不輸出（純 driver 匯聚由既有 hidden 覆蓋）

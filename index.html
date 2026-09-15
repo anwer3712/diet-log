@@ -6,7 +6,7 @@
     <title>陽光照護日誌 / Catatan Perawatan Mentari</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="care-auth.js?v=1"></script>
-    <script src="care-tasks.js?v=13"></script>
+    <script src="care-tasks.js?v=14"></script>
     <style>
         body.mode-zh .lang-id, body.mode-zh .lang-sep, body.mode-zh br.lang-br { display: none; }
         body.mode-id .lang-zh, body.mode-id .lang-sep, body.mode-id br.lang-br { display: none; }
@@ -103,6 +103,187 @@
             0%, 100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.85); }
             50% { box-shadow: 0 0 14px 6px rgba(14, 165, 233, 0.45); }
         }
+
+        /* ===== 類別標籤自製 SVG 動畫圖示 ===== */
+        .type-icon-box {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2px auto;
+            position: relative;
+        }
+        .type-icon-svg {
+            width: 44px;
+            height: 44px;
+            overflow: visible;
+        }
+        .type-tab:hover .type-icon-box {
+            transform: scale(1.08);
+            transition: transform 0.2s ease;
+        }
+
+        /* 1. 兔子復健運動動畫 */
+        @keyframes bunny-body-bounce {
+            0%, 100% { transform: translateY(0) scale(1, 1); }
+            40% { transform: translateY(-5px) scale(0.98, 1.04); }
+            50% { transform: translateY(-6px) scale(0.97, 1.05); }
+            75% { transform: translateY(1px) scale(1.04, 0.96); }
+        }
+        @keyframes bunny-ear-wiggle-l {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-10deg); }
+        }
+        @keyframes bunny-ear-wiggle-r {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(10deg); }
+        }
+        @keyframes bunny-arm-dumbbell {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes bunny-sparkle {
+            0%, 100% { transform: scale(0.6) rotate(0deg); opacity: 0.3; }
+            50% { transform: scale(1.2) rotate(45deg); opacity: 1; }
+        }
+        @keyframes bunny-sweat {
+            0% { transform: translateY(-2px); opacity: 0; }
+            50% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(4px); opacity: 0; }
+        }
+        .anim-bunny-body {
+            animation: bunny-body-bounce 1.2s infinite ease-in-out;
+            transform-origin: bottom center;
+        }
+        .anim-bunny-ear-l {
+            animation: bunny-ear-wiggle-l 1.2s infinite ease-in-out;
+            transform-origin: 22px 28px;
+        }
+        .anim-bunny-ear-r {
+            animation: bunny-ear-wiggle-r 1.2s infinite ease-in-out;
+            transform-origin: 42px 28px;
+        }
+        .anim-bunny-dumbbell {
+            animation: bunny-arm-dumbbell 1.2s infinite ease-in-out;
+            transform-origin: center center;
+        }
+        .anim-bunny-sparkle {
+            animation: bunny-sparkle 1.2s infinite ease-in-out;
+            transform-origin: 52px 14px;
+        }
+        .anim-bunny-sweat {
+            animation: bunny-sweat 1.2s infinite ease-in-out;
+        }
+
+        /* 2. 吃喝飲食動畫 */
+        @keyframes steam-drift-1 {
+            0% { transform: translateY(0) scaleY(0.7); opacity: 0; }
+            50% { opacity: 0.85; }
+            100% { transform: translateY(-7px) scaleY(1.2); opacity: 0; }
+        }
+        @keyframes steam-drift-2 {
+            0% { transform: translateY(0) scaleY(0.7); opacity: 0; }
+            50% { opacity: 0.9; }
+            100% { transform: translateY(-9px) scaleY(1.3); opacity: 0; }
+        }
+        @keyframes food-spoon-dip {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(-10deg); }
+        }
+        @keyframes food-bowl-sway {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-2px) rotate(1.5deg); }
+        }
+        @keyframes drink-straw-sip {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-5deg); }
+        }
+        .anim-steam-1 {
+            animation: steam-drift-1 1.6s infinite ease-out;
+        }
+        .anim-steam-2 {
+            animation: steam-drift-2 1.6s infinite ease-out 0.5s;
+        }
+        .anim-steam-3 {
+            animation: steam-drift-1 1.6s infinite ease-out 0.9s;
+        }
+        .anim-food-spoon {
+            animation: food-spoon-dip 1.5s infinite ease-in-out;
+            transform-origin: 48px 24px;
+        }
+        .anim-food-bowl {
+            animation: food-bowl-sway 2s infinite ease-in-out;
+            transform-origin: center bottom;
+        }
+        .anim-drink-straw {
+            animation: drink-straw-sip 1.8s infinite ease-in-out;
+            transform-origin: 42px 30px;
+        }
+
+        /* 3. 尿尿大便動畫 */
+        @keyframes flush-water-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes water-splash-drop-1 {
+            0%, 100% { transform: translateY(0) scale(0.6); opacity: 0.2; }
+            50% { transform: translateY(-7px) scale(1.1); opacity: 1; }
+        }
+        @keyframes water-splash-drop-2 {
+            0%, 100% { transform: translateY(0) scale(0.6); opacity: 0.2; }
+            50% { transform: translateY(-6px) scale(1.2); opacity: 1; }
+        }
+        @keyframes toilet-handle-jiggle {
+            0%, 100% { transform: rotate(0deg); }
+            30% { transform: rotate(-22deg); }
+            60% { transform: rotate(6deg); }
+            80% { transform: rotate(-3deg); }
+        }
+        .anim-flush-spin {
+            animation: flush-water-spin 2s linear infinite;
+            transform-origin: 32px 33px;
+        }
+        .anim-splash-1 {
+            animation: water-splash-drop-1 1.4s infinite ease-in-out;
+        }
+        .anim-splash-2 {
+            animation: water-splash-drop-2 1.4s infinite ease-in-out 0.4s;
+        }
+        .anim-toilet-handle {
+            animation: toilet-handle-jiggle 2.5s infinite ease-in-out;
+            transform-origin: 15px 16px;
+        }
+
+        /* 4. 血壓心跳動畫 */
+        @keyframes heart-pulse-double {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.2); }
+            28% { transform: scale(1.04); }
+            42% { transform: scale(1.16); }
+            70% { transform: scale(1); }
+        }
+        @keyframes heart-aura-expand {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            60% { transform: scale(1.3); opacity: 0; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        @keyframes ecg-dash-move {
+            0% { stroke-dashoffset: 60; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .anim-heart-pump {
+            animation: heart-pulse-double 1.2s infinite ease-in-out;
+            transform-origin: 32px 32px;
+        }
+        .anim-heart-aura {
+            animation: heart-aura-expand 1.2s infinite ease-out;
+            transform-origin: 32px 31px;
+        }
+        .anim-ecg-line {
+            stroke-dasharray: 60;
+            animation: ecg-dash-move 1.5s linear infinite;
+        }
     </style>
 </head>
 <body class="text-gray-800 min-h-screen pb-12 font-sans selection:bg-rose-100">
@@ -138,18 +319,27 @@
                 <span id="progress-percent" class="text-xs font-black bg-stone-50 text-[#F4726B] px-2.5 py-0.5 rounded-full">0%</span>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 bg-stone-50 rounded-2xl p-3 mb-3 text-center">
-                <div>
-                    <p class="text-[11px] text-gray-400 font-medium">今日目標 / Gol hari ini</p>
-                    <div class="flex items-center justify-center gap-1 mt-0.5">
-                        <input id="input-target-val" type="number" readonly class="w-16 text-center font-bold text-lg bg-transparent border-b border-transparent focus:border-[#FB8B7A] focus:outline-none p-0 text-gray-700" value="" min="0">
-                        <span class="target-unit text-xs font-bold text-gray-500">c.c.</span>
-                        <button type="button" id="target-edit-btn" onclick="toggleTargetEdit()" class="ml-0.5 text-gray-300 hover:text-[#FB8B7A] text-sm active:scale-90 transition-all" title="修改目標 / Ubah target">✏️</button>
+            <div class="grid grid-cols-2 gap-2.5 mb-3 text-center">
+                <!-- 今日目標卡片 -->
+                <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-2.5 flex flex-col justify-center">
+                    <p class="text-[11px] text-amber-800 font-black flex items-center justify-center gap-1">
+                        <span>🎯</span> <span>今日目標 / Gol hari ini</span>
+                    </p>
+                    <div class="flex items-baseline justify-center gap-1 mt-1">
+                        <input id="input-target-val" type="number" readonly class="w-24 text-center font-black text-3xl bg-transparent border-b-2 border-transparent focus:border-[#FB8B7A] focus:outline-none p-0 text-amber-950" value="" min="0">
+                        <span class="target-unit text-sm font-bold text-amber-700">c.c.</span>
+                        <button type="button" id="target-edit-btn" onclick="toggleTargetEdit()" class="ml-1 text-amber-400 hover:text-[#FB8B7A] text-sm active:scale-90 transition-all" title="修改目標 / Ubah target">✏️</button>
                     </div>
                 </div>
-                <div>
-                    <p class="text-[11px] text-gray-400 font-medium">目前已達 / Kemajuan terkini dari target tersebut</p>
-                    <p class="text-lg font-black text-gray-800 mt-1"><span id="current-achieved-val">0</span> <span class="target-unit text-xs font-bold text-gray-500">c.c.</span></p>
+                <!-- 目前已達卡片 -->
+                <div id="done-box" class="bg-teal-50 border-2 border-teal-300 rounded-2xl p-2.5 flex flex-col justify-center">
+                    <p class="text-[11px] text-teal-800 font-black flex items-center justify-center gap-1">
+                        <span>✅</span> <span>目前已達 / Kemajuan</span>
+                    </p>
+                    <div class="flex items-baseline justify-center gap-1 mt-1">
+                        <span id="current-achieved-val" class="text-3xl font-black text-[#0f766e]">0</span>
+                        <span class="target-unit text-sm font-bold text-teal-700">c.c.</span>
+                    </div>
                 </div>
             </div>
 
@@ -178,10 +368,116 @@
             </div>
 
             <div id="type-tabs" class="bg-white rounded-3xl p-2.5 shadow-sm border-2 border-stone-100 grid grid-cols-4 gap-1.5">
-                <label class="type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-sky-100 text-sky-700 border-[3px] border-sky-500 font-black transition-all"><input type="radio" name="type" value="攝入" class="sr-only" checked onchange="updateView()"><span class="text-2xl">🍚</span><span class="text-[11px] mt-0.5">攝入/Asupan</span></label>
-                <label class="type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-white text-gray-500 border-[3px] border-gray-200 font-black transition-all"><input type="radio" name="type" value="排出" class="sr-only" onchange="updateView()"><span class="text-2xl">🚽</span><span class="text-[11px] mt-0.5">排出/ekskresi</span></label>
-                <label class="type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-white text-gray-500 border-[3px] border-gray-200 font-black transition-all"><input type="radio" name="type" value="運動" class="sr-only" onchange="updateView()"><span class="text-2xl">💪</span><span class="text-[11px] mt-0.5 leading-tight">復健練習/Latihan rehabilitasi</span></label>
-                <label class="type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-white text-gray-500 border-[3px] border-gray-200 font-black transition-all"><input type="radio" name="type" value="血壓" class="sr-only" onchange="updateView()"><span class="text-2xl">🩺</span><span class="text-[11px] mt-0.5 leading-tight">血壓/Mengukur tekanan darah</span></label>
+                <label class="type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-sky-100 text-sky-700 border-[3px] border-sky-500 font-black transition-all">
+                    <input type="radio" name="type" value="攝入" class="sr-only" checked onchange="updateView()">
+                    <div class="type-icon-box">
+                        <svg class="type-icon-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 飲料杯 -->
+                            <g>
+                                <path d="M42 32 L46 54 Q46 56 44 56 L38 56 Q36 56 36 54 L38 32 Z" fill="#FED7AA" stroke="#1F2937" stroke-width="2"/>
+                                <rect x="36" y="30" width="10" height="3" rx="1.5" fill="#FB923C" stroke="#1F2937" stroke-width="1.5"/>
+                                <path class="anim-drink-straw" d="M42 30 L45 16 L49 14" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                            </g>
+                            <!-- 蒸氣 -->
+                            <path class="anim-steam-1" d="M19 23 Q16 16 20 10" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                            <path class="anim-steam-2" d="M26 21 Q30 14 27 8" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                            <path class="anim-steam-3" d="M33 23 Q30 17 34 11" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                            <!-- 飯碗 -->
+                            <g class="anim-food-bowl">
+                                <path d="M11 34 Q26 36 41 34 C39 48 34 56 26 56 C18 56 13 48 11 34 Z" fill="#38BDF8" stroke="#1F2937" stroke-width="2.5"/>
+                                <ellipse cx="26" cy="34" rx="15" ry="6" fill="#FEF3C7" stroke="#1F2937" stroke-width="2"/>
+                                <ellipse cx="26" cy="33" rx="11" ry="3.5" fill="#FFFFFF"/>
+                                <g class="anim-food-spoon">
+                                    <ellipse cx="21" cy="27" rx="3.5" ry="5" transform="rotate(35 21 27)" fill="#F8FAFC" stroke="#1F2937" stroke-width="1.8"/>
+                                    <line x1="23" y1="29" x2="33" y2="41" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round"/>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="text-[11px] mt-0.5">攝入/Asupan</span>
+                </label>
+
+                <label class="type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-white text-gray-500 border-[3px] border-gray-200 font-black transition-all">
+                    <input type="radio" name="type" value="排出" class="sr-only" onchange="updateView()">
+                    <div class="type-icon-box">
+                        <svg class="type-icon-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="20" y="10" width="24" height="22" rx="3" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                            <rect x="18" y="7" width="28" height="5" rx="2" fill="#E2E8F0" stroke="#1F2937" stroke-width="2"/>
+                            <g class="anim-toilet-handle">
+                                <line x1="15" y1="16" x2="20" y2="16" stroke="#F59E0B" stroke-width="3" stroke-linecap="round"/>
+                                <circle cx="14" cy="16" r="2.5" fill="#D97706"/>
+                            </g>
+                            <path d="M22 32 Q32 32 42 32 L39 52 Q32 57 25 52 Z" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                            <path d="M24 52 L22 57 Q32 59 42 57 L40 52 Z" fill="#E2E8F0" stroke="#1F2937" stroke-width="2"/>
+                            <ellipse cx="32" cy="33" rx="14" ry="7" fill="#A5F3FC" stroke="#1F2937" stroke-width="2.5"/>
+                            <g class="anim-flush-spin">
+                                <circle cx="32" cy="33" r="4" fill="none" stroke="#0284C7" stroke-width="2" stroke-dasharray="6 3"/>
+                            </g>
+                            <circle class="anim-splash-1" cx="26" cy="22" r="2.5" fill="#38BDF8"/>
+                            <circle class="anim-splash-2" cx="38" cy="20" r="2.2" fill="#0EA5E9"/>
+                            <circle class="anim-splash-1" cx="32" cy="17" r="1.8" fill="#38BDF8"/>
+                        </svg>
+                    </div>
+                    <span class="text-[11px] mt-0.5">排出/ekskresi</span>
+                </label>
+
+                <label class="type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-white text-gray-500 border-[3px] border-gray-200 font-black transition-all">
+                    <input type="radio" name="type" value="運動" class="sr-only" onchange="updateView()">
+                    <div class="type-icon-box">
+                        <svg class="type-icon-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path class="anim-bunny-sparkle" d="M52 14 L53 16.5 L56 17 L53.5 18.5 L53 21 L51.5 18.5 L49 18 L51 16.5 Z" fill="#FBBF24"/>
+                            <path class="anim-bunny-sweat" d="M12 24 Q14 21 15 24 Q15 27 12 27 Q9 27 12 24 Z" fill="#38BDF8"/>
+                            <g class="anim-bunny-body">
+                                <g class="anim-bunny-ear-l">
+                                    <path d="M22 28 C18 16 16 6 22 4 C27 4 27 16 26 28 Z" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                                    <path d="M22 24 C19 15 18 8 22 7 C25 7 25 15 24 24 Z" fill="#F472B6"/>
+                                </g>
+                                <g class="anim-bunny-ear-r">
+                                    <path d="M42 28 C46 16 48 6 42 4 C37 4 37 16 38 28 Z" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                                    <path d="M42 24 C45 15 46 8 42 7 C39 7 39 15 40 24 Z" fill="#F472B6"/>
+                                </g>
+                                <path d="M22 44 Q32 42 42 44 L44 55 Q32 58 20 55 Z" fill="#60A5FA" stroke="#1F2937" stroke-width="2.5"/>
+                                <ellipse cx="23" cy="57" rx="5" ry="3" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
+                                <ellipse cx="41" cy="57" rx="5" ry="3" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
+                                <ellipse cx="32" cy="33" rx="15" ry="13" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                                <path d="M18 29 Q32 27 46 29" stroke="#EF4444" stroke-width="4.5" stroke-linecap="round"/>
+                                <circle cx="46" cy="29" r="2.5" fill="#DC2626"/>
+                                <path d="M26 34 Q28 31 30 34" stroke="#1F2937" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                <path d="M34 34 Q36 31 38 34" stroke="#1F2937" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                <polygon points="32,36 30.5,38 33.5,38" fill="#F472B6"/>
+                                <path d="M32 38 Q30 40 28 39 M32 38 Q34 40 36 39" stroke="#1F2937" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+                                <circle cx="23" cy="37" r="2.5" fill="#FCA5A5" opacity="0.8"/>
+                                <circle cx="41" cy="37" r="2.5" fill="#FCA5A5" opacity="0.8"/>
+                            </g>
+                            <g class="anim-bunny-dumbbell">
+                                <rect x="5" y="31" width="4" height="12" rx="2" fill="#F59E0B" stroke="#1F2937" stroke-width="1.5"/>
+                                <rect x="13" y="31" width="4" height="12" rx="2" fill="#F59E0B" stroke="#1F2937" stroke-width="1.5"/>
+                                <rect x="8" y="35" width="6" height="4" fill="#9CA3AF" stroke="#1F2937" stroke-width="1.5"/>
+                                <circle cx="11" cy="37" r="3.5" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
+                                <rect x="47" y="31" width="4" height="12" rx="2" fill="#F59E0B" stroke="#1F2937" stroke-width="1.5"/>
+                                <rect x="55" y="31" width="4" height="12" rx="2" fill="#F59E0B" stroke="#1F2937" stroke-width="1.5"/>
+                                <rect x="50" y="35" width="6" height="4" fill="#9CA3AF" stroke="#1F2937" stroke-width="1.5"/>
+                                <circle cx="53" cy="37" r="3.5" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="text-[11px] mt-0.5 leading-tight">復健練習/Latihan</span>
+                </label>
+
+                <label class="type-tab flex flex-col items-center justify-center p-2 rounded-2xl cursor-pointer bg-white text-gray-500 border-[3px] border-gray-200 font-black transition-all">
+                    <input type="radio" name="type" value="血壓" class="sr-only" onchange="updateView()">
+                    <div class="type-icon-box">
+                        <svg class="type-icon-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle class="anim-heart-aura" cx="32" cy="31" r="18" stroke="#FDA4AF" stroke-width="2.5" fill="none"/>
+                            <g class="anim-heart-pump">
+                                <path d="M32 50 C18 40 13 32 13 23 C13 16 18 11 25 11 C29 11 31 13 32 15 C33 13 35 11 39 11 C46 11 51 16 51 23 C51 32 46 40 32 50 Z" fill="#F43F5E" stroke="#9F1239" stroke-width="2.5"/>
+                                <ellipse cx="21" cy="17" rx="3.5" ry="2" transform="rotate(-30 21 17)" fill="#FFFFFF" opacity="0.7"/>
+                                <path class="anim-ecg-line" d="M17 29 L23 29 L26 22 L29 37 L33 19 L36 34 L39 29 L47 29" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="text-[11px] mt-0.5 leading-tight">血壓/Tekanan darah</span>
+                </label>
             </div>
 
             <div id="catheter-note" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-3 text-amber-800 font-bold text-xs space-y-1">
@@ -229,32 +525,105 @@
 
                 <div id="exercise-group" class="grid grid-cols-1 gap-2.5 hidden">
                     <div id="rehab-note" class="bg-stone-50 border border-stone-200 rounded-2xl p-3 text-gray-700 font-bold text-[11px] space-y-1">
-                        <p>🕒 復健練習 / Latihan rehabilitasi 應於三餐飯前及睡前半小時進行，每日至少四次。分初級、中級、高級三階段循序漸進。</p>
-                        <p class="text-[10px] text-gray-500 font-medium">Latihan rehabilitasi dilakukan sebelum makan & sebelum tidur. Dibagi dalam Tingkat Dasar, Menengah, dan Lanjut.</p>
+                        <p>🕒 復健練習 / Latihan rehabilitasi 應於三餐飯前及睡前半小時進行，每日至少四次。分 LEVEL 1～4 四分級循序漸進。</p>
+                        <p class="text-[10px] text-gray-500 font-medium">Latihan rehabilitasi dilakukan sebelum makan & sebelum tidur. Dibagi dalam LEVEL 1–4 secara bertahap.</p>
                     </div>
 
-                    <!-- 🟢 初級 (Beginner) -->
-                    <div class="border-2 border-emerald-200 bg-emerald-50/40 rounded-2xl p-2.5 space-y-2">
-                        <div class="text-xs font-black text-emerald-800 flex items-center gap-1.5"><span class="heading-icon">🟢</span> <span class="lang-zh">初級復健練習</span><span class="lang-id">Latihan Tingkat Dasar</span></div>
-                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm"><input type="radio" name="category" value="舉水瓶" class="mt-1 shrink-0"> <span class="flex-1">🍼 1. <span class="lang-zh">舉水瓶</span><span class="lang-id">Angkat Botol Air</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('舉水瓶')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
-                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm"><input type="radio" name="category" value="躺式腳底板抬壓" class="mt-1 shrink-0"> <span class="flex-1">🦶 2. <span class="lang-zh">躺式腳底板抬壓</span><span class="lang-id">Tekan Telapak Kaki Telentang</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('躺式腳底板抬壓')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
-                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm"><input type="radio" name="category" value="躺式膝蓋彎伸" class="mt-1 shrink-0"> <span class="flex-1">🦵 3. <span class="lang-zh">躺式膝蓋彎伸</span><span class="lang-id">Tekuk & Luruskan Lutut Telentang</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('躺式膝蓋彎伸')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <!-- 🔵 LEVEL 1 (床上被動／暖身) -->
+                    <div class="border-2 border-sky-200 bg-sky-50/40 rounded-2xl p-2.5 space-y-2" data-level-box="L1">
+                        <div class="text-xs font-black text-sky-800 flex items-center justify-between">
+                            <span class="flex items-center gap-1.5"><span class="heading-icon">🔵</span> <span class="bg-sky-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">LEVEL 1</span> <span class="lang-zh">床上被動／暖身</span><span class="lang-id">Pemanasan di Tempat Tidur</span></span>
+                            <span class="text-[10px] font-black text-sky-600">3 項</span>
+                        </div>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l1-bottle">
+                            <input type="radio" name="category" value="雙手舉水瓶" class="mt-1 shrink-0">
+                            <span class="flex-1">🍼 1. <span class="lang-zh" data-rehab-zh>雙手舉水瓶</span><span class="lang-id" data-rehab-id>Angkat Botol Dua Tangan</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l1-bottle')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l1-sole">
+                            <input type="radio" name="category" value="腳底板抬壓" class="mt-1 shrink-0">
+                            <span class="flex-1">🦶 2. <span class="lang-zh" data-rehab-zh>腳底板抬壓</span><span class="lang-id" data-rehab-id>Tekan Telapak Kaki</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l1-sole')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l1-knee">
+                            <input type="radio" name="category" value="膝蓋彎伸" class="mt-1 shrink-0">
+                            <span class="flex-1">🦵 3. <span class="lang-zh" data-rehab-zh>膝蓋彎伸</span><span class="lang-id" data-rehab-id>Tekuk &amp; Luruskan Lutut</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l1-knee')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
                     </div>
 
-                    <!-- 🟡 中級 (Intermediate) -->
-                    <div class="border-2 border-amber-200 bg-amber-50/40 rounded-2xl p-2.5 space-y-2">
-                        <div class="text-xs font-black text-amber-800 flex items-center gap-1.5"><span class="heading-icon">🟡</span> <span class="lang-zh">中級復健練習</span><span class="lang-id">Latihan Tingkat Menengah</span></div>
-                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm"><input type="radio" name="category" value="仰臥抬腿" class="mt-1 shrink-0"> <span class="flex-1">🦵 1. <span class="lang-zh">仰臥抬腿，左右交替10秒</span><span class="lang-id">Berbaring telentang & angkat kaki, ganti sisi 10 dtk</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('仰臥抬腿')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
-                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm"><input type="radio" name="category" value="仰躺大腿內收訓練" class="mt-1 shrink-0"> <span class="flex-1">🩲 2. <span class="lang-zh">仰躺大腿內收訓練，左右交替10秒</span><span class="lang-id">Adduksi paha telentang, ganti sisi 10 dtk</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('仰躺大腿內收訓練')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
-                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm"><input type="radio" name="category" value="橋式／仰躺雙腳屈膝抬臀" class="mt-1 shrink-0"> <span class="flex-1">🍑 3. <span class="lang-zh">橋式／仰躺雙腳屈膝抬臀10秒</span><span class="lang-id">Jembatan / angkat pinggul telentang 10 dtk</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('橋式／仰躺雙腳屈膝抬臀')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <!-- 🟢 LEVEL 2 (仰臥主動肌力) -->
+                    <div class="border-2 border-emerald-200 bg-emerald-50/40 rounded-2xl p-2.5 space-y-2" data-level-box="L2">
+                        <div class="text-xs font-black text-emerald-800 flex items-center justify-between">
+                            <span class="flex items-center gap-1.5"><span class="heading-icon">🟢</span> <span class="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">LEVEL 2</span> <span class="lang-zh">仰臥主動肌力</span><span class="lang-id">Kekuatan Otot Telentang</span></span>
+                            <span class="text-[10px] font-black text-emerald-600">3 項</span>
+                        </div>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l2-legraise">
+                            <input type="radio" name="category" value="仰臥抬腿" class="mt-1 shrink-0">
+                            <span class="flex-1">🦵 1. <span class="lang-zh" data-rehab-zh>仰臥抬腿，左右交替10秒</span><span class="lang-id" data-rehab-id>Berbaring telentang &amp; angkat kaki, ganti sisi 10 dtk</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l2-legraise')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l2-adduction">
+                            <input type="radio" name="category" value="仰躺大腿內收訓練" class="mt-1 shrink-0">
+                            <span class="flex-1">🩲 2. <span class="lang-zh" data-rehab-zh>仰躺大腿內收訓練，左右交替10秒</span><span class="lang-id" data-rehab-id>Adduksi paha telentang, ganti sisi 10 dtk</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l2-adduction')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l2-bridge">
+                            <input type="radio" name="category" value="橋式／仰躺雙腳屈膝抬臀" class="mt-1 shrink-0">
+                            <span class="flex-1">🍑 3. <span class="lang-zh" data-rehab-zh>橋式／仰躺雙腳屈膝抬臀10秒</span><span class="lang-id" data-rehab-id>Jembatan / angkat pinggul telentang 10 dtk</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l2-bridge')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
                     </div>
 
-                    <!-- 🔴 高級 (Advanced) -->
-                    <div class="border-2 border-rose-200 bg-rose-50/40 rounded-2xl p-2.5 space-y-2">
-                        <div class="text-xs font-black text-rose-800 flex items-center gap-1.5"><span class="heading-icon">🔴</span> <span class="lang-zh">高級復健練習（注意安全防跌）</span><span class="lang-id">Latihan Tingkat Lanjut (Waspada Jatuh)</span></div>
-                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm"><input type="radio" name="category" value="站立" class="mt-1 shrink-0"> <span class="flex-1">🧍 1. <span class="lang-zh">站立</span><span class="lang-id">Berdiri</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('站立')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
-                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm"><input type="radio" name="category" value="站立搖擺" class="mt-1 shrink-0"> <span class="flex-1">🧘 2. <span class="lang-zh">站立搖擺</span><span class="lang-id">Goyang Berdiri (Keseimbangan)</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('站立搖擺')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
-                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm"><input type="radio" name="category" value="站立抬腳" class="mt-1 shrink-0"> <span class="flex-1">🚶 3. <span class="lang-zh">站立抬腳</span><span class="lang-id">Angkat Kaki Saat Berdiri</span></span><button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('站立抬腳')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button></label>
+                    <!-- 🟡 LEVEL 3 (坐姿轉位) -->
+                    <div class="border-2 border-amber-200 bg-amber-50/40 rounded-2xl p-2.5 space-y-2" data-level-box="L3">
+                        <div class="text-xs font-black text-amber-800 flex items-center justify-between">
+                            <span class="flex items-center gap-1.5"><span class="heading-icon">🟡</span> <span class="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">LEVEL 3</span> <span class="lang-zh">坐姿轉位</span><span class="lang-id">Transisi Posisi Duduk</span></span>
+                            <span class="text-[10px] font-black text-amber-600">4 項</span>
+                        </div>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l3-lift">
+                            <input type="radio" name="category" value="舉物練習" class="mt-1 shrink-0">
+                            <span class="flex-1">📦 1. <span class="lang-zh" data-rehab-zh>舉物練習</span><span class="lang-id" data-rehab-id>Latihan Angkat Benda</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l3-lift')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l3-sitleg">
+                            <input type="radio" name="category" value="坐式抬腿" class="mt-1 shrink-0">
+                            <span class="flex-1">🪑 2. <span class="lang-zh" data-rehab-zh>坐式抬腿</span><span class="lang-id" data-rehab-id>Angkat Kaki Duduk</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l3-sitleg')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l3-sitadduct">
+                            <input type="radio" name="category" value="坐式大腿內收" class="mt-1 shrink-0">
+                            <span class="flex-1">🩲 3. <span class="lang-zh" data-rehab-zh>坐式大腿內收</span><span class="lang-id" data-rehab-id>Adduksi Paha Duduk</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l3-sitadduct')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l3-stand">
+                            <input type="radio" name="category" value="站立" class="mt-1 shrink-0">
+                            <span class="flex-1">🧍 4. <span class="lang-zh" data-rehab-zh>站立</span><span class="lang-id" data-rehab-id>Berdiri</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l3-stand')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
+                    </div>
+
+                    <!-- 🔴 LEVEL 4 (站姿平衡) -->
+                    <div class="border-2 border-rose-200 bg-rose-50/40 rounded-2xl p-2.5 space-y-2" data-level-box="L4">
+                        <div class="text-xs font-black text-rose-800 flex items-center justify-between">
+                            <span class="flex items-center gap-1.5"><span class="heading-icon">🔴</span> <span class="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">LEVEL 4</span> <span class="lang-zh">站姿平衡（注意安全防跌）</span><span class="lang-id">Keseimbangan Berdiri (Waspada Jatuh)</span></span>
+                            <span class="text-[10px] font-black text-rose-600">3 項</span>
+                        </div>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l4-stand">
+                            <input type="radio" name="category" value="站立" class="mt-1 shrink-0">
+                            <span class="flex-1">🧍 1. <span class="lang-zh" data-rehab-zh>站立</span><span class="lang-id" data-rehab-id>Berdiri</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l4-stand')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l4-standsway">
+                            <input type="radio" name="category" value="站立搖擺" class="mt-1 shrink-0">
+                            <span class="flex-1">🧘 2. <span class="lang-zh" data-rehab-zh>站立搖擺</span><span class="lang-id" data-rehab-id>Goyang Berdiri (Keseimbangan)</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l4-standsway')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
+                        <label class="border border-gray-200 bg-white rounded-2xl p-2.5 flex items-start gap-2 cursor-pointer font-medium text-sm text-gray-700 shadow-sm" data-rehab-item="l4-standleg">
+                            <input type="radio" name="category" value="站立抬腳" class="mt-1 shrink-0">
+                            <span class="flex-1">🚶 3. <span class="lang-zh" data-rehab-zh>站立抬腳</span><span class="lang-id" data-rehab-id>Angkat Kaki Saat Berdiri</span></span>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openRehabGuide('l4-standleg')" class="shrink-0 self-center bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1 text-xs font-bold active:scale-95 transition-all">📖 範例<br>Contoh</button>
+                        </label>
                     </div>
 
                     <div id="stand-warning" class="bg-red-50 border border-red-200 rounded-2xl p-3 text-red-800 font-bold text-[11px] space-y-1.5 hidden mt-1">
@@ -746,6 +1115,27 @@
             if (window.renderUrineMedChips) renderUrineMedChips();
             document.querySelectorAll('.subj-zh').forEach(el => el.textContent = subj('zh'));
             document.querySelectorAll('.subj-id').forEach(el => el.textContent = subj('id'));
+            applyRehabUi();
+        }
+
+        function applyRehabUi() {
+            if (!UI || !UI.exLevels) return;
+            Object.keys(UI.exLevels).forEach(itemKey => {
+                const patch = UI.exLevels[itemKey];
+                if (!patch) return;
+                const row = document.querySelector(`[data-rehab-item="${itemKey}"]`);
+                if (!row) return;
+                if (patch.zh) {
+                    const zhEl = row.querySelector('[data-rehab-zh]');
+                    if (zhEl) zhEl.textContent = patch.zh;
+                    const radio = row.querySelector('input[type="radio"]');
+                    if (radio) radio.value = patch.zh;
+                }
+                if (patch.id) {
+                    const idEl = row.querySelector('[data-rehab-id]');
+                    if (idEl) idEl.textContent = patch.id;
+                }
+            });
         }
 
         function updateView() {
@@ -1586,6 +1976,108 @@ function checkBpTime() {
         }
         // ===== 復健動作範例彈窗 / Popup contoh latihan rehabilitasi =====
         const REHAB_GUIDE = {
+            'l1-bottle': {
+                title: '雙手舉水瓶 / Angkat Botol Dua Tangan',
+                images: ['rehab-img/adduction-1.jpg'],
+                steps: [
+                    ['平躺準備：病患平躺床上，雙手握持水瓶置於腹前。', 'Persiapan: Pasien berbaring telentang, pegang botol air dengan kedua tangan di atas perut.'],
+                    ['緩慢上舉：手肘微屈，平穩向上舉過胸前至微高處。', 'Angkat perlahan: Siku sedikit ditekuk, angkat botol stabil di atas dada.'],
+                    ['維持計時：在最高點穩定維持 5 秒。', 'Tahan: Pertahankan di posisi tertinggi selama 5 detik.'],
+                    ['緩慢復原：緩慢放下放鬆，每次練習 10～15 回。', 'Turunkan: Turunkan perlahan dan rileks, ulangi 10-15 kali.']
+                ]
+            },
+            '雙手舉水瓶': {
+                title: '雙手舉水瓶 / Angkat Botol Dua Tangan',
+                images: ['rehab-img/adduction-1.jpg'],
+                steps: [
+                    ['平躺準備：病患平躺床上，雙手握持水瓶置於腹前。', 'Persiapan: Pasien berbaring telentang, pegang botol air dengan kedua tangan di atas perut.'],
+                    ['緩慢上舉：手肘微屈，平穩向上舉過胸前至微高處。', 'Angkat perlahan: Siku sedikit ditekuk, angkat botol stabil di atas dada.'],
+                    ['維持計時：在最高點穩定維持 5 秒。', 'Tahan: Pertahankan di posisi tertinggi selama 5 detik.'],
+                    ['緩慢復原：緩慢放下放鬆，每次練習 10～15 回。', 'Turunkan: Turunkan perlahan dan rileks, ulangi 10-15 kali.']
+                ]
+            },
+            '舉水瓶': {
+                title: '雙手舉水瓶 / Angkat Botol Dua Tangan',
+                images: ['rehab-img/adduction-1.jpg'],
+                steps: [
+                    ['平躺準備：病患平躺床上，雙手握持水瓶置於腹前。', 'Persiapan: Pasien berbaring telentang, pegang botol air dengan kedua tangan di atas perut.'],
+                    ['緩慢上舉：手肘微屈，平穩向上舉過胸前至微高處。', 'Angkat perlahan: Siku sedikit ditekuk, angkat botol stabil di atas dada.'],
+                    ['維持計時：在最高點穩定維持 5 秒。', 'Tahan: Pertahankan di posisi tertinggi selama 5 detik.'],
+                    ['緩慢復原：緩慢放下放鬆，每次練習 10～15 回。', 'Turunkan: Turunkan perlahan dan rileks, ulangi 10-15 kali.']
+                ]
+            },
+            'l1-sole': {
+                title: '腳底板抬壓 / Tekan Telapak Kaki',
+                images: ['rehab-img/legraise-1.jpg'],
+                steps: [
+                    ['平躺準備：平躺於床面，雙腿自然放鬆伸直。', 'Persiapan: Berbaring telentang di tempat tidur, kedua kaki lurus dan rileks.'],
+                    ['腳踝勾起：腳踝用力向上勾起（背屈）維持 5 秒。', 'Tekuk ke atas: Tekuk pergelangan kaki ke atas selama 5 detik.'],
+                    ['腳踝下踩：腳踝向下踩壓（蹠屈）維持 5 秒。', 'Tekan ke bawah: Tekan pergelangan kaki ke bawah selama 5 detik.'],
+                    ['建議次數：左右交替或同時進行 15～20 回，促進下肢血液循環防血栓。', 'Repetisi: Lakukan bergantian atau bersamaan 15-20 kali untuk melancarkan sirkulasi darah.']
+                ]
+            },
+            '腳底板抬壓': {
+                title: '腳底板抬壓 / Tekan Telapak Kaki',
+                images: ['rehab-img/legraise-1.jpg'],
+                steps: [
+                    ['平躺準備：平躺於床面，雙腿自然放鬆伸直。', 'Persiapan: Berbaring telentang di tempat tidur, kedua kaki lurus dan rileks.'],
+                    ['腳踝勾起：腳踝用力向上勾起（背屈）維持 5 秒。', 'Tekuk ke atas: Tekuk pergelangan kaki ke atas selama 5 detik.'],
+                    ['腳踝下踩：腳踝向下踩壓（蹠屈）維持 5 秒。', 'Tekan ke bawah: Tekan pergelangan kaki ke bawah selama 5 detik.'],
+                    ['建議次數：左右交替或同時進行 15～20 回，促進下肢血液循環防血栓。', 'Repetisi: Lakukan bergantian atau bersamaan 15-20 kali untuk melancarkan sirkulasi darah.']
+                ]
+            },
+            '躺式腳底板抬壓': {
+                title: '腳底板抬壓 / Tekan Telapak Kaki',
+                images: ['rehab-img/legraise-1.jpg'],
+                steps: [
+                    ['平躺準備：平躺於床面，雙腿自然放鬆伸直。', 'Persiapan: Berbaring telentang di tempat tidur, kedua kaki lurus dan rileks.'],
+                    ['腳踝勾起：腳踝用力向上勾起（背屈）維持 5 秒。', 'Tekuk ke atas: Tekuk pergelangan kaki ke atas selama 5 detik.'],
+                    ['腳踝下踩：腳踝向下踩壓（蹠屈）維持 5 秒。', 'Tekan ke bawah: Tekan pergelangan kaki ke bawah selama 5 detik.'],
+                    ['建議次數：左右交替或同時進行 15～20 回，促進下肢血液循環防血栓。', 'Repetisi: Lakukan bergantian atau bersamaan 15-20 kali untuk melancarkan sirkulasi darah.']
+                ]
+            },
+            'l1-knee': {
+                title: '膝蓋彎伸 / Tekuk & Luruskan Lutut',
+                images: ['rehab-img/bridge-1.jpg'],
+                steps: [
+                    ['平躺準備：平躺於床面，雙腿伸直放鬆。', 'Persiapan: Berbaring telentang dengan kedua kaki lurus dan rileks.'],
+                    ['腳跟滑動：單腳腳跟貼著床面緩慢向臀部滑動彎曲膝蓋。', 'Geser tumit: Geser tumit perlahan di atas kasur ke arah pinggul untuk menekuk lutut.'],
+                    ['頂端維持：彎曲至舒適極限，維持 3 秒。', 'Tahan: Tahan di posisi tekuk selama 3 detik.'],
+                    ['緩慢伸直：沿床面慢慢伸直放平，左右交替各 10 回。', 'Luruskan: Luruskan kembali perlahan, lakukan bergantian tiap sisi 10 kali.']
+                ]
+            },
+            '膝蓋彎伸': {
+                title: '膝蓋彎伸 / Tekuk & Luruskan Lutut',
+                images: ['rehab-img/bridge-1.jpg'],
+                steps: [
+                    ['平躺準備：平躺於床面，雙腿伸直放鬆。', 'Persiapan: Berbaring telentang dengan kedua kaki lurus dan rileks.'],
+                    ['腳跟滑動：單腳腳跟貼著床面緩慢向臀部滑動彎曲膝蓋。', 'Geser tumit: Geser tumit perlahan di atas kasur ke arah pinggul untuk menekuk lutut.'],
+                    ['頂端維持：彎曲至舒適極限，維持 3 秒。', 'Tahan: Tahan di posisi tekuk selama 3 detik.'],
+                    ['緩慢伸直：沿床面慢慢伸直放平，左右交替各 10 回。', 'Luruskan: Luruskan kembali perlahan, lakukan bergantian tiap sisi 10 kali.']
+                ]
+            },
+            '躺式膝蓋彎伸': {
+                title: '膝蓋彎伸 / Tekuk & Luruskan Lutut',
+                images: ['rehab-img/bridge-1.jpg'],
+                steps: [
+                    ['平躺準備：平躺於床面，雙腿伸直放鬆。', 'Persiapan: Berbaring telentang dengan kedua kaki lurus dan rileks.'],
+                    ['腳跟滑動：單腳腳跟貼著床面緩慢向臀部滑動彎曲膝蓋。', 'Geser tumit: Geser tumit perlahan di atas kasur ke arah pinggul untuk menekuk lutut.'],
+                    ['頂端維持：彎曲至舒適極限，維持 3 秒。', 'Tahan: Tahan di posisi tekuk selama 3 detik.'],
+                    ['緩慢伸直：沿床面慢慢伸直放平，左右交替各 10 回。', 'Luruskan: Luruskan kembali perlahan, lakukan bergantian tiap sisi 10 kali.']
+                ]
+            },
+            'l2-legraise': {
+                title: '仰臥抬腿 / Angkat Kaki Telentang',
+                images: ['rehab-img/legraise-1.jpg', 'rehab-img/legraise-2.jpg'],
+                steps: [
+                    ['平躺準備：病患平躺床上，雙腿伸直。', 'Persiapan: Pasien berbaring telentang di tempat tidur dengan kedua kaki lurus.'],
+                    ['單腳抬起：彎曲單一膝蓋向上抬，使小腿與床面平行。', 'Angkat satu kaki: Tekuk satu lutut dan angkat ke atas hingga bagian bawah kaki sejajar dengan permukaan tempat tidur.'],
+                    ['注意：若病肢無力，照顧者輕托「腳踝」與「膝窩」稍微輔助，避免拉傷。', 'Catatan: Jika anggota tubuh yang terkena lemah, pengasuh harus dengan lembut menopang pergelangan kaki dan bagian belakang lutut untuk memberikan sedikit bantuan dan menghindari ketegangan.'],
+                    ['計時十秒：維持姿勢，照顧者倒數 10 秒。', 'Hitungan mundur 10 detik: Pertahankan posisi tersebut sementara pengasuh menghitung mundur selama 10 detik.'],
+                    ['換腳交替：緩慢放下，換另一隻腳重覆相同動作。', 'Bergantian Kaki: Turunkan kaki secara perlahan dan ulangi gerakan yang sama dengan kaki lainnya.'],
+                    ['建議訓練量：左右各做完 1 次為 1 回，每次進行 10～15 回。', 'Volume latihan yang disarankan: Selesaikan 1 repetisi pada setiap sisi sebagai 1 set, dan lakukan 10-15 set setiap kali.']
+                ]
+            },
             '仰臥抬腿': {
                 title: '仰臥抬腿 / Angkat Kaki Telentang',
                 images: ['rehab-img/legraise-1.jpg', 'rehab-img/legraise-2.jpg'],
@@ -1598,7 +2090,7 @@ function checkBpTime() {
                     ['建議訓練量：左右各做完 1 次為 1 回，每次進行 10～15 回。', 'Volume latihan yang disarankan: Selesaikan 1 repetisi pada setiap sisi sebagai 1 set, dan lakukan 10-15 set setiap kali.']
                 ]
             },
-            '大腿內收': {
+            'l2-adduction': {
                 title: '仰臥大腿內收 / Adduksi Paha Telentang',
                 images: ['rehab-img/adduction-1.jpg', 'rehab-img/adduction-2.jpg'],
                 steps: [
@@ -1609,6 +2101,53 @@ function checkBpTime() {
                     ['計時十秒：維持向內夾緊的姿勢，照顧者倒數 10 秒。', 'Waktu: 10 detik: Pertahankan posisi lutut menekuk ke dalam, dan pengasuh menghitung mundur hingga 10 detik.'],
                     ['換腳交替：緩慢將腳放下伸直，換另一隻腳重覆相同動作。', 'Bergantian kaki: Turunkan dan luruskan kaki secara perlahan, lalu ulangi gerakan yang sama dengan kaki lainnya.'],
                     ['建議訓練量：左右各做完 1 次為 1 回，每次進行 10～15 回。', 'Volume latihan yang disarankan: Selesaikan 1 repetisi pada setiap sisi sebagai 1 set, dan lakukan 10-15 set setiap kali.']
+                ]
+            },
+            '仰躺大腿內收訓練': {
+                title: '仰臥大腿內收 / Adduksi Paha Telentang',
+                images: ['rehab-img/adduction-1.jpg', 'rehab-img/adduction-2.jpg'],
+                steps: [
+                    ['平躺準備：病患平躺床上，雙腿伸直放鬆。', 'Persiapan: Pasien berbaring telentang di tempat tidur dengan kedua kaki lurus dan rileks.'],
+                    ['單腳屈膝：彎曲單一膝蓋向上立起，使腳掌穩定平貼於床面。', 'Latihan menekuk lutut satu kaki: Tekuk satu lutut dan angkat ke atas, jaga agar telapak kaki tetap rata dan stabil di permukaan tempat tidur.'],
+                    ['膝蓋內夾：令病患主動使用大腿肌群，將屈起的膝蓋往內側夾緊。', 'Remas Lutut ke Dalam: Minta pasien untuk secara aktif menggunakan otot paha mereka untuk meremas lutut yang ditekuk ke dalam.'],
+                    ['注意：若病患大腿乏力，照顧者將一手置於膝蓋外側輕壓協助引導，順勢推向內側，以無痛為原則。', 'Catatan: Jika pasien mengalami kelemahan pada paha, pengasuh harus meletakkan satu tangan di bagian luar lutut dan menekannya perlahan untuk mengarahkannya ke dalam, pastikan tidak terasa sakit.'],
+                    ['計時十秒：維持向內夾緊的姿勢，照顧者倒數 10 秒。', 'Waktu: 10 detik: Pertahankan posisi lutut menekuk ke dalam, dan pengasuh menghitung mundur hingga 10 detik.'],
+                    ['換腳交替：緩慢將腳放下伸直，換另一隻腳重覆相同動作。', 'Bergantian kaki: Turunkan dan luruskan kaki secara perlahan, lalu ulangi gerakan yang sama dengan kaki lainnya.'],
+                    ['建議訓練量：左右各做完 1 次為 1 回，每次進行 10～15 回。', 'Volume latihan yang disarankan: Selesaikan 1 repetisi pada setiap sisi sebagai 1 set, dan lakukan 10-15 set setiap kali.']
+                ]
+            },
+            '大腿內收': {
+                title: '仰臥大腿內收 / Adduksi Paha Telentang',
+                images: ['rehab-img/adduction-1.jpg', 'rehab-img/adduction-2.jpg'],
+                steps: [
+                    ['平躺準備：病患平躺床上，雙腿伸直放鬆。', 'Persiapan: Pasien berbaring telentang di tempat tidur dengan kedua kaki lurus dan rileks.'],
+                    ['單腳屈膝：彎曲單一膝蓋向上立起，使腳掌穩定平貼於床面。', 'Latihan menekuk lutut satu kaki: Tekuk satu lutut dan angkat ke atas, jaga agar telapak kaki tetap rata dan stabil di permukaan tempat tidur.'],
+                    ['膝蓋內夾：令病患主動使用大腿肌群，將屈起的膝蓋往內側夾緊。', 'Remas Lutut ke Dalam: Minta pasien untuk secara aktif menggunakan otot paha mereka untuk meremas lutut yang ditekuk ke dalam.'],
+                    ['注意：若病患大腿乏力，照顧者將一手置於膝蓋外側輕壓協助引導，順勢推向內側，以無痛為原則。', 'Catatan: Jika pasien mengalami kelemahan pada paha, pengasuh harus meletakkan satu tangan di bagian luar lutut dan menekannya perlahan untuk mengarahkannya ke dalam, pastikan tidak terasa sakit.'],
+                    ['計時十秒：維持向內夾緊的姿勢，照顧者倒數 10 秒。', 'Waktu: 10 detik: Pertahankan posisi lutut menekuk ke dalam, dan pengasuh menghitung mundur hingga 10 detik.'],
+                    ['換腳交替：緩慢將腳放下伸直，換另一隻腳重覆相同動作。', 'Bergantian kaki: Turunkan dan luruskan kaki secara perlahan, lalu ulangi gerakan yang sama dengan kaki network.'],
+                    ['建議訓練量：左右各做完 1 次為 1 回，每次進行 10～15 回。', 'Volume latihan yang disarankan: Selesaikan 1 repetisi pada setiap sisi sebagai 1 set, dan lakukan 10-15 set setiap kali.']
+                ]
+            },
+            'l2-bridge': {
+                title: '仰臥屈膝抬臀（橋式）/ Angkat Pinggul (Jembatan)',
+                images: ['rehab-img/bridge-1.jpg', 'rehab-img/bridge-2.jpg'],
+                steps: [
+                    ['平躺準備：病患平躺在床上，上半身自然放鬆。', 'Persiapan: Pasien berbaring telentang di tempat tidur, dengan tubuh bagian atas rileks.'],
+                    ['雙腳立起：兩腳膝蓋彎曲向上立起，使腳掌穩定平貼於床面。', 'Angkat Kaki: Tekuk kedua lutut dan angkat kedua kaki ke atas, pastikan telapak kaki rata dan stabil di tempat tidur.'],
+                    ['臀部抬起：令病患使用臀部與大腿後側的力量，將臀部往上抬離床面。', 'Angkat pinggul: Instruksikan pasien untuk menggunakan kekuatan pinggul dan bagian belakang paha mereka untuk mengangkat pinggul mereka dari tempat tidur.'],
+                    ['計時十秒：維持抬臀姿勢穩定，照顧者協助倒數 10 秒。', 'Waktu: 10 detik: Pertahankan posisi pinggul terangkat, dan pengasuh membantu dengan hitungan mundur 10 detik.'],
+                    ['緩慢放下：緩慢將臀部放回床面休息，完成動作後重覆練習。', 'Turunkan perlahan: Turunkan bokong perlahan kembali ke tempat tidur untuk beristirahat. Ulangi latihan setelah menyelesaikan gerakan.'],
+                    ['建議訓練量：做完 1 次為 1 回，每次進行 10～15 回。', 'Volume latihan yang disarankan: Satu repetisi dianggap sebagai satu set, dan setiap set terdiri dari 10 hingga 15 repetisi.']
+                ]
+            },
+            '橋式／仰躺雙腳屈膝抬臀': {
+                title: '仰臥屈膝抬臀（橋式）/ Angkat Pinggul (Jembatan)',
+                images: ['rehab-img/bridge-1.jpg', 'rehab-img/bridge-2.jpg'],
+                steps: [
+                    ['平躺準備：病患平躺在床上，雙腳膝蓋彎曲立起平貼床面。', 'Berbaring telentang dengan lutut ditekuk.'],
+                    ['臀部抬起：使用臀部與大腿後側力量抬起臀部，維持倒數10秒。', 'Angkat pinggul ke atas selama 10 detik.'],
+                    ['緩慢放下：放回床面放鬆，每次練習10～15回。', 'Turunkan perlahan, ulangi 10-15 kali.']
                 ]
             },
             '橋式抬臀': {
@@ -1623,6 +2162,90 @@ function checkBpTime() {
                     ['建議訓練量：做完 1 次為 1 回，每次進行 10～15 回。', 'Volume latihan yang disarankan: Satu repetisi dianggap sebagai satu set, dan setiap set terdiri dari 10 hingga 15 repetisi.']
                 ]
             },
+            'l3-lift': {
+                title: '舉物練習 / Latihan Angkat Benda',
+                images: ['rehab-img/adduction-1.jpg'],
+                steps: [
+                    ['坐姿準備：病患端坐床沿或穩固椅子，雙腳踏實地面。', 'Persiapan: Duduk tegak di tepi ranjang atau kursi kokoh, kaki menapak lantai.'],
+                    ['雙手持物：雙手平握輕量物品或水瓶。', 'Pegang benda: Pegang benda ringan atau botol air dengan kedua tangan.'],
+                    ['平穩上舉：手肘微屈，平緩向前上方舉起至肩膀高度，維持 5 秒。', 'Angkat: Angkat perlahan ke depan setinggi bahu, tahan 5 detik.'],
+                    ['緩慢放下：緩慢放回大腿上方，每組 10～15 次。', 'Turunkan: Turunkan kembali ke atas paha, lakukan 10-15 kali.']
+                ]
+            },
+            '舉物練習': {
+                title: '舉物練習 / Latihan Angkat Benda',
+                images: ['rehab-img/adduction-1.jpg'],
+                steps: [
+                    ['坐姿準備：病患端坐床沿或穩固椅子，雙腳踏實地面。', 'Persiapan: Duduk tegak di tepi ranjang atau kursi kokoh, kaki menapak lantai.'],
+                    ['雙手持物：雙手平握輕量物品或水瓶。', 'Pegang benda: Pegang benda ringan atau botol air dengan kedua tangan.'],
+                    ['平穩上舉：手肘微屈，平緩向前上方舉起至肩膀高度，維持 5 秒。', 'Angkat: Angkat perlahan ke depan setinggi bahu, tahan 5 detik.'],
+                    ['緩慢放下：緩慢放回大腿上方，每組 10～15 次。', 'Turunkan: Turunkan kembali ke atas paha, lakukan 10-15 kali.']
+                ]
+            },
+            'l3-sitleg': {
+                title: '坐式抬腿 / Angkat Kaki Duduk',
+                images: ['rehab-img/legraise-1.jpg'],
+                steps: [
+                    ['坐姿準備：端坐於床沿或穩固座椅，背部挺直不駝背。', 'Persiapan: Duduk tegak di tepi tempat tidur atau kursi kokoh, punggung lurus.'],
+                    ['單腿抬平：單腳膝蓋緩慢伸直，將小腿抬高至與大腿近乎水平，腳尖朝上。', 'Angkat kaki: Luruskan lutut perlahan, angkat betis hingga sejajar paha, jari kaki mengarah ke atas.'],
+                    ['維持計時：大腿股四頭肌用力維持 5 秒。', 'Tahan: Kencangkan otot paha selama 5 detik.'],
+                    ['左右交替：緩慢放下放平，換邊進行，左右各 10 回。', 'Bergantian: Turunkan perlahan, ganti sisi lain, lakukan 10 kali tiap sisi.']
+                ]
+            },
+            '坐式抬腿': {
+                title: '坐式抬腿 / Angkat Kaki Duduk',
+                images: ['rehab-img/legraise-1.jpg'],
+                steps: [
+                    ['坐姿準備：端坐於床沿或穩固座椅，背部挺直不駝背。', 'Persiapan: Duduk tegak di tepi tempat tidur atau kursi kokoh, punggung lurus.'],
+                    ['單腿抬平：單腳膝蓋緩慢伸直，將小腿抬高至與大腿近乎水平，腳尖朝上。', 'Angkat kaki: Luruskan lutut perlahan, angkat betis hingga sejajar paha, jari kaki mengarah ke atas.'],
+                    ['維持計時：大腿股四頭肌用力維持 5 秒。', 'Tahan: Kencangkan otot paha selama 5 detik.'],
+                    ['左右交替：緩慢放下放平，換邊進行，左右各 10 回。', 'Bergantian: Turunkan perlahan, ganti sisi lain, lakukan 10 kali tiap sisi.']
+                ]
+            },
+            'l3-sitadduct': {
+                title: '坐式大腿內收 / Adduksi Paha Duduk',
+                images: ['rehab-img/adduction-2.jpg'],
+                steps: [
+                    ['坐姿準備：端坐於床沿，雙腳與肩同寬平踏地面。', 'Persiapan: Duduk di tepi ranjang, kedua kaki selebar bahu menapak lantai.'],
+                    ['膝間夾物：在雙膝之間夾入毛巾卷或軟球。', 'Jepit benda: Letakkan gulungan handuk atau bantal kecil di antara kedua lutut.'],
+                    ['用力內夾：大腿內側主動用力向內夾緊，維持 10 秒。', 'Jepit kuat: Remas kedua lutut ke dalam menggunakan otot paha dalam selama 10 detik.'],
+                    ['放鬆重複：緩慢放鬆 3 秒，重複 10～15 次。', 'Rileks: Kendurkan perlahan 3 detik, ulangi 10-15 kali.']
+                ]
+            },
+            '坐式大腿內收': {
+                title: '坐式大腿內收 / Adduksi Paha Duduk',
+                images: ['rehab-img/adduction-2.jpg'],
+                steps: [
+                    ['坐姿準備：端坐於床沿，雙腳與肩同寬平踏地面。', 'Persiapan: Duduk di tepi ranjang, kedua kaki selebar bahu menapak lantai.'],
+                    ['膝間夾物：在雙膝之間夾入毛巾卷或軟球。', 'Jepit benda: Letakkan gulungan handuk atau bantal kecil di antara kedua lutut.'],
+                    ['用力內夾：大腿內側主動用力向內夾緊，維持 10 秒。', 'Jepit kuat: Remas kedua lutut ke dalam menggunakan otot paha dalam selama 10 detik.'],
+                    ['放鬆重複：緩慢放鬆 3 秒，重複 10～15 次。', 'Rileks: Kendurkan perlahan 3 detik, ulangi 10-15 kali.']
+                ]
+            },
+            'l3-stand': {
+                title: '床沿站立練習 / Latihan Berdiri di Samping Tempat Tidur',
+                images: ['rehab-img/stand-1.jpg', 'rehab-img/stand-2.jpg', 'rehab-img/stand-3.jpg', 'rehab-img/stand-4.jpg', 'rehab-img/stand-5.jpg'],
+                steps: [
+                    ['降床準備：將電動床高度下降至最低，放下一邊床欄，協助病患移動坐至床沿，確保雙腳能平穩踩踏地面。', 'Persiapan menurunkan tempat tidur: Turunkan tempat tidur elektrik ke posisi terendah, turunkan satu sisi rel tempat tidur, dan bantu pasien untuk bergerak dan duduk di tepi tempat tidur, pastikan kedua kaki menapak kuat di lantai.'],
+                    ['注意：移動與站立過程中，務必留意導尿管的擺放位置，避免壓迫、牽拉或高於膀胱水平。', 'Catatan: Selama bergerak dan berdiri, perhatikan dengan saksama penempatan kateter untuk menghindari kompresi, tarikan, atau posisinya yang lebih tinggi dari level kandung kemih.'],
+                    ['膝蓋頂防：照顧者站於病患正前方，以雙膝（或單膝）抵住病患的膝蓋給予支撐防護，防止病患腿部軟弱向前滑跪。', 'Penopang lutut: Pengasuh berdiri tepat di depan pasien dan menggunakan kedua lutut (atau satu lutut) untuk menopang dan melindungi lutut pasien, mencegah pasien tergelincir ke depan karena kelemahan kaki.'],
+                    ['抱頸站起：令病患雙手環抱住照顧者頸部（或抓穩助行器），照顧者順勢穩定引導，讓病患自行發力站起。', 'Berdiri dengan lengan melingkari leher: Minta pasien untuk melingkarkan lengannya di leher pengasuh (atau berpegangan pada alat bantu jalan), dan pengasuh dengan lembut membimbing pasien untuk berdiri sendiri.'],
+                    ['姿勢維持：病患站起後，必須保持抬頭挺胸、眼睛直視前方，照顧者在旁持續戒護。', 'Pemeliharaan postur: Setelah pasien berdiri, ia harus menjaga kepala tetap tegak, dada membusung, dan mata menatap lurus ke depan, sementara pengasuh tetap berada di sisinya untuk memberikan pengawasan terus-menerus.'],
+                    ['坐下休息：維持站立姿勢，直到病患感到體力耗盡或酸累，便可協助其緩慢坐回床沿休息片刻。', 'Duduk untuk beristirahat: Pertahankan postur berdiri sampai pasien merasa lelah, lalu bantu mereka perlahan-lahan duduk kembali di tepi tempat tidur untuk beristirahat sejenak.']
+                ]
+            },
+            'l4-stand': {
+                title: '床沿站立練習 / Latihan Berdiri di Samping Tempat Tidur',
+                images: ['rehab-img/stand-1.jpg', 'rehab-img/stand-2.jpg', 'rehab-img/stand-3.jpg', 'rehab-img/stand-4.jpg', 'rehab-img/stand-5.jpg'],
+                steps: [
+                    ['降床準備：將電動床高度下降至最低，放下一邊床欄，協助病患移動坐至床沿，確保雙腳能平穩踩踏地面。', 'Persiapan menurunkan tempat tidur: Turunkan tempat tidur elektrik ke posisi terendah, turunkan satu sisi rel tempat tidur, dan bantu pasien untuk bergerak dan duduk di tepi tempat tidur, pastikan kedua kaki menapak kuat di lantai.'],
+                    ['注意：移動與站立過程中，務必留意導尿管的擺放位置，避免壓迫、牽拉或高於膀胱水平。', 'Catatan: Selama bergerak dan berdiri, perhatikan dengan saksama penempatan kateter untuk menghindari kompresi, tarikan, atau posisinya yang lebih tinggi dari level kandung kemih.'],
+                    ['膝蓋頂防：照顧者站於病患正前方，以雙膝（或單膝）抵住病患的膝蓋給予支撐防護，防止病患腿部軟弱向前滑跪。', 'Penopang lutut: Pengasuh berdiri tepat di depan pasien dan menggunakan kedua lutut (atau satu lutut) untuk menopang dan melindungi lutut pasien, mencegah pasien tergelincir ke depan karena kelemahan kaki.'],
+                    ['抱頸站起：令病患雙手環抱住照顧者頸部（或抓穩助行器），照顧者順勢穩定引導，讓病患自行發力站起。', 'Berdiri dengan lengan melingkari leher: Minta pasien untuk melingkarkan lengannya di leher pengasuh (atau berpegangan pada alat bantu jalan), dan pengasuh dengan lembut membimbing pasien untuk berdiri sendiri.'],
+                    ['姿勢維持：病患站起後，必須保持抬頭挺胸、眼睛直視前方，照顧者在旁持續戒護。', 'Pemeliharaan postur: Setelah pasien berdiri, ia harus menjaga kepala tetap tegak, dada membusung, dan mata menatap lurus ke depan, sementara pengasuh tetap berada di sisinya untuk memberikan pengawasan terus-menerus.'],
+                    ['坐下休息：維持站立姿勢，直到病患感到體力耗盡或酸累，便可協助其緩慢坐回床沿休息片刻。', 'Duduk untuk beristirahat: Pertahankan postur berdiri sampai pasien merasa lelah, lalu bantu mereka perlahan-lahan duduk kembali di tepi tempat tidur untuk beristirahat sejenak.']
+                ]
+            },
             '站立': {
                 title: '床沿站立練習 / Latihan Berdiri di Samping Tempat Tidur',
                 images: ['rehab-img/stand-1.jpg', 'rehab-img/stand-2.jpg', 'rehab-img/stand-3.jpg', 'rehab-img/stand-4.jpg', 'rehab-img/stand-5.jpg'],
@@ -1635,50 +2258,13 @@ function checkBpTime() {
                     ['坐下休息：維持站立姿勢，直到病患感到體力耗盡或酸累，便可協助其緩慢坐回床沿休息片刻。', 'Duduk untuk beristirahat: Pertahankan postur berdiri sampai pasien merasa lelah, lalu bantu mereka perlahan-lahan duduk kembali di tepi tempat tidur untuk beristirahat sejenak.']
                 ]
             },
-            '舉水瓶': {
-                title: '舉水瓶肌力練習 / Angkat Botol Air',
-                images: ['rehab-img/adduction-1.jpg'],
+            'l4-standsway': {
+                title: '站立搖擺平衡練習 / Goyang Berdiri (Keseimbangan)',
+                images: ['rehab-img/stand-1.jpg', 'rehab-img/stand-3.jpg'],
                 steps: [
-                    ['準備：雙手握持水瓶，坐姿或平躺均可。', 'Pegang botol air di kedua tangan, duduk atau telentang.'],
-                    ['上舉：手肘微屈，緩慢平穩向上舉過胸前至微高處，維持5秒。', 'Angkat botol perlahan ke atas dada selama 5 detik.'],
-                    ['復原：緩慢放下放鬆，每次練習10～15回。', 'Turunkan perlahan dan ulangi 10-15 kali.']
-                ]
-            },
-            '躺式腳底板抬壓': {
-                title: '躺式腳底板抬壓 / Tekan Telapak Kaki Telentang',
-                images: ['rehab-img/legraise-1.jpg'],
-                steps: [
-                    ['準備：平躺於床面，雙腿自然放鬆。', 'Berbaring telentang di tempat tidur, kaki rileks.'],
-                    ['抬壓：腳踝用力向上勾起（背屈）維持5秒，再向下踩壓（蹠屈）維持5秒。', 'Tekuk pergelangan kaki ke atas 5 dtk lalu tekan ke bawah 5 dtk.'],
-                    ['訓練量：左右交替或同時進行15～20回，促進下肢血液循環。', 'Ulangi 15-20 kali untuk melancarkan sirkulasi darah.']
-                ]
-            },
-            '躺式膝蓋彎伸': {
-                title: '躺式膝蓋彎伸 / Tekuk & Luruskan Lutut Telentang',
-                images: ['rehab-img/bridge-1.jpg'],
-                steps: [
-                    ['準備：平躺於床面，雙腿伸直。', 'Berbaring telentang dengan kedua kaki lurus.'],
-                    ['屈膝：單腳腳跟貼著床面緩慢滑動彎曲膝蓋。', 'Geser tumit perlahan menekuk lutut.'],
-                    ['伸直：維持頂端3秒後慢慢伸直放平，左右交替各10回。', 'Tahan 3 detik lalu luruskan perlahan, ulangi 10 kali tiap sisi.']
-                ]
-            },
-            '仰躺大腿內收訓練': {
-                title: '仰臥大腿內收 / Adduksi Paha Telentang',
-                images: ['rehab-img/adduction-1.jpg', 'rehab-img/adduction-2.jpg'],
-                steps: [
-                    ['平躺準備：病患平躺床上，雙腿伸直放鬆。', 'Persiapan: Pasien berbaring telentang di tempat tidur dengan kedua kaki lurus dan rileks.'],
-                    ['單腳屈膝：彎曲單一膝蓋向上立起，使腳掌穩定平貼於床面。', 'Tekuk satu lutut ke atas, telapak kaki rata di tempat tidur.'],
-                    ['膝蓋內夾：令病患主動使用大腿肌群，將屈起的膝蓋往內側夾緊維持10秒。', 'Remas lutut ke dalam selama 10 detik.'],
-                    ['換腳交替：緩慢將腳放下伸直，換另一隻腳重覆相同動作10～15回。', 'Ganti kaki dan ulangi 10-15 kali.']
-                ]
-            },
-            '橋式／仰躺雙腳屈膝抬臀': {
-                title: '仰臥屈膝抬臀（橋式）/ Angkat Pinggul (Jembatan)',
-                images: ['rehab-img/bridge-1.jpg', 'rehab-img/bridge-2.jpg'],
-                steps: [
-                    ['平躺準備：病患平躺在床上，雙腳膝蓋彎曲立起平貼床面。', 'Berbaring telentang dengan lutut ditekuk.'],
-                    ['臀部抬起：使用臀部與大腿後側力量抬起臀部，維持倒數10秒。', 'Angkat pinggul ke atas selama 10 detik.'],
-                    ['緩慢放下：放回床面放鬆，每次練習10～15回。', 'Turunkan perlahan, ulangi 10-15 kali.']
+                    ['準備：雙人戒護下平穩站立，雙腳與肩同寬。', 'Berdiri stabil dengan bantuan dua pengasuh.'],
+                    ['重心微移：身體重心微幅緩慢左右輕搖，感受腳底平衡受力。', 'Goyangkan berat badan perlahan ke kiri dan kanan.'],
+                    ['注意安全：雙手隨時扶穩支撐物，搖擺幅度以身體平衡不晃倒為限。', 'Pegang pegangan kokoh, jangan sampai goyah berlebih.']
                 ]
             },
             '站立搖擺': {
@@ -1688,6 +2274,15 @@ function checkBpTime() {
                     ['準備：雙人戒護下平穩站立，雙腳與肩同寬。', 'Berdiri stabil dengan bantuan dua pengasuh.'],
                     ['重心微移：身體重心微幅緩慢左右輕搖，感受腳底平衡受力。', 'Goyangkan berat badan perlahan ke kiri dan kanan.'],
                     ['注意安全：雙手隨時扶穩支撐物，搖擺幅度以身體平衡不晃倒為限。', 'Pegang pegangan kokoh, jangan sampai goyah berlebih.']
+                ]
+            },
+            'l4-standleg': {
+                title: '站立原地抬腳練習 / Angkat Kaki Saat Berdiri',
+                images: ['rehab-img/stand-2.jpg', 'rehab-img/stand-4.jpg'],
+                steps: [
+                    ['準備：雙人戒護站立，雙手扶穩牢固支撐物。', 'Berdiri dengan pegangan kuat di bawah pengawasan.'],
+                    ['單腳微抬：重心移至單腳，另一腳緩慢微離地面2–5公分，維持3秒。', 'Angkat satu kaki 2-5 cm dari lantai selama 3 detik.'],
+                    ['左右交替：放平後換邊，若感到疲勞或腳軟立刻坐下休息。', 'Ganti sisi; segera duduk bila merasa lelah.']
                 ]
             },
             '站立抬腳': {
@@ -1721,21 +2316,56 @@ function checkBpTime() {
         }
 
         function openRehabGuide(key) {
-            const g = REHAB_GUIDE[key];
-            if (!g) return;
-            document.getElementById('rehab-modal-title').textContent = g.title;
-            const imgHtml = g.images.map((src, i) =>
-                `<img src="${src}" alt="${g.title} ${i + 1}" loading="lazy" class="w-full rounded-2xl border border-gray-200 shadow-sm animated-img">`
-            ).join('');
-            const stepHtml = g.steps.map((s, i) =>
+            // 支援 key（如 l1-bottle）或中文名稱（如 雙手舉水瓶）
+            const custom = (UI && UI.exLevels && (UI.exLevels[key] || Object.values(UI.exLevels).find(x => x.zh === key))) || null;
+            const g = REHAB_GUIDE[key] || (custom ? { title: custom.zh + (custom.id ? ` / ${custom.id}` : ''), images: custom.imgs || [], steps: [] } : null);
+            if (!g && !custom) return;
+
+            const title = custom && (custom.zh || custom.id)
+                ? (custom.id ? `${custom.zh} / ${custom.id}` : custom.zh)
+                : (g ? g.title : key);
+            document.getElementById('rehab-modal-title').textContent = title;
+
+            let imgs = [];
+            if (custom && custom.imgs && custom.imgs.length > 0) {
+                imgs = custom.imgs.filter(Boolean);
+            } else if (g && g.images) {
+                imgs = g.images;
+            }
+            // 本機上傳圖片（若有）
+            if (typeof localStorage !== 'undefined') {
+                for (let i = 0; i < 6; i++) {
+                    const localSrc = localStorage.getItem('mf_img_' + key + '_' + i);
+                    if (localSrc && !imgs.includes(localSrc)) imgs.push(localSrc);
+                }
+            }
+
+            const imgHtml = imgs.length > 0 ? imgs.map((src, i) =>
+                `<img src="${src}" alt="${title} ${i + 1}" loading="lazy" class="w-full rounded-2xl border border-gray-200 shadow-sm animated-img">`
+            ).join('') : '<p class="text-xs font-bold text-gray-400 text-center py-6 border border-dashed rounded-2xl">尚未加入示範照片</p>';
+
+            let steps = [];
+            if (custom && (custom.dzh || custom.did)) {
+                const sZh = String(custom.dzh || '').split('\n').map(s => s.trim()).filter(Boolean);
+                const sId = String(custom.did || '').split('\n').map(s => s.trim()).filter(Boolean);
+                const maxLen = Math.max(sZh.length, sId.length);
+                for (let i = 0; i < maxLen; i++) {
+                    steps.push([sZh[i] || '', sId[i] || '']);
+                }
+            } else if (g && g.steps) {
+                steps = g.steps;
+            }
+
+            const stepHtml = steps.length > 0 ? steps.map((s, i) =>
                 `<div class="flex gap-2.5">
                     <span class="shrink-0 w-6 h-6 rounded-full bg-stone-500 text-white text-xs font-bold flex items-center justify-center mt-0.5">${i + 1}</span>
                     <div class="flex-1">
-                        <p class="text-sm font-bold text-gray-700 leading-snug">${s[0]}</p>
-                        <p class="text-[11px] text-gray-500 font-medium leading-snug mt-0.5">${s[1]}</p>
+                        ${s[0] ? `<p class="text-sm font-bold text-gray-700 leading-snug">${s[0]}</p>` : ''}
+                        ${s[1] ? `<p class="text-[11px] text-gray-500 font-medium leading-snug mt-0.5">${s[1]}</p>` : ''}
                     </div>
                 </div>`
-            ).join('');
+            ).join('') : '<p class="text-xs font-bold text-gray-400 text-center py-4">尚未填寫介紹步驟</p>';
+
             document.getElementById('rehab-modal-body').innerHTML =
                 `<div class="space-y-2.5 mb-4">${imgHtml}</div><div class="space-y-3">${stepHtml}</div>${rehabWarnHtml()}`;
             const modal = document.getElementById('rehab-modal');

@@ -6,7 +6,7 @@
     <title>陽光日誌 — 兒童版 / Catatan Mentari — Anak</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="care-auth.js?v=1"></script>
-    <script src="care-tasks.js?v=13"></script>
+    <script src="care-tasks.js?v=14"></script>
     <style>
         /* ============================================================
          * 兒童＋先天遠視設計原則：超大字、白底高對比、粗實心框、
@@ -122,6 +122,186 @@
         .animate-spin-slow { animation: spin 3s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+        /* ===== 兒童版四大類自製 SVG 動畫圖示 ===== */
+        .type-icon-box {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.25rem auto;
+            position: relative;
+        }
+        .type-icon-svg {
+            width: 64px;
+            height: 64px;
+            overflow: visible;
+        }
+        .type-btn.selected .type-icon-box {
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35));
+        }
+
+        /* 1. 兔子復健運動動畫 */
+        @keyframes bunny-body-bounce {
+            0%, 100% { transform: translateY(0) scale(1, 1); }
+            40% { transform: translateY(-7px) scale(0.98, 1.04); }
+            50% { transform: translateY(-8px) scale(0.97, 1.05); }
+            75% { transform: translateY(1px) scale(1.04, 0.96); }
+        }
+        @keyframes bunny-ear-wiggle-l {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-10deg); }
+        }
+        @keyframes bunny-ear-wiggle-r {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(10deg); }
+        }
+        @keyframes bunny-arm-dumbbell {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes bunny-sparkle {
+            0%, 100% { transform: scale(0.6) rotate(0deg); opacity: 0.3; }
+            50% { transform: scale(1.2) rotate(45deg); opacity: 1; }
+        }
+        @keyframes bunny-sweat {
+            0% { transform: translateY(-3px); opacity: 0; }
+            50% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(5px); opacity: 0; }
+        }
+        .anim-bunny-body {
+            animation: bunny-body-bounce 1.2s infinite ease-in-out;
+            transform-origin: bottom center;
+        }
+        .anim-bunny-ear-l {
+            animation: bunny-ear-wiggle-l 1.2s infinite ease-in-out;
+            transform-origin: 22px 28px;
+        }
+        .anim-bunny-ear-r {
+            animation: bunny-ear-wiggle-r 1.2s infinite ease-in-out;
+            transform-origin: 42px 28px;
+        }
+        .anim-bunny-dumbbell {
+            animation: bunny-arm-dumbbell 1.2s infinite ease-in-out;
+            transform-origin: center center;
+        }
+        .anim-bunny-sparkle {
+            animation: bunny-sparkle 1.2s infinite ease-in-out;
+            transform-origin: 52px 14px;
+        }
+        .anim-bunny-sweat {
+            animation: bunny-sweat 1.2s infinite ease-in-out;
+        }
+
+        /* 2. 吃喝飲食動畫 */
+        @keyframes steam-drift-1 {
+            0% { transform: translateY(0) scaleY(0.7); opacity: 0; }
+            50% { opacity: 0.85; }
+            100% { transform: translateY(-9px) scaleY(1.2); opacity: 0; }
+        }
+        @keyframes steam-drift-2 {
+            0% { transform: translateY(0) scaleY(0.7); opacity: 0; }
+            50% { opacity: 0.9; }
+            100% { transform: translateY(-11px) scaleY(1.3); opacity: 0; }
+        }
+        @keyframes food-spoon-dip {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(-10deg); }
+        }
+        @keyframes food-bowl-sway {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-2px) rotate(1.5deg); }
+        }
+        @keyframes drink-straw-sip {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-5deg); }
+        }
+        .anim-steam-1 {
+            animation: steam-drift-1 1.6s infinite ease-out;
+        }
+        .anim-steam-2 {
+            animation: steam-drift-2 1.6s infinite ease-out 0.5s;
+        }
+        .anim-steam-3 {
+            animation: steam-drift-1 1.6s infinite ease-out 0.9s;
+        }
+        .anim-food-spoon {
+            animation: food-spoon-dip 1.5s infinite ease-in-out;
+            transform-origin: 48px 24px;
+        }
+        .anim-food-bowl {
+            animation: food-bowl-sway 2s infinite ease-in-out;
+            transform-origin: center bottom;
+        }
+        .anim-drink-straw {
+            animation: drink-straw-sip 1.8s infinite ease-in-out;
+            transform-origin: 42px 30px;
+        }
+
+        /* 3. 尿尿大便動畫 */
+        @keyframes flush-water-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes water-splash-drop-1 {
+            0%, 100% { transform: translateY(0) scale(0.6); opacity: 0.2; }
+            50% { transform: translateY(-9px) scale(1.1); opacity: 1; }
+        }
+        @keyframes water-splash-drop-2 {
+            0%, 100% { transform: translateY(0) scale(0.6); opacity: 0.2; }
+            50% { transform: translateY(-7px) scale(1.2); opacity: 1; }
+        }
+        @keyframes toilet-handle-jiggle {
+            0%, 100% { transform: rotate(0deg); }
+            30% { transform: rotate(-22deg); }
+            60% { transform: rotate(6deg); }
+            80% { transform: rotate(-3deg); }
+        }
+        .anim-flush-spin {
+            animation: flush-water-spin 2s linear infinite;
+            transform-origin: 32px 33px;
+        }
+        .anim-splash-1 {
+            animation: water-splash-drop-1 1.4s infinite ease-in-out;
+        }
+        .anim-splash-2 {
+            animation: water-splash-drop-2 1.4s infinite ease-in-out 0.4s;
+        }
+        .anim-toilet-handle {
+            animation: toilet-handle-jiggle 2.5s infinite ease-in-out;
+            transform-origin: 15px 16px;
+        }
+
+        /* 4. 血壓心跳動畫 */
+        @keyframes heart-pulse-double {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.22); }
+            28% { transform: scale(1.04); }
+            42% { transform: scale(1.18); }
+            70% { transform: scale(1); }
+        }
+        @keyframes heart-aura-expand {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            60% { transform: scale(1.3); opacity: 0; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        @keyframes ecg-dash-move {
+            0% { stroke-dashoffset: 60; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .anim-heart-pump {
+            animation: heart-pulse-double 1.2s infinite ease-in-out;
+            transform-origin: 32px 32px;
+        }
+        .anim-heart-aura {
+            animation: heart-aura-expand 1.2s infinite ease-out;
+            transform-origin: 32px 31px;
+        }
+        .anim-ecg-line {
+            stroke-dasharray: 60;
+            animation: ecg-dash-move 1.5s linear infinite;
+        }
+
         #toast { transition: opacity .3s, transform .3s; transform: translate(-50%, 20px); }
         #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
@@ -141,12 +321,47 @@
                 </a>
                 <div id="lang-switch" class="flex gap-1 shrink-0"></div>
             </div>
-            <!-- 每個項目各自顯示 🎯今日目標 / ✅目前已達（水/尿/便＋四項復健） -->
-            <div class="flex items-center justify-center gap-2 text-base font-black" style="color: var(--accent)">
-                <span>🎯<span data-t="goalLbl"></span> ｜ ✅<span data-t="doneLbl"></span></span>
-                <span id="sync-icon" class="text-base">🔄</span>
+            <!-- 🎯今日目標 vs ✅目前已達 顯著數值儀表卡 -->
+            <div id="anak-goal-card" class="bg-white border-4 border-gray-800 rounded-3xl p-3.5 shadow-md space-y-2.5">
+                <div class="grid grid-cols-2 gap-2.5 items-stretch">
+                    <!-- 今日目標 -->
+                    <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-2.5 text-center flex flex-col justify-center">
+                        <div class="text-xs font-black text-amber-800 flex items-center justify-center gap-1">
+                            <span>🎯</span><span data-t="goalLbl">今日目標</span>
+                        </div>
+                        <div class="mt-1 flex items-baseline justify-center gap-1">
+                            <span id="goal-num" class="text-3xl font-black text-amber-950">--</span>
+                            <span class="text-base font-bold text-amber-700">cc</span>
+                        </div>
+                    </div>
+                    <!-- 目前已達 -->
+                    <div id="done-box" class="bg-teal-50 border-2 border-teal-300 rounded-2xl p-2.5 text-center flex flex-col justify-center transition-colors">
+                        <div class="text-xs font-black text-teal-800 flex items-center justify-center gap-1">
+                            <span>✅</span><span data-t="doneLbl">目前已達</span>
+                            <button type="button" onclick="loadDay()" class="ml-1 inline-block active:scale-90 transition-transform" title="重新整理">
+                                <span id="sync-icon" class="text-xs">🔄</span>
+                            </button>
+                        </div>
+                        <div class="mt-1 flex items-baseline justify-center gap-1" id="done-text-wrap" style="color: var(--accent)">
+                            <span id="done-num" class="text-3xl font-black">0</span>
+                            <span class="text-base font-bold text-gray-500">cc</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 達成度進度條 -->
+                <div class="space-y-1 px-1">
+                    <div class="flex items-center justify-between text-xs font-black text-gray-500">
+                        <span class="flex items-center gap-1">
+                            <span class="inline-block animate-bounce text-sm">💧</span>
+                            <span data-t="waterProg">今日飲水進度</span>
+                        </span>
+                        <span id="goal-pct" class="text-sm font-black" style="color: var(--accent)">0%</span>
+                    </div>
+                    <div class="h-3.5 rounded-full bg-gray-200 overflow-hidden border border-gray-300 p-0.5">
+                        <div id="goal-bar" class="h-full rounded-full transition-all duration-700" style="width:0%; background: var(--accent)"></div>
+                    </div>
+                </div>
             </div>
-            <div id="goal-strips" class="space-y-1 text-left"></div>
             <div id="warn-box" class="space-y-2 text-center"></div>
             <!-- 兒童改4：床欄安全警示（與成人版同規則，兒童大字🚨常駐） -->
             <div id="anak-bedrail" class="border-4 rounded-3xl p-2.5 text-center mt-1" style="border-color: var(--danger); background:#fff1f2; color: var(--danger)">
@@ -177,10 +392,136 @@
             <div class="stepnum">2</div>
             <h2 class="text-2xl font-black text-center">👇 <span data-t="s2"></span></h2>
             <div id="type-grid" class="grid grid-cols-2 gap-3">
-                <button type="button" onclick="pickType('makan')"   id="type-makan"   class="bigbtn type-btn choice py-4"><span class="block text-5xl leading-none mb-1">🍚🥤</span><span class="text-xl" data-t="tMakan"></span></button>
-                <button type="button" onclick="pickType('keluar')"  id="type-keluar"  class="bigbtn type-btn choice py-4"><span class="block text-5xl leading-none mb-1">🚽💩</span><span class="text-xl" data-t="tKeluar"></span></button>
-                <button type="button" onclick="pickType('latihan')" id="type-latihan" class="bigbtn type-btn choice py-4"><span class="block text-5xl leading-none mb-1">💪</span><span class="text-xl" data-t="tLatihan"></span></button>
-                <button type="button" onclick="pickType('tensi')"   id="type-tensi"   class="bigbtn type-btn choice py-4"><span class="block text-5xl leading-none mb-1">❤️</span><span class="text-xl" data-t="tTensi"></span></button>
+                <button type="button" onclick="pickType('makan')" id="type-makan" class="bigbtn type-btn choice py-3 px-2 flex flex-col items-center justify-center">
+                    <div class="type-icon-box">
+                        <svg class="type-icon-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 飲料杯 -->
+                            <g id="drink-group">
+                                <path d="M42 32 L46 54 Q46 56 44 56 L38 56 Q36 56 36 54 L38 32 Z" fill="#FED7AA" stroke="#1F2937" stroke-width="2"/>
+                                <rect x="36" y="30" width="10" height="3" rx="1.5" fill="#FB923C" stroke="#1F2937" stroke-width="1.5"/>
+                                <path class="anim-drink-straw" d="M42 30 L45 16 L49 14" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                            </g>
+                            <!-- 蒸氣 -->
+                            <path class="anim-steam-1" d="M19 23 Q16 16 20 10" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                            <path class="anim-steam-2" d="M26 21 Q30 14 27 8" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                            <path class="anim-steam-3" d="M33 23 Q30 17 34 11" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                            <!-- 飯碗 -->
+                            <g class="anim-food-bowl">
+                                <path d="M11 34 Q26 36 41 34 C39 48 34 56 26 56 C18 56 13 48 11 34 Z" fill="#38BDF8" stroke="#1F2937" stroke-width="2.5"/>
+                                <ellipse cx="26" cy="34" rx="15" ry="6" fill="#FEF3C7" stroke="#1F2937" stroke-width="2"/>
+                                <ellipse cx="26" cy="33" rx="11" ry="3.5" fill="#FFFFFF"/>
+                                <g class="anim-food-spoon">
+                                    <ellipse cx="21" cy="27" rx="3.5" ry="5" transform="rotate(35 21 27)" fill="#F8FAFC" stroke="#1F2937" stroke-width="1.8"/>
+                                    <line x1="23" y1="29" x2="33" y2="41" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round"/>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="text-xl leading-tight" data-t="tMakan"></span>
+                </button>
+
+                <button type="button" onclick="pickType('keluar')" id="type-keluar" class="bigbtn type-btn choice py-3 px-2 flex flex-col items-center justify-center">
+                    <div class="type-icon-box">
+                        <svg class="type-icon-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 馬桶水箱 -->
+                            <rect x="20" y="10" width="24" height="22" rx="3" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                            <rect x="18" y="7" width="28" height="5" rx="2" fill="#E2E8F0" stroke="#1F2937" stroke-width="2"/>
+                            <!-- 馬桶沖水手把 -->
+                            <g class="anim-toilet-handle">
+                                <line x1="15" y1="16" x2="20" y2="16" stroke="#F59E0B" stroke-width="3" stroke-linecap="round"/>
+                                <circle cx="14" cy="16" r="2.5" fill="#D97706"/>
+                            </g>
+                            <!-- 馬桶底座 -->
+                            <path d="M22 32 Q32 32 42 32 L39 52 Q32 57 25 52 Z" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                            <path d="M24 52 L22 57 Q32 59 42 57 L40 52 Z" fill="#E2E8F0" stroke="#1F2937" stroke-width="2"/>
+                            <!-- 馬桶坐墊與水渦 -->
+                            <ellipse cx="32" cy="33" rx="14" ry="7" fill="#A5F3FC" stroke="#1F2937" stroke-width="2.5"/>
+                            <g class="anim-flush-spin">
+                                <circle cx="32" cy="33" r="4" fill="none" stroke="#0284C7" stroke-width="2" stroke-dasharray="6 3"/>
+                            </g>
+                            <!-- 水花四濺 -->
+                            <circle class="anim-splash-1" cx="26" cy="22" r="2.5" fill="#38BDF8"/>
+                            <circle class="anim-splash-2" cx="38" cy="20" r="2.2" fill="#0EA5E9"/>
+                            <circle class="anim-splash-1" cx="32" cy="17" r="1.8" fill="#38BDF8"/>
+                        </svg>
+                    </div>
+                    <span class="text-xl leading-tight" data-t="tKeluar"></span>
+                </button>
+
+                <button type="button" onclick="pickType('latihan')" id="type-latihan" class="bigbtn type-btn choice py-3 px-2 flex flex-col items-center justify-center">
+                    <div class="type-icon-box">
+                        <svg class="type-icon-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 閃爍活力星星 -->
+                            <path class="anim-bunny-sparkle" d="M52 14 L53 16.5 L56 17 L53.5 18.5 L53 21 L51.5 18.5 L49 18 L51 16.5 Z" fill="#FBBF24"/>
+                            <!-- 努力水滴 -->
+                            <path class="anim-bunny-sweat" d="M12 24 Q14 21 15 24 Q15 27 12 27 Q9 27 12 24 Z" fill="#38BDF8"/>
+
+                            <!-- 兔子整體律動 -->
+                            <g class="anim-bunny-body">
+                                <!-- 左耳 -->
+                                <g class="anim-bunny-ear-l">
+                                    <path d="M22 28 C18 16 16 6 22 4 C27 4 27 16 26 28 Z" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                                    <path d="M22 24 C19 15 18 8 22 7 C25 7 25 15 24 24 Z" fill="#F472B6"/>
+                                </g>
+                                <!-- 右耳 -->
+                                <g class="anim-bunny-ear-r">
+                                    <path d="M42 28 C46 16 48 6 42 4 C37 4 37 16 38 28 Z" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                                    <path d="M42 24 C45 15 46 8 42 7 C39 7 39 15 40 24 Z" fill="#F472B6"/>
+                                </g>
+                                <!-- 身體/復健衣 -->
+                                <path d="M22 44 Q32 42 42 44 L44 55 Q32 58 20 55 Z" fill="#60A5FA" stroke="#1F2937" stroke-width="2.5"/>
+                                <!-- 雙腳 -->
+                                <ellipse cx="23" cy="57" rx="5" ry="3" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
+                                <ellipse cx="41" cy="57" rx="5" ry="3" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
+                                <!-- 兔子頭部 -->
+                                <ellipse cx="32" cy="33" rx="15" ry="13" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                                <!-- 運動頭帶 -->
+                                <path d="M18 29 Q32 27 46 29" stroke="#EF4444" stroke-width="4.5" stroke-linecap="round"/>
+                                <circle cx="46" cy="29" r="2.5" fill="#DC2626"/>
+                                <!-- 眼睛 -->
+                                <path d="M26 34 Q28 31 30 34" stroke="#1F2937" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                <path d="M34 34 Q36 31 38 34" stroke="#1F2937" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                <!-- 鼻子與微笑嘴巴 -->
+                                <polygon points="32,36 30.5,38 33.5,38" fill="#F472B6"/>
+                                <path d="M32 38 Q30 40 28 39 M32 38 Q34 40 36 39" stroke="#1F2937" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+                                <!-- 腮紅 -->
+                                <circle cx="23" cy="37" r="2.5" fill="#FCA5A5" opacity="0.8"/>
+                                <circle cx="41" cy="37" r="2.5" fill="#FCA5A5" opacity="0.8"/>
+                            </g>
+
+                            <!-- 舉啞鈴復健動作 -->
+                            <g class="anim-bunny-dumbbell">
+                                <!-- 左啞鈴與手臂 -->
+                                <rect x="5" y="31" width="4" height="12" rx="2" fill="#F59E0B" stroke="#1F2937" stroke-width="1.5"/>
+                                <rect x="13" y="31" width="4" height="12" rx="2" fill="#F59E0B" stroke="#1F2937" stroke-width="1.5"/>
+                                <rect x="8" y="35" width="6" height="4" fill="#9CA3AF" stroke="#1F2937" stroke-width="1.5"/>
+                                <circle cx="11" cy="37" r="3.5" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
+                                <!-- 右啞鈴與手臂 -->
+                                <rect x="47" y="31" width="4" height="12" rx="2" fill="#F59E0B" stroke="#1F2937" stroke-width="1.5"/>
+                                <rect x="55" y="31" width="4" height="12" rx="2" fill="#F59E0B" stroke="#1F2937" stroke-width="1.5"/>
+                                <rect x="50" y="35" width="6" height="4" fill="#9CA3AF" stroke="#1F2937" stroke-width="1.5"/>
+                                <circle cx="53" cy="37" r="3.5" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="text-xl leading-tight" data-t="tLatihan"></span>
+                </button>
+
+                <button type="button" onclick="pickType('tensi')" id="type-tensi" class="bigbtn type-btn choice py-3 px-2 flex flex-col items-center justify-center">
+                    <div class="type-icon-box">
+                        <svg class="type-icon-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 擴散光環 -->
+                            <circle class="anim-heart-aura" cx="32" cy="31" r="18" stroke="#FDA4AF" stroke-width="2.5" fill="none"/>
+                            <!-- 跳動心臟 -->
+                            <g class="anim-heart-pump">
+                                <path d="M32 50 C18 40 13 32 13 23 C13 16 18 11 25 11 C29 11 31 13 32 15 C33 13 35 11 39 11 C46 11 51 16 51 23 C51 32 46 40 32 50 Z" fill="#F43F5E" stroke="#9F1239" stroke-width="2.5"/>
+                                <ellipse cx="21" cy="17" rx="3.5" ry="2" transform="rotate(-30 21 17)" fill="#FFFFFF" opacity="0.7"/>
+                                <path class="anim-ecg-line" d="M17 29 L23 29 L26 22 L29 37 L33 19 L36 34 L39 29 L47 29" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="text-xl leading-tight" data-t="tTensi"></span>
+                </button>
             </div>
             <button id="step2-ok" type="button" onclick="confirmStep2()" class="bigbtn w-full text-white rounded-2xl text-3xl font-black py-3 hidden" style="background: var(--accent)" data-t="ok"></button>
         </section>
@@ -489,6 +830,7 @@ const T = {
     no:       { zh:'沒有',           id:'TIDAK' },
     goalLbl:  { zh:'今日目標',       id:'TARGET' },
     doneLbl:  { zh:'目前已達',       id:'TERCAPAI' },
+    waterProg:{ zh:'今日飲水進度',   id:'PROGRES MINUM' },
     umed:     { zh:'利尿藥物？',     id:'OBAT DIURETIK?' },
     lax:      { zh:'利便藥物？',     id:'OBAT PENCAHAR?' },
     opt:      { zh:'(可選)',         id:'(opsional)' },
@@ -892,22 +1234,42 @@ function renderAll(){
     const uGoal = careUrineGoal(intake, med.diuretic, UI);
     const sGoal = careStoolGoal(med.laxPills);
     const wGoal = parseFloat(goals['goal_總攝入水量']) || 0;
-    // 兩行式：第一行 emoji＋🎯目標＋✅已達（可換行、數字絕不被進度條擠掉），第二行進度條吃滿寬
-    const strip = (emoji, goal, done, unit, over) => {
-        const pct = goal > 0 ? Math.min(100, Math.round(done / goal * 100)) : 0;
-        const col = over ? 'var(--danger)' : 'var(--accent)';
-        return `<div>
-            <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="text-2xl w-9 text-center shrink-0">${emoji}</span>
-                <span class="text-base font-black text-gray-700 whitespace-nowrap">🎯${goal > 0 ? goal : '…'}${unit}</span>
-                <span class="text-base font-black whitespace-nowrap" style="color:${col}">✅${done}${unit}</span>
-            </div>
-            <div class="h-3 rounded-full bg-gray-200 overflow-hidden mt-0.5"><div class="h-full rounded-full transition-all duration-700" style="width:${pct}%;background:${col}"></div></div>
-        </div>`;
-    };
-    // 兒童版調整：今日目標跟目前已達只留水分攝入量
-    const strips = strip('💧', wGoal, intake, 'cc', UI.popup.fluidOver && intake > UI.num.fluidMax);
-    $('goal-strips').innerHTML = strips;
+    // 兒童版今日目標 vs 目前已達：直接顯著顯示實際數值，不重複多餘 cc 行
+    const over = UI.popup.fluidOver && intake > UI.num.fluidMax;
+    const pct = wGoal > 0 ? Math.min(100, Math.round(intake / wGoal * 100)) : 0;
+    const col = over ? 'var(--danger)' : 'var(--accent)';
+
+    const gNum = $('goal-num');
+    if (gNum) gNum.textContent = wGoal > 0 ? wGoal : '…';
+
+    const dNum = $('done-num');
+    if (dNum) dNum.textContent = intake;
+
+    const dWrap = $('done-text-wrap');
+    if (dWrap) dWrap.style.color = col;
+
+    const dBox = $('done-box');
+    if (dBox) {
+        if (over) {
+            dBox.style.backgroundColor = '#fff1f2';
+            dBox.style.borderColor = 'var(--danger)';
+        } else {
+            dBox.style.backgroundColor = '#f0fdfa';
+            dBox.style.borderColor = '#5eead4';
+        }
+    }
+
+    const gPct = $('goal-pct');
+    if (gPct) {
+        gPct.textContent = (wGoal > 0 ? Math.round(intake / wGoal * 100) : 0) + '%';
+        gPct.style.color = col;
+    }
+
+    const gBar = $('goal-bar');
+    if (gBar) {
+        gBar.style.width = pct + '%';
+        gBar.style.backgroundColor = col;
+    }
     // 紀錄列：依時段分框（同管理者總表），時間一律 24 小時制＋☀️/🌙
     const SLOT_EMOJI = { dawn:'🌙', morning:'🌅', midday:'☀️', evening:'🌇', night:'🛏️', late:'💤' };
     const recRow = r => {

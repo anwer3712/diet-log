@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="care-auth.js?v=1"></script>
-    <script src="care-tasks.js?v=13"></script>
-    <script src="mirror-ui.js?v=1"></script>
+    <script src="care-tasks.js?v=14"></script>
+    <script src="mirror-ui.js?v=2"></script>
     <style>
         body { background: #fafafa; font-size: 16px; }
         .mf-sec { content-visibility: auto; contain-intrinsic-size: auto 900px; }
@@ -56,6 +56,16 @@
         }
         .animate-spin-slow { animation: spin 3s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); }
+            70% { box-shadow: 0 0 0 14px rgba(168, 85, 247, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); }
+        }
+        .jump-highlight {
+            animation: pulse-ring 1.5s ease-out;
+            outline: 3px solid #a855f7 !important;
+            outline-offset: 3px;
+        }
     </style>
 </head>
 <body class="text-gray-800 min-h-screen pb-28 font-sans">
@@ -64,7 +74,7 @@
 
     <div class="text-center mb-3">
         <h1 class="text-xl font-black text-green-600 tracking-wide">🪞 鏡像 U2 — 復健分級 LEVEL 1–4</h1>
-        <p class="text-[11px] text-gray-500 font-bold mt-0.5">Cermin U2 — Tingkat latihan 1–4，每項都有彈窗、照片與介紹文字</p>
+        <p class="text-[11px] text-gray-500 font-bold mt-0.5">Cermin U2 — Tingkat latihan 1–4，全 13 項與正式日誌 100% 完全對照</p>
     </div>
 
     <div class="grid grid-cols-4 gap-2 mb-3">
@@ -75,8 +85,8 @@
     </div>
 
     <div class="bg-white rounded-2xl border-2 border-gray-200 p-3 mb-4 text-[11px] font-bold text-gray-600 space-y-1">
-        <p><span class="mf-tag" style="background:#a855f7;color:#fff">🟣 紫</span> 項目名稱與介紹文字：直接改，改完按最下方儲存，全裝置同步。</p>
-        <p><span class="mf-tag" style="background:#f97316;color:#fff">🟠 橘</span> 跟計算有關（復健期限／每日目標次數）：點 🔒 輸入管理者密碼才能改。</p>
+        <p><span class="mf-tag" style="background:#a855f7;color:#fff">🟣 紫</span> 項目名稱、示範照片與步驟說明：直接改，改完按最下方儲存，全裝置同步。</p>
+        <p><span class="mf-tag" style="background:#f97316;color:#fff">🟠 橘</span> 跟計算有關（復健期限／完成時間）：點 🔒 輸入管理者密碼才能改。</p>
         <p><span class="mf-tag" style="background:#ef4444;color:#fff">🔴 紅</span> 由「彈窗／提醒」搬過來的未復健提醒，放在運動內容上方。</p>
         <p class="text-orange-700">🖼️ <b>照片網址</b>會同步到雲端所有裝置；<b>上傳的照片</b>因雲端單筆上限只有 9KB，只能存在這支手機（會標示「本機」）。要全裝置看得到，請把圖放進 <code>rehab-img/</code> 或圖床後填網址。</p>
     </div>
@@ -97,18 +107,54 @@
             </div>
         </div>
 
+        <!-- 🧭 【操作介面 ↔ 鏡像修改】13項全對照看板 -->
+        <div class="bg-white rounded-3xl border-2 border-indigo-200 shadow-sm p-3.5 sm:p-4 mb-4">
+            <div class="flex items-center justify-between flex-wrap gap-2 mb-2.5 pb-2 border-b border-indigo-100">
+                <div>
+                    <h3 class="font-black text-sm text-indigo-950 flex items-center gap-1.5">
+                        <span class="text-base">🧭</span> 【操作介面 ↔ 鏡像修改】13項全對照看板
+                    </h3>
+                    <p class="text-[11px] text-gray-500 font-bold mt-0.5">
+                        正式日誌（<code>index.html</code>）復健選項已完全對照鏡像 U2，共 13 項無任何遺漏。點右側「👉 編輯」可直接跳至編輯卡片。
+                    </p>
+                </div>
+                <span class="bg-indigo-100 text-indigo-700 text-[10px] font-black px-2.5 py-1 rounded-full shrink-0">13 項完全對照</span>
+            </div>
+            <div id="comparison-board" class="space-y-2.5"></div>
+        </div>
+
         <div id="levels"></div>
 
-        <!-- 現行四項（正式頁實際計分的項目） -->
-        <div class="lv-head"><span class="lv-badge" style="background:#6b7280">現行</span><h2 class="font-black text-base text-gray-800">正式頁四項復健（進度格實際計分）</h2></div>
-        <div class="bg-white border-2 border-dashed border-gray-300 rounded-2xl p-3 space-y-2">
-            <div class="grid grid-cols-1 gap-2">
-                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700 flex items-center justify-between">🦵 仰臥抬腿，左右交替10秒<button type="button" data-ref="仰臥抬腿" class="ml-2 shrink-0 bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold">📖 範例</button></div>
-                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700 flex items-center justify-between">🩲 仰躺大腿內收訓練，左右交替10秒<button type="button" data-ref="大腿內收" class="ml-2 shrink-0 bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold">📖 範例</button></div>
-                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700 flex items-center justify-between">🍑 橋式／仰躺雙腳屈膝抬臀10秒<button type="button" data-ref="橋式抬臀" class="ml-2 shrink-0 bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold">📖 範例</button></div>
-                <div class="border-2 border-gray-300 rounded-2xl p-3 text-sm font-bold text-gray-700 flex items-center justify-between">🧍 站立<button type="button" data-ref="站立" class="ml-2 shrink-0 bg-stone-100 text-[#FB8B7A] rounded-full px-3 py-1.5 text-xs font-bold">📖 範例</button></div>
+        <!-- ✅ 13 項復健分級全項目對照確認 (LEVEL 1～LEVEL 4) -->
+        <div class="lv-head"><span class="lv-badge" style="background:#10b981">對照確認</span><h2 class="font-black text-base text-gray-800">✅ 正式日誌 13 項分級復健完全同步（零遺漏）</h2></div>
+        <div class="bg-white border-2 border-emerald-300 rounded-3xl p-4 space-y-3 shadow-sm mb-6">
+            <div class="text-xs font-bold text-gray-700 leading-relaxed space-y-2">
+                <p class="text-emerald-800 font-black text-sm flex items-center gap-1.5">
+                    <span>✨</span> 操作介面（index.html）已全數同步為 LEVEL 1～LEVEL 4 全 13 項：
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                    <div class="bg-sky-50 border border-sky-200 rounded-2xl p-2.5">
+                        <span class="font-black text-sky-800">🔵 LEVEL 1（3項 · 床上被動／暖身）</span>
+                        <p class="mt-1 text-gray-700 font-bold">1. 雙手舉水瓶 🍼<br>2. 腳底板抬壓 🦶<br>3. 膝蓋彎伸 🦵</p>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-2.5">
+                        <span class="font-black text-emerald-800">🟢 LEVEL 2（3項 · 仰臥主動肌力）</span>
+                        <p class="mt-1 text-gray-700 font-bold">4. 仰臥抬腿 🦵<br>5. 仰躺大腿內收訓練 🩲<br>6. 橋式／仰躺雙腳屈膝抬臀 🍑</p>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-2.5">
+                        <span class="font-black text-amber-800">🟡 LEVEL 3（4項 · 坐姿轉位）</span>
+                        <p class="mt-1 text-gray-700 font-bold">7. 舉物練習 📦<br>8. 坐式抬腿 🪑<br>9. 坐式大腿內收 🩲<br>10. 站立 🧍</p>
+                    </div>
+                    <div class="bg-rose-50 border border-rose-200 rounded-2xl p-2.5">
+                        <span class="font-black text-rose-800">🔴 LEVEL 4（3項 · 站姿平衡）</span>
+                        <p class="mt-1 text-gray-700 font-bold">11. 站立 🧍<br>12. 站立搖擺 🧘<br>13. 站立抬腳 🚶</p>
+                    </div>
+                </div>
             </div>
-            <p class="text-[11px] font-bold text-gray-500">※ LEVEL 1–4 是分級教材與彈窗內容；正式頁進度格仍以上面四項計分（care-tasks.js <code>CARE_EX_TYPES</code>）。要把某個 LEVEL 項目也納入計分，需一併改 <code>CARE_EX_TYPES</code> 與後端欄位，講一聲我再接。</p>
+            <div class="bg-emerald-50 rounded-2xl p-3 text-[11px] font-bold text-emerald-950 border border-emerald-200 flex items-start gap-2">
+                <span class="text-base shrink-0">💡</span>
+                <p class="leading-relaxed"><b>即時連動與計分機制</b>：在鏡像 U2 修改的名稱、照片網址與步驟說明，儲存後會同步至雲端；正式日誌 <code>index.html</code> 載入時會自動依據設定更新單選按鈕名稱與「📖 範例」教學彈窗內容。全 13 項運動皆已納入 <code>CARE_EX_TYPES</code>，做完即可計入每日目標與進度格。</p>
+            </div>
         </div>
     </div>
 </div>
@@ -157,55 +203,194 @@ const WARN_ITEMS = [
 ];
 
 /* ===== 渲染 ===== */
+function renderComparisonBoard(){
+    const box = document.getElementById('comparison-board');
+    if (!box) return;
+    const levelBg = { L1: 'bg-sky-50/70 border-sky-200 text-sky-900', L2: 'bg-emerald-50/70 border-emerald-200 text-emerald-900', L3: 'bg-amber-50/70 border-amber-200 text-amber-900', L4: 'bg-rose-50/70 border-rose-200 text-rose-900' };
+    const levelBadge = { L1: 'bg-sky-500', L2: 'bg-emerald-500', L3: 'bg-amber-500', L4: 'bg-rose-500' };
+    box.innerHTML = levels.map((lv, li) => {
+        const itemRows = lv.items.map(it => {
+            const stepsCount = String(it.dzh || '').split('\n').filter(s => s.trim()).length;
+            const imgCount = (it.imgs || []).filter(Boolean).length;
+            const isStand = (it.ref === '站立' || it.zh.includes('站立'));
+            return `
+            <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-gray-200 hover:border-purple-300 transition-colors gap-2">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="text-base shrink-0">${it.icon || '🏃'}</span>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-xs font-black text-gray-800 truncate" id="board-zh-${it.key}">${mfEsc(it.zh)}</span>
+                            ${isStand ? '<span class="text-[9px] bg-rose-100 text-rose-700 font-bold px-1.5 py-0.2 rounded">安全指南</span>' : ''}
+                        </div>
+                        <p class="text-[10px] font-bold text-gray-400 truncate" id="board-id-${it.key}">${mfEsc(it.id)}</p>
+                    </div>
+                </div>
+                <div class="hidden sm:flex items-center gap-1.5 text-[10px] font-bold text-gray-500 shrink-0">
+                    <span class="bg-gray-100 px-1.5 py-0.5 rounded text-purple-700 font-mono">🏷️ 名稱</span>
+                    <span class="bg-gray-100 px-1.5 py-0.5 rounded text-indigo-700 font-mono" id="board-img-${it.key}">🖼️ ${imgCount}圖</span>
+                    <span class="bg-gray-100 px-1.5 py-0.5 rounded text-emerald-700 font-mono" id="board-step-${it.key}">📋 ${stepsCount}步</span>
+                </div>
+                <button type="button" data-jump="${it.key}" class="shrink-0 bg-purple-100 hover:bg-purple-200 text-purple-800 font-black text-xs px-2.5 py-1 rounded-xl active:scale-95 transition-transform flex items-center gap-0.5">
+                    <span>👉</span> 編輯
+                </button>
+            </div>`;
+        }).join('');
+
+        return `
+        <div class="rounded-2xl border ${levelBg[lv.key] || 'border-gray-200'} p-2.5">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                    <span class="${levelBadge[lv.key] || 'bg-gray-600'} text-white text-[10px] font-black px-2 py-0.5 rounded-full">${mfEsc(lv.zh)}</span>
+                    <span class="text-xs font-black">${mfEsc(lv.hint)}</span>
+                </div>
+                <span class="text-[10px] font-black text-gray-500 bg-white/80 px-2 py-0.5 rounded-full border border-gray-200">${lv.items.length} 項</span>
+            </div>
+            <div class="space-y-1.5">${itemRows}</div>
+        </div>`;
+    }).join('');
+}
+
 function renderLevels(){
     const box = document.getElementById('levels');
     box.innerHTML = levels.map((lv, li) => {
         const cards = lv.items.map(it => {
             byKey[it.key] = it;
-            return itemCard(it);
+            return itemCard(it, lv);
         }).join('');
         return `<section class="mf-sec">
             <div class="lv-head">
                 <span class="lv-badge lv-${li + 1}">${mfEsc(lv.zh)}</span>
                 <h2 class="font-black text-base text-gray-800">${mfEsc(lv.hint)}　<span class="text-[11px] font-bold text-gray-500">共 ${lv.items.length} 項</span></h2>
             </div>
-            <div class="space-y-3">${cards}</div>
+            <div class="space-y-4">${cards}</div>
         </section>`;
     }).join('');
+    renderComparisonBoard();
     renderAllLocalImgs();
+    renderAllStepPreviews();
     mfPaintLocks();
 }
 
-function itemCard(it){
-    return `<div class="mf-purple p-3" data-item="${it.key}">
-        <div class="mf-hd">
+function itemCard(it, lv){
+    const isStand = (it.ref === '站立' || it.zh.includes('站立'));
+    return `<div class="mf-purple p-3.5 sm:p-4 rounded-3xl transition-all duration-300" data-item="${it.key}" id="card-${it.key}">
+        <!-- 卡片頂部標題列 -->
+        <div class="mf-hd border-b border-purple-200/70 pb-2 mb-3">
             <span class="mf-tag">🟣 可編輯</span>
-            <h4 id="ttl-${it.key}">${mfEsc(it.zh)}</h4>
-            <button type="button" data-act="preview" class="ml-auto bg-white border-2 border-purple-300 text-purple-600 rounded-full px-3 py-1.5 text-xs font-black active:scale-95">📖 範例彈窗</button>
+            <span class="text-base shrink-0">${it.icon || '🏃'}</span>
+            <h4 id="ttl-${it.key}" class="text-sm font-black text-gray-800">${mfEsc(it.zh)}</h4>
+            <span class="text-[10px] font-bold text-gray-400 font-mono bg-white px-1.5 py-0.5 rounded border border-gray-200">${it.key}</span>
+            <button type="button" data-act="preview" class="ml-auto bg-white hover:bg-purple-50 border-2 border-purple-300 text-purple-700 rounded-full px-3 py-1 text-xs font-black shadow-xs active:scale-95 transition-transform flex items-center gap-1">
+                <span>📖</span> 範例彈窗預覽
+            </button>
         </div>
 
-        <p class="mf-cap">項目名稱 / Nama</p>
-        <div class="grid grid-cols-2 gap-2">
-            <input type="text" data-act="zh" value="${mfEsc(it.zh)}" placeholder="中文名稱" class="mf-in">
-            <input type="text" data-act="id" value="${mfEsc(it.id)}" placeholder="Indonesia" class="mf-in">
+        <!-- 👀 直觀亮點：正式日誌畫面即時模擬 (Live Preview) -->
+        <div class="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-dashed border-purple-300 rounded-2xl p-3 mb-3.5">
+            <div class="flex items-center justify-between text-[11px] font-black text-purple-800 mb-1.5 flex-wrap gap-1">
+                <span class="flex items-center gap-1"><span>👀</span> <b>正式日誌畫面即時模擬</b>（修改下方名稱即時連動）：</span>
+                <span class="text-[10px] text-purple-700 bg-white/80 px-2 py-0.5 rounded-md border border-purple-200 font-mono">index.html #exercise-group</span>
+            </div>
+            <!-- 正式按鈕複製品 -->
+            <div class="bg-white border-2 border-stone-200 rounded-2xl p-2.5 flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-2 min-w-0 pr-2">
+                    <div class="w-4 h-4 rounded-full border-2 border-emerald-500 bg-emerald-500 flex items-center justify-center shrink-0">
+                        <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+                    </div>
+                    <div class="truncate">
+                        <span class="text-sm font-black text-gray-800" id="pv-btn-zh-${it.key}">${it.icon || '🏃'} ${mfEsc(it.zh)}</span>
+                        <span class="text-[11px] font-bold text-gray-500 ml-1.5 font-sans" id="pv-btn-id-${it.key}">${mfEsc(it.id)}</span>
+                    </div>
+                </div>
+                <button type="button" data-act="preview" class="shrink-0 bg-stone-100 hover:bg-stone-200 text-[#FB8B7A] rounded-full px-2.5 py-1 text-xs font-bold active:scale-95 transition-transform">
+                    📖 範例
+                </button>
+            </div>
+            ${isStand ? `
+            <div class="mt-2 text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-2.5 py-1.5 flex items-center gap-1.5">
+                <span>⚠️</span> <span><b>站立提示</b>：照顧者在正式日誌選取「站立」時，會自動展開站立安全紅框提醒（可在鏡像 U1 自訂開關與提醒文字）。</span>
+            </div>` : ''}
         </div>
 
-        <p class="mf-cap">🖼️ 照片網址（同步到全裝置；相對路徑如 rehab-img/xxx.jpg 或 https://…）</p>
-        <div data-urls class="space-y-1.5"></div>
-        <button type="button" data-act="add-url" class="mt-1.5 bg-white border border-purple-300 text-purple-600 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95">＋ 新增照片網址</button>
+        <!-- 三大明確編輯區塊 -->
+        <div class="space-y-3">
+            <!-- 區塊 ①：🏷️ 按鈕名稱 -->
+            <div class="bg-white rounded-2xl p-3 border border-purple-200/80 shadow-xs">
+                <div class="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                    <p class="text-xs font-black text-gray-800 flex items-center gap-1">
+                        <span>🏷️</span> <b>區塊 ①：日誌按鈕文字</b>
+                    </p>
+                    <span class="text-[10px] text-purple-600 font-bold bg-purple-50 px-2 py-0.5 rounded">連動正式日誌單選鈕</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 block mb-0.5">中文顯示名稱</label>
+                        <input type="text" data-act="zh" value="${mfEsc(it.zh)}" placeholder="例如：雙手舉水瓶" class="mf-in">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 block mb-0.5">印尼文顯示名稱 / Bahasa Indonesia</label>
+                        <input type="text" data-act="id" value="${mfEsc(it.id)}" placeholder="Contoh: Angkat Botol" class="mf-in">
+                    </div>
+                </div>
+            </div>
 
-        <p class="mf-cap">📤 上傳照片（自動縮到 800px；<span class="text-orange-700">只存在這支手機，不同步</span>）</p>
-        <div class="flex items-center gap-2 flex-wrap">
-            <label class="bg-white border border-orange-300 text-orange-700 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95 cursor-pointer">
-                📁 選擇照片<input type="file" accept="image/*" multiple data-act="upload" class="hidden">
-            </label>
-            <button type="button" data-act="clear-local" class="bg-white border border-gray-300 text-gray-600 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95">🗑️ 清除本機照片</button>
+            <!-- 區塊 ②：🖼️ 示範照片 -->
+            <div class="bg-white rounded-2xl p-3 border border-purple-200/80 shadow-xs">
+                <div class="flex items-center justify-between mb-1 flex-wrap gap-1">
+                    <p class="text-xs font-black text-gray-800 flex items-center gap-1">
+                        <span>🖼️</span> <b>區塊 ②：彈窗示範照片</b>
+                    </p>
+                    <span class="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">點「📖 範例」彈窗中顯示</span>
+                </div>
+                <p class="text-[10px] text-gray-500 font-bold mb-2">
+                    照片網址（相對路徑如 <code>rehab-img/xxx.jpg</code> 或 <code>https://…</code>）全裝置同步；手機上傳僅存本機。
+                </p>
+
+                <!-- 網址清單 -->
+                <div data-urls class="space-y-1.5 mb-2"></div>
+                <div class="flex items-center gap-2 flex-wrap mb-2">
+                    <button type="button" data-act="add-url" class="bg-purple-50 hover:bg-purple-100 border border-purple-300 text-purple-700 rounded-xl px-2.5 py-1 text-xs font-black active:scale-95 transition-colors">
+                        ＋ 新增照片網址
+                    </button>
+                    <label class="bg-orange-50 hover:bg-orange-100 border border-orange-300 text-orange-700 rounded-xl px-2.5 py-1 text-xs font-black active:scale-95 cursor-pointer transition-colors">
+                        📁 選擇照片上傳<input type="file" accept="image/*" multiple data-act="upload" class="hidden">
+                    </label>
+                    <button type="button" data-act="clear-local" class="bg-gray-50 hover:bg-gray-100 border border-gray-300 text-gray-600 rounded-xl px-2.5 py-1 text-xs font-bold active:scale-95 transition-colors">
+                        🗑️ 清除本機照片
+                    </button>
+                </div>
+                <!-- 本機照片預覽 -->
+                <div data-local class="grid grid-cols-3 sm:grid-cols-4 gap-2"></div>
+            </div>
+
+            <!-- 區塊 ③：📋 分解步驟教學 -->
+            <div class="bg-white rounded-2xl p-3 border border-purple-200/80 shadow-xs">
+                <div class="flex items-center justify-between mb-1 flex-wrap gap-1">
+                    <p class="text-xs font-black text-gray-800 flex items-center gap-1">
+                        <span>📋</span> <b>區塊 ③：彈窗分解步驟教學</b>
+                    </p>
+                    <span class="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">每行一步驟，彈窗自動編號</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 block mb-0.5">中文教學步驟（一行一步驟）</label>
+                        <textarea data-act="dzh" placeholder="中文步驟，一行一步" class="mf-in">${mfEsc(it.dzh)}</textarea>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 block mb-0.5">印尼文步驟 / Langkah Indonesia</label>
+                        <textarea data-act="did" placeholder="Indonesia (satu langkah per baris)" class="mf-in">${mfEsc(it.did)}</textarea>
+                    </div>
+                </div>
+
+                <!-- 即時步驟排版預覽 -->
+                <div class="bg-stone-50 rounded-xl p-2.5 border border-dashed border-stone-300">
+                    <p class="text-[10px] font-black text-gray-500 mb-1.5 flex items-center gap-1">
+                        <span>📱</span> 步驟排版即時預覽（彈窗顯示樣式）：
+                    </p>
+                    <div id="pv-steps-${it.key}" class="space-y-1.5"></div>
+                </div>
+            </div>
         </div>
-        <div data-local class="grid grid-cols-3 gap-2 mt-2"></div>
-
-        <p class="mf-cap">📝 介紹內容 / Deskripsi（每行一個步驟，彈窗會自動編號）</p>
-        <textarea data-act="dzh" placeholder="中文步驟，一行一步" class="mf-in mb-1.5">${mfEsc(it.dzh)}</textarea>
-        <textarea data-act="did" placeholder="Indonesia (satu langkah per baris)" class="mf-in">${mfEsc(it.did)}</textarea>
     </div>`;
 }
 
@@ -214,11 +399,12 @@ function renderUrls(key){
     const box = document.querySelector(`[data-item="${key}"] [data-urls]`);
     if (!box) return;
     box.innerHTML = it.imgs.length
-        ? it.imgs.map((u, i) => `<div class="flex items-center gap-1.5" data-url-i="${i}">
-                <input type="text" data-act="url" value="${mfEsc(u)}" placeholder="rehab-img/xxx.jpg" class="mf-in flex-1 min-w-0">
-                <button type="button" data-act="url-del" class="shrink-0 text-red-500 text-lg px-1 active:scale-90">🗑️</button>
+        ? it.imgs.map((u, i) => `<div class="flex items-center gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-200" data-url-i="${i}">
+                <img src="${mfEsc(u)}" onerror="this.src='rehab-img/legraise-1.jpg'" class="w-10 h-10 object-cover rounded-lg border border-gray-300 shrink-0 bg-white" alt="縮圖">
+                <input type="text" data-act="url" value="${mfEsc(u)}" placeholder="rehab-img/xxx.jpg 或 https://..." class="mf-in flex-1 min-w-0 text-xs py-1">
+                <button type="button" data-act="url-del" title="刪除此網址" class="shrink-0 w-7 h-7 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg active:scale-90 text-sm">🗑️</button>
             </div>`).join('')
-        : '<p class="text-[11px] text-gray-500 font-bold">尚無照片網址</p>';
+        : '<p class="text-[11px] text-gray-400 font-bold py-1">尚無照片網址（可點下方新增）</p>';
 }
 
 function renderLocalImgs(key){
@@ -227,8 +413,33 @@ function renderLocalImgs(key){
     const list = mfLocalImgList(key);
     box.innerHTML = list.length
         ? list.map(o => `<div><img src="${o.src}" class="thumb" alt="本機照片" loading="lazy" decoding="async"><p class="text-[10px] font-black text-orange-600 text-center mt-0.5">本機</p></div>`).join('')
-        : '<p class="text-[11px] text-gray-500 font-bold col-span-3">尚無本機照片</p>';
+        : '<p class="text-[11px] text-gray-400 font-bold col-span-3">尚無本機照片</p>';
 }
+
+function renderStepPreview(it){
+    const box = document.getElementById(`pv-steps-${it.key}`);
+    if (!box) return;
+    const stepsZh = String(it.dzh || '').split('\n').map(s => s.trim()).filter(Boolean);
+    const stepsId = String(it.did || '').split('\n').map(s => s.trim()).filter(Boolean);
+    if (!stepsZh.length && !stepsId.length) {
+        box.innerHTML = '<p class="text-[10px] font-bold text-gray-400 text-center py-1">尚未填寫步驟內容</p>';
+        return;
+    }
+    box.innerHTML = stepsZh.map((s, i) => `
+        <div class="flex items-start gap-2 bg-white rounded-lg p-1.5 border border-gray-200">
+            <span class="w-4 h-4 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">${i + 1}</span>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-gray-800 leading-tight">${mfEsc(s)}</p>
+                ${stepsId[i] ? `<p class="text-[10px] font-medium text-gray-500 leading-tight mt-0.5">${mfEsc(stepsId[i])}</p>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderAllStepPreviews(){
+    levels.forEach(lv => lv.items.forEach(it => renderStepPreview(it)));
+}
+
 function renderAllLocalImgs(){
     levels.forEach(lv => lv.items.forEach(it => { renderUrls(it.key); renderLocalImgs(it.key); }));
 }
@@ -268,7 +479,7 @@ function openPreview(key){
     modal.querySelector('.rehab-modal-scroll').scrollTop = 0;
     document.body.style.overflow = 'hidden';
 }
-/* 現行四項：直接用 mirror-ui.js 的原版教材（與正式頁一字不差） */
+/* 現行項目原版教材參考 */
 function openRefPreview(ref){
     const r = MIRROR_EX_REF[ref];
     if (!r) return;
@@ -312,11 +523,40 @@ function bindEvents(){
 
     body.addEventListener('input', e => {
         const el = e.target, act = el.dataset.act, it = itemOf(el);
-        if (it && act === 'zh') { it.zh = el.value; const t = document.getElementById('ttl-' + it.key); if (t) t.textContent = el.value; }
-        else if (it && act === 'id') it.id = el.value;
-        else if (it && act === 'dzh') it.dzh = el.value;
-        else if (it && act === 'did') it.did = el.value;
-        else if (it && act === 'url') { const row = el.closest('[data-url-i]'); it.imgs[+row.dataset.urlI] = el.value.trim(); }
+        if (it && act === 'zh') {
+            it.zh = el.value;
+            const t = document.getElementById('ttl-' + it.key);
+            if (t) t.textContent = el.value;
+            const pvZh = document.getElementById('pv-btn-zh-' + it.key);
+            if (pvZh) pvZh.textContent = (it.icon || '🏃') + ' ' + el.value;
+            const bZh = document.getElementById('board-zh-' + it.key);
+            if (bZh) bZh.textContent = el.value;
+        }
+        else if (it && act === 'id') {
+            it.id = el.value;
+            const pvId = document.getElementById('pv-btn-id-' + it.key);
+            if (pvId) pvId.textContent = el.value;
+            const bId = document.getElementById('board-id-' + it.key);
+            if (bId) bId.textContent = el.value;
+        }
+        else if (it && act === 'dzh') {
+            it.dzh = el.value;
+            renderStepPreview(it);
+            const bStep = document.getElementById('board-step-' + it.key);
+            if (bStep) bStep.textContent = '📋 ' + el.value.split('\n').filter(s => s.trim()).length + '步';
+        }
+        else if (it && act === 'did') {
+            it.did = el.value;
+            renderStepPreview(it);
+        }
+        else if (it && act === 'url') {
+            const row = el.closest('[data-url-i]');
+            it.imgs[+row.dataset.urlI] = el.value.trim();
+            const img = row.querySelector('img');
+            if (img) img.src = el.value.trim() || 'rehab-img/legraise-1.jpg';
+            const bImg = document.getElementById('board-img-' + it.key);
+            if (bImg) bImg.textContent = '🖼️ ' + it.imgs.filter(Boolean).length + '圖';
+        }
         updateSize();
     });
 
@@ -335,12 +575,38 @@ function bindEvents(){
     });
 
     body.addEventListener('click', e => {
+        const jumpBtn = e.target.closest('[data-jump]');
+        if (jumpBtn) {
+            const key = jumpBtn.dataset.jump;
+            const target = document.getElementById('card-' + key);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                target.classList.add('jump-highlight');
+                setTimeout(() => target.classList.remove('jump-highlight'), 1600);
+            }
+            return;
+        }
+
         const btn = e.target.closest('[data-act]');
         if (btn) {
             const act = btn.dataset.act, it = itemOf(btn);
             if (act === 'preview' && it) { openPreview(it.key); return; }
-            if (act === 'add-url' && it) { it.imgs.push(''); renderUrls(it.key); updateSize(); return; }
-            if (act === 'url-del' && it) { it.imgs.splice(+btn.closest('[data-url-i]').dataset.urlI, 1); renderUrls(it.key); updateSize(); return; }
+            if (act === 'add-url' && it) {
+                it.imgs.push('');
+                renderUrls(it.key);
+                const bImg = document.getElementById('board-img-' + it.key);
+                if (bImg) bImg.textContent = '🖼️ ' + it.imgs.filter(Boolean).length + '圖';
+                updateSize();
+                return;
+            }
+            if (act === 'url-del' && it) {
+                it.imgs.splice(+btn.closest('[data-url-i]').dataset.urlI, 1);
+                renderUrls(it.key);
+                const bImg = document.getElementById('board-img-' + it.key);
+                if (bImg) bImg.textContent = '🖼️ ' + it.imgs.filter(Boolean).length + '圖';
+                updateSize();
+                return;
+            }
             if (act === 'clear-local' && it) {
                 if (!confirm(`清除「${it.zh}」在這支手機上的所有上傳照片？此動作只影響本機，雲端網址不受影響。`)) return;
                 mfLocalImgClear(it.key); renderLocalImgs(it.key); mfToast('已清除本機照片'); return;

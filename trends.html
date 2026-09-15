@@ -7,7 +7,7 @@
 <!-- Chart.js 4.4.1（本地 vendor，無 CDN 依賴；MIT 授權見 vendor/chart.LICENSE.md） -->
 <script src="vendor/chart.umd.min.js"></script>
 <script src="care-auth.js?v=1"></script>
-<script src="care-tasks.js?v=13"></script>
+<script src="care-tasks.js?v=14"></script>
 <script src="care-clinical.js?v=1"></script>
 <style>
 /* ============ 自足式樣式（本頁不依賴 Tailwind CDN，離線快取後仍可完整顯示） ============
@@ -680,7 +680,7 @@ const CARDS = [
     purpose: ['心跳獨立成圖（不與血壓共用座標軸），追蹤永久性心律不整＋心臟擴大下的靜息心跳波動與異常尖峰。',
               'Detak jantung dipisah dari tensi; memantau fluktuasi & lonjakan abnormal pada aritmia permanen + kardiomegali.'],
     src: '來源：《預測心律不整病患血壓監測》、《照護紀錄升級：目標與圖表》' },
-  { id: 'c4', icon: '💪', h: 'h240', radar: true,
+  { id: 'c4', icon: '🐰', h: 'h240', radar: true,
     watch: ['達標率低先分辨是「還沒力氣」還是「當天沒被帶著做」；別把沒做當成§S§力竭，也別硬逼。', 'Capaian rendah: bedakan "belum kuat" vs "belum dikerjakan". Jangan anggap §S§ kelelahan, jangan paksa.'],
     tell: ['把復健達標趨勢給復健科看，問目標次數要不要依恢復狀況調整。', 'Tunjukkan tren capaian rehab; tanyakan apakah target perlu disesuaikan dengan pemulihan.'],
     title: ['④ 髖關節術後復健肌力達標率', '④ Capaian Rehabilitasi Pasca Operasi Panggul'],
@@ -1734,8 +1734,8 @@ function renderChrome(){
   document.getElementById('back-link').textContent = '← ' + L('回照護日誌', 'Kembali');
   document.getElementById('print-btn').textContent = '🖨️ ' + L('列印報告', 'Cetak laporan');
   document.getElementById('disclaimer').textContent =
-    '⚕️ ' + L('本頁各項警戒值與加權公式為本病患之照護紀錄輔助（部分標示 [需獨立驗證]），僅供家庭照護參考與回診溝通，非醫療診斷；用藥與目標調整請一律諮詢醫師。',
-              'Semua batas & rumus di halaman ini hanya alat bantu perawatan keluarga (sebagian [perlu verifikasi mandiri]), bukan diagnosis medis. Konsultasikan dokter untuk perubahan obat/target.');
+    '⚕️ ' + L('本頁各項警戒值與加權公式為照護紀錄輔助（屬多因子交互、定性研判，非機率預測，單看單一圖表無法涵蓋全面；需醫師判讀，部分標示 [需獨立驗證]）；本頁用意僅提供各項變數對需照顧者可能造成的影響供照顧者多加留意與回診溝通，非醫療診斷；用藥與目標調整請一律諮詢醫師。',
+              'Semua batas, rumus & analisis di halaman ini adalah alat bantu perawatan (interaksi multi-faktor & kualitatif, bukan prediksi probabilistik, tidak dapat disimpulkan hanya dari satu grafik; perlu interpretasi dokter, sebagian [perlu verifikasi mandiri]); halaman ini hanya bertujuan mengingatkan potensi pengaruh berbagai variabel terhadap pasien agar pengasuh lebih waspada dan untuk komunikasi saat kontrol, bukan diagnosis medis. Konsultasikan dokter untuk perubahan obat/target.');
   document.getElementById('foot-note').textContent =
     L('資料來源：本戶 Google 試算表照護紀錄（U1–U5 合併）。快取：今日即時、近 3 日 6 小時、更早 7 天；按 🔄 可強制重新同步。',
       'Sumber data: Google Sheets rumah tangga (U1–U5). Cache: hari ini langsung, 3 hari terakhir 6 jam, lebih lama 7 hari; tekan 🔄 untuk sinkron ulang.');
@@ -1954,10 +1954,10 @@ function applyInterpretations(){
   document.getElementById('synth-title').textContent =
     L('隱藏變數綜合研判（跨圖交叉）', 'Analisis Variabel Tersembunyi (lintas grafik)');
   const body = document.getElementById('synth-body');
-  // 說明列：這張卡＝固定跨圖規則逐條比對，不是 15 圖總結
+  // 說明列：這張卡＝固定跨圖規則逐條比對，提示各項變數可能對需照顧者造成的影響
   const expl = `<p class="synth-expl">${L(
-    'ℹ️ 這裡不是 15 張圖的總結：系統內建數條固定「跨圖交叉規則」，每條同時檢查 2–3 張圖的條件（文內標了是哪幾張圖），該區間內全部成立才會亮出來，依嚴重度排序。沒亮＝那個危險組合目前沒出現。若在上方建構器勾選了病患疾病，會再加上 🕸️「跨系統網絡」研判（多因子 N:M＋疾病敏化，屬定性知識網絡、非機率貝氏預測，需醫師判讀）。',
-    'ℹ️ Bukan ringkasan 15 grafik: aturan silang tetap, tiap aturan memeriksa kondisi 2–3 grafik sekaligus; hanya muncul bila semua terpenuhi, diurut berdasarkan tingkat keparahan. Bila penyakit pasien dipilih di atas, ditambah analisis 🕸️ "jaringan lintas-sistem" (N:M + sensitisasi penyakit; kualitatif, bukan prediksi probabilistik).')}</p>`;
+    'ℹ️ 這裡不是 15 張圖的總結：系統內建數條固定「跨圖交叉規則」，每條同時檢查 2–3 張圖的條件（文內標了是哪幾張圖），該區間內全部成立才會亮出來，依嚴重度排序。沒亮＝那個危險組合目前沒出現。若在上方建構器勾選了病患疾病，會再加上 🕸️「跨系統網絡」研判，提示各項變數可能對需照顧者造成的影響供照顧者多加留意。',
+    'ℹ️ Bukan ringkasan 15 grafik: aturan silang tetap, tiap aturan memeriksa kondisi 2–3 grafik sekaligus; hanya muncul bila semua terpenuhi, diurut berdasarkan tingkat keparahan. Bila penyakit pasien dipilih di atas, ditambah analisis 🕸️ "jaringan lintas-sistem" untuk mengingatkan potensi pengaruh variabel terhadap pasien agar pengasuh lebih waspada.')}</p>`;
   if (!A.hidden.length) {
     body.innerHTML = expl + `<div class="synth-item lv-good"><span class="tag">🟢</span>${
       L('目前跨圖未出現需要留意的變數組合。', 'Belum ada kombinasi variabel yang perlu diperhatikan.')}</div>`;
