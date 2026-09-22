@@ -19,7 +19,7 @@
 
 /* eslint-disable no-var */
 var CARE_AUTH_CLIENT_ID = '591777420446-hl5hpvd79nna9klklbrpi2lma29skq3s.apps.googleusercontent.com';
-var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORCE 開了才擋
+var CARE_AUTH_SOFT = false;     // 硬性強制：未登入者必須登入驗證，避免敏感資訊洩漏
 
 (function () {
     'use strict';
@@ -206,7 +206,15 @@ var CARE_AUTH_SOFT = true;      // 過渡期：不擋人，等後端 AUTH_ENFORC
         return el;
     }
 
-    function showGate() { if (document.body) { gateEl().style.display = 'flex'; } }
+    function showGate() {
+        if (document.body) {
+            gateEl().style.display = 'flex';
+        } else if (typeof document.addEventListener === 'function') {
+            document.addEventListener('DOMContentLoaded', function () {
+                if (document.body) { gateEl().style.display = 'flex'; }
+            });
+        }
+    }
     function hideGate() {
         var el = document.getElementById('care-auth-gate');
         if (el) { el.style.display = 'none'; }

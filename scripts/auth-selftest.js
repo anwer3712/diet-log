@@ -17,7 +17,7 @@ const liveJwt = 'h.' + b64url({ exp: Math.floor(Date.now() / 1000) + 3600, email
 const deadJwt = 'h.' + b64url({ exp: Math.floor(Date.now() / 1000) - 10, email: 'a@x.com' }) + '.s';
 
 const CID_LINE = /var CARE_AUTH_CLIENT_ID = '[^']*';/;
-const SOFT_LINE = /var CARE_AUTH_SOFT = true;/;
+const SOFT_LINE = /var CARE_AUTH_SOFT = (true|false);/;
 
 function loadFrontend(seedToken, opts) {
   opts = opts || {};
@@ -34,7 +34,7 @@ function loadFrontend(seedToken, opts) {
     set innerHTML(v) {}
   });
   const sandbox = {
-    console,
+    URL, console,
     Promise, JSON, Date, Object, encodeURIComponent, Request: function (u) { return { url: u }; },
     atob: (s) => Buffer.from(s, 'base64').toString('binary'),
     sessionStorage: {
@@ -56,7 +56,7 @@ function loadFrontend(seedToken, opts) {
       getElementById: () => null,
       createElement: () => el()
     },
-    location: { reload() {}, pathname: '/diet-log/index.html', search: opts.search || '', hash: '' }
+    location: { href: 'https://anwer3712.github.io/diet-log/index.html' + (opts.search || ''), reload() {}, pathname: '/diet-log/index.html', search: opts.search || '', hash: '' }
   };
   sandbox.window = sandbox;
   sandbox.fetch = function (input, init) {
@@ -69,6 +69,7 @@ function loadFrontend(seedToken, opts) {
   let src = fs.readFileSync(FE, 'utf8')
     .replace(CID_LINE, "var CARE_AUTH_CLIENT_ID = 'test.apps.googleusercontent.com';");
   if (opts.soft === false) { src = src.replace(SOFT_LINE, 'var CARE_AUTH_SOFT = false;'); }
+  else if (opts.soft === true) { src = src.replace(SOFT_LINE, 'var CARE_AUTH_SOFT = true;'); }
   const vm = require('vm');
   vm.createContext(sandbox);
   vm.runInContext(src, sandbox);
@@ -136,34 +137,34 @@ async function frontendTests() {
     ok('非 script.google.com → 不加 token');
   }
 
-  // 5. 過渡期（soft）沒 token → 照樣送出，不掛 idt、不擋畫面
+  // 5. 過渡期（soft=true）沒 token → 照樣送出，不掛 idt、不擋畫面
   {
-    const { sandbox, calls, bodyAppends } = loadFrontend(null);
+    const { sandbox, calls, bodyAppends } = loadFrontend(null, { soft: true });
     await sandbox.fetch('https://script.google.com/macros/s/X/exec?date=2026-08-13');
     assert.strictEqual(calls.length, 1, 'soft 模式不該擋住請求');
     assert.ok(!calls[0].url.includes('idt='), 'soft 模式沒 token 就不該掛 idt');
     assert.strictEqual(bodyAppends.length, 0, 'soft 模式不該長出登入遮罩');
-    ok('soft：沒 token → 照送不擋（OAuth 還沒設好也不會讓照顧者記不了帳）');
+    ok('soft=true：沒 token → 照送不擋（OAuth 還沒設好也不會讓照顧者記不了帳）');
   }
 
   // 6. 過期 token 在 soft 模式 → 不硬送舊 token，改成無 token 照送
   {
-    const { sandbox, calls } = loadFrontend(deadJwt);
+    const { sandbox, calls } = loadFrontend(deadJwt, { soft: true });
     await sandbox.fetch('https://script.google.com/macros/s/X/exec');
     assert.strictEqual(calls.length, 1);
     assert.ok(!calls[0].url.includes('idt='), '過期 token 不該被送出');
-    ok('soft：token 過期 → 不送過期 token，照樣放行');
+    ok('soft=true：token 過期 → 不送過期 token，照樣放行');
   }
 
-  // 7. 關掉 soft（等同後端已強制）→ 沒 token 就擋住
+  // 7. 關掉 soft（預設，等同後端已強制）→ 沒 token 就擋住
   {
-    const { sandbox, calls } = loadFrontend(null, { soft: false });
+    const { sandbox, calls } = loadFrontend(null);
     let settled = false;
     sandbox.fetch('https://script.google.com/macros/s/X/exec').then(() => { settled = true; });
     await new Promise((r) => setTimeout(r, 30));
     assert.strictEqual(calls.length, 0, '硬性模式沒 token 不該送出');
     assert.strictEqual(settled, false);
-    ok('soft=false：沒 token → 擋住請求等登入');
+    ok('soft=false（預設）：沒 token → 擋住請求等登入');
   }
 
   // 7b. 這支裝置有裝置金鑰 → 不需要 Google 帳號，請求帶 dt 而不是 idt
@@ -203,7 +204,7 @@ async function frontendTests() {
 
   // 8. 後端回 {error:'auth'} → 自動升級成硬性閘門，下一次請求被擋
   {
-    const { sandbox, calls } = loadFrontend(null, { serverSays: { error: 'auth', reason: 'not_allowed' } });
+    const { sandbox, calls } = loadFrontend(null, { soft: true, serverSays: { error: 'auth', reason: 'not_allowed' } });
     await sandbox.fetch('https://script.google.com/macros/s/X/exec');   // 第一次：soft 放行
     assert.strictEqual(calls.length, 1);
     let settled = false;
