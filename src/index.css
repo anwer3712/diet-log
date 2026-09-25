@@ -4,20 +4,31 @@
 
 @layer base {
   body {
-    @apply bg-[#FAFAFA] text-gray-800 antialiased selection:bg-rose-100 font-sans;
+    @apply bg-[#fafafa] text-gray-800 antialiased selection:bg-rose-100 font-sans;
+
     font-size: 16px;
   }
 }
 
 /* Animations from legacy design */
 @keyframes pulse-coral {
-  0%, 100% { transform: scale(1); border-color: #FB8B7A; box-shadow: 0 0 0 0 rgba(251,139,122,0.5); }
-  50% { transform: scale(1.01); border-color: #F4726B; box-shadow: 0 0 10px 3px rgba(251,139,122,0.25); }
+  0%,
+  100% {
+    transform: scale(1);
+    border-color: #fb8b7a;
+    box-shadow: 0 0 0 0 rgba(251, 139, 122, 0.5);
+  }
+
+  50% {
+    transform: scale(1.01);
+    border-color: #f4726b;
+    box-shadow: 0 0 10px 3px rgba(251, 139, 122, 0.25);
+  }
 }
 
 .celebrate-active {
   animation: pulse-coral 2s infinite ease-in-out;
-  background: #FFF5F3;
+  background: #fff5f3;
 }
 
 @keyframes pulse-red {

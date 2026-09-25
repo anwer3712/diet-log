@@ -412,7 +412,7 @@ function renderLocalImgs(key){
     if (!box) return;
     const list = mfLocalImgList(key);
     box.innerHTML = list.length
-        ? list.map(o => `<div><img src="${o.src}" class="thumb" alt="本機照片" loading="lazy" decoding="async"><p class="text-[10px] font-black text-orange-600 text-center mt-0.5">本機</p></div>`).join('')
+        ? list.map(o => `<div><img src="${mfEsc(o.src)}" class="thumb" alt="本機照片" loading="lazy" decoding="async"><p class="text-[10px] font-black text-orange-600 text-center mt-0.5">本機</p></div>`).join('')
         : '<p class="text-[11px] text-gray-400 font-bold col-span-3">尚無本機照片</p>';
 }
 
@@ -454,7 +454,7 @@ function openPreview(key){
 
     document.getElementById('rehab-modal-title').textContent = it.id ? `${it.zh} / ${it.id}` : it.zh;
     const imgHtml = imgs.length
-        ? imgs.map(o => `<div><img src="${o.src}" alt="${mfEsc(it.zh)}" loading="lazy" decoding="async" class="w-full rounded-2xl border border-gray-200 shadow-sm animated-img">${o.local ? '<p class="text-[10px] font-black text-orange-600 mt-0.5">本機照片（不同步）</p>' : ''}</div>`).join('')
+        ? imgs.map(o => `<div><img src="${mfEsc(o.src)}" alt="${mfEsc(it.zh)}" loading="lazy" decoding="async" class="w-full rounded-2xl border border-gray-200 shadow-sm animated-img">${o.local ? '<p class="text-[10px] font-black text-orange-600 mt-0.5">本機照片（不同步）</p>' : ''}</div>`).join('')
         : '<p class="text-xs font-bold text-gray-400 text-center py-6 border border-dashed rounded-2xl">尚未加入照片</p>';
     const stepHtml = stepsZh.length
         ? stepsZh.map((s, i) => `<div class="flex gap-2.5">
@@ -551,9 +551,13 @@ function bindEvents(){
         }
         else if (it && act === 'url') {
             const row = el.closest('[data-url-i]');
-            it.imgs[+row.dataset.urlI] = el.value.trim();
+            const rawVal = el.value.trim();
+            it.imgs[+row.dataset.urlI] = rawVal;
             const img = row.querySelector('img');
-            if (img) img.src = el.value.trim() || 'rehab-img/legraise-1.jpg';
+            if (img) {
+                const safeUrl = /^(?:https?:\/\/|rehab-img\/|\.\/|\/)[a-zA-Z0-9_\-./%?&=+#]*$/.test(rawVal) ? rawVal : (rawVal ? '' : 'rehab-img/legraise-1.jpg');
+                img.src = safeUrl || 'rehab-img/legraise-1.jpg';
+            }
             const bImg = document.getElementById('board-img-' + it.key);
             if (bImg) bImg.textContent = '🖼️ ' + it.imgs.filter(Boolean).length + '圖';
         }
