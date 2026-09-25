@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#FAFAFA] text-gray-800 antialiased selection:bg-rose-100 font-sans;
+    font-size: 16px;
+  }
+}
+
+/* Animations from legacy design */
+@keyframes pulse-coral {
+  0%, 100% { transform: scale(1); border-color: #FB8B7A; box-shadow: 0 0 0 0 rgba(251,139,122,0.5); }
+  50% { transform: scale(1.01); border-color: #F4726B; box-shadow: 0 0 10px 3px rgba(251,139,122,0.25); }
+}
+
+.celebrate-active {
+  animation: pulse-coral 2s infinite ease-in-out;
+  background: #FFF5F3;
+}
+
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(153, 27, 27, 0.9); }
+  50% { box-shadow: 0 0 24px 10px rgba(153, 27, 27, 0.55); }
+}
+
+.danger-active {
+  animation: pulse-red 1.2s infinite ease-in-out;
+  border-color: #991b1b !important;
+  border-width: 4px !important;
+}
+
+/* Bunny exercise animation */
+@keyframes bunny-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.anim-bunny {
+  animation: bunny-bounce 1.2s infinite ease-in-out;
+  transform-origin: bottom center;
+}
+
+/* Heart pulse animation */
+@keyframes heart-pulse {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.18); }
+  28% { transform: scale(1.04); }
+  42% { transform: scale(1.15); }
+  70% { transform: scale(1); }
+}
+
+.anim-heart {
+  animation: heart-pulse 1.2s infinite ease-in-out;
+  transform-origin: center center;
+}

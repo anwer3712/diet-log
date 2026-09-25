@@ -2,6 +2,7 @@
 .claude/
 .remember/
 node_modules/
+dist/
 
 # 本機參考資料／存檔網頁，勿推上公開 repo
 *_files/

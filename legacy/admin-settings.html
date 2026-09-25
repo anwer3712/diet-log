@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理設定 — 陽光照護日誌</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="care-auth.js?v=1"></script>
+    <script src="care-tasks.js?v=14"></script>
+    <script src="care-clinical.js?v=1"></script>
+    <style>
+        body { background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 45%, #fff1f2 100%); }
+        .animate-spin-slow { animation: spin 3s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes icon-bounce-gentle {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-4px) scale(1.08); }
+        }
+        .heading-icon { display: inline-block; animation: icon-bounce-gentle 2s ease-in-out infinite; }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen pb-12 font-sans">
+
+    <div class="max-w-3xl mx-auto px-4 pt-5">
+
+        <div class="text-center mb-3">
+            <a href="admin.html"><h1 class="text-xl font-black text-purple-600 tracking-wide"><span class="heading-icon">⚙️</span> 管理設定</h1></a>
+            <p class="text-[11px] text-gray-400 font-bold mt-0.5">使用者設定／分析連結（點標題回管理者總表）</p>
+        </div>
+
+        <!-- 導覽 -->
+        <div class="grid grid-cols-2 gap-2 mb-3">
+            <a href="admin.html" class="bg-sky-50 border border-sky-200 text-sky-600 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">🗂️ 管理者總表（進度／紀錄）</a>
+            <a href="index.html" class="bg-rose-50 border border-rose-200 text-rose-600 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">📝 回日誌</a>
+        </div>
+
+        <!-- 快速入口 -->
+        <div class="grid grid-cols-5 gap-2 mb-3">
+            <a href="index.html?user=1" class="bg-rose-50 border border-rose-200 text-rose-600 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">👤 U1</a>
+            <a href="index.html?user=2" class="bg-sky-50 border border-sky-200 text-sky-600 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">👤 U2</a>
+            <a href="index.html?user=3" class="bg-green-50 border border-green-200 text-green-700 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">👤 U3</a>
+            <a href="index.html?user=4" class="bg-amber-50 border border-amber-200 text-amber-700 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">👤 U4</a>
+            <a href="anak.html" class="bg-indigo-50 border border-indigo-200 text-indigo-600 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">👦 U5</a>
+        </div>
+
+        <!-- 🪞 鏡像介面：全文字開啟 + 可編輯（U1 設定／U2 復健分級）；與本頁寫同一份 cfg.ui -->
+        <div class="grid grid-cols-2 gap-2 mb-3">
+            <a href="mirror-u1.html" class="bg-purple-50 border-2 border-purple-300 text-purple-700 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">🪞 鏡像 U1（公告／顯示／提醒／藥物／模式／計算）</a>
+            <a href="mirror-u2.html" class="bg-green-50 border-2 border-green-300 text-green-700 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">🪞 鏡像 U2（復健 LEVEL 1–4 · 彈窗 · 照片）</a>
+        </div>
+
+        <!-- 🏥 病患疾病：放在 📈 健康趨勢分析入口上方（疾病勾選餵給趨勢頁研判建構器） -->
+        <div id="dx-slot" class="mb-3"></div>
+
+        <!-- Looker「進階分析：週趨勢／達成率」已依需求移除；內建趨勢頁保留 -->
+        <div class="grid grid-cols-1 gap-2 mb-3">
+            <a href="trends.html" class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">📈 健康趨勢分析（內建 15 圖＋研判建構器＋跨圖綜合研判）</a>
+            <a id="sheet-link" href="https://docs.google.com/spreadsheets/d/1K2kmt5iqhaZ6zIl6sAXny-vjx8JnJCL2D-t5W3Ab9Wk/edit" target="_blank" class="bg-green-50 border border-green-200 text-green-700 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">📊 原始試算表（月總覽／樞紐）</a>
+        </div>
+
+        <!-- 使用者設定：名字 + 授權連結 -->
+        <div class="bg-white rounded-3xl p-4 shadow-sm border-2 border-purple-100 mb-3">
+            <h3 class="font-black text-gray-700 text-sm mb-2">👥 使用者設定（名字全裝置同步；授權連結點開即綁定手機身分，免密碼）</h3>
+            <div class="space-y-2" id="user-setup">
+                <!-- rows injected -->
+            </div>
+            <div class="flex gap-2 mt-3">
+                <button type="button" onclick="saveNames()" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-black rounded-2xl py-2.5 text-xs active:scale-95">💾 儲存名字</button>
+            </div>
+            <p class="text-[10px] text-gray-300 font-bold mt-2">✉️ Gmail＝開啟寄信視窗、連結已填好，填上照顧者信箱寄出即可。照顧者在手機點連結 → 該手機固定為此身分。</p>
+        </div>
+
+        <!-- 顯示與提醒 · 記錄模式 · 數字（全部存雲端 cfg.ui，全裝置同步；改完按最下方儲存） -->
+        <div id="ui-settings" class="space-y-3"></div>
+        <div class="sticky bottom-2 z-20 mt-3">
+            <button type="button" onclick="saveSettings()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl py-3 text-sm shadow-lg active:scale-95">💾 儲存所有設定（顯示／提醒／模式／數字）</button>
+        </div>
+
+        <div id="loading" class="text-center py-6 text-gray-400 text-sm font-bold hidden"><span class="inline-block animate-spin-slow">🔄</span> 讀取中…</div>
+    </div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycby-3Q--z4t03yOtgtMpkbhYccmxD9dqvmrqQdX4sg4vZNBfjgyuKYuL6HZuHkro7p0o/exec";
+let cachedGoals = {};
+
+/* ===== 使用者設定：名字（存 last_med blob）＋授權連結 ===== */
+function renderUserSetup(){
+    document.getElementById('user-setup').innerHTML = ['1','2','3','4','5'].map(u => {
+        const cur = careUserName(cachedGoals, u);
+        const joinBtns = u === '5'
+            ? `<span class="text-[10px] text-gray-300 font-bold shrink-0">👦 anak.html 專用</span>`
+            : `<button type="button" onclick="copyJoin('${u}')" class="bg-sky-50 border border-sky-200 text-sky-600 px-2.5 py-2 rounded-2xl text-[10px] font-black active:scale-95 shrink-0">📋 複製連結</button>
+            <button type="button" onclick="gmailJoin('${u}')" class="bg-red-50 border border-red-200 text-red-500 px-2.5 py-2 rounded-2xl text-[10px] font-black active:scale-95 shrink-0">✉️ Gmail</button>`;
+        return `<div class="flex items-center gap-2">
+            <span class="text-[11px] font-black text-gray-500 w-9 shrink-0">👤U${u}</span>
+            <input id="uname-${u}" type="text" value="${cur === 'U'+u ? '' : cur.replace(/"/g,'&quot;')}" placeholder="輸入名字" class="flex-1 min-w-0 bg-gray-50 border-0 rounded-2xl py-2 px-3 text-xs font-bold text-gray-700">
+            ${joinBtns}
+        </div>`;
+    }).join('');
+}
+function saveNames(){
+    const cfg = careConfig(cachedGoals);
+    cfg.names = cfg.names || {};
+    ['1','2','3','4','5'].forEach(u => { cfg.names[u] = document.getElementById('uname-'+u).value.trim(); });
+    cachedGoals['last_med'] = JSON.stringify(cfg);
+    fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'setMed', val: JSON.stringify(cfg) }) })
+        .then(r=>r.json()).then(()=>{ renderUserSetup(); safeAlert('✅ 名字已儲存，所有裝置同步。'); })
+        .catch(()=>safeAlert('⚠️ 儲存失敗，請檢查網路。'));
+}
+function joinMailBody(u){
+    const name = careUserName(cachedGoals, u);
+    return `你好 ${name}：\n\n請用「手機」點下面這個連結，開啟後這支手機就會固定成你的照護日誌身分（👤U${u}），以後不用再選：\n\n${careJoinLink(u)}\n\nHalo ${name}:\nSilakan buka tautan ini di ponsel Anda. Setelah dibuka, ponsel ini akan terdaftar sebagai identitas Anda (U${u}).`;
+}
+function safeAlert(m){ try { alert(m); } catch(e) { console.log(m); } }
+function copyJoin(u){
+    const link = careJoinLink(u);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(()=>safeAlert('✅ 已複製 👤U'+u+' 的授權連結：\n'+link));
+    } else { try { window.prompt('複製這個連結：', link); } catch(e) { safeAlert(link); } }
+}
+function gmailJoin(u){
+    const url = 'https://mail.google.com/mail/?view=cm&su=' + encodeURIComponent('照護日誌 授權連結（👤U'+u+'）') + '&body=' + encodeURIComponent(joinMailBody(u));
+    window.open(url, '_blank');
+}
+
+/* ===== 顯示與提醒 · 記錄模式 · 數字 設定（存 cfg.ui，全裝置同步；讀 careUI／存 careSaveUI） ===== */
+const esc = careEscapeHtml;
+const UI_SHOW_ITEMS = [
+    ['bedRail','🚨 床圍欄警語（頂部紅幅）'],['catheter','🚽 導尿管訓練提示（排出頁）'],
+    ['bpGuide','💡 血壓測量指南（血壓頁）'],['rehabNote','🕒 復健說明（運動頁）'],
+    ['standWarn','⚠️ 站立安全指南（選「站立」時）'],['enemaWarn','🚫 浣腸警告（勾浣腸時）'],
+    ['urineRangeInfo','💧 目標區間說明列']
+];
+const UI_POPUP_ITEMS = [
+    ['reminder','🔔 照護提醒彈窗（時段提醒總開關）'],['intake21','⏰ 攝入未達標提醒'],
+    ['rehabRemind','🏃 未復健提醒'],['urineRemind','🚽 睡前尿液提醒'],['gridRemind','📋 進度盤點提醒'],
+    ['bowelAlert','💩 未解便超時警告'],['bpAlert','⚠️ 血壓超標彈窗'],
+    ['fluidOver','🚨 攝入超標警告'],['urineOver','🚨 尿量超標警告']
+];
+const UI_TIME_ITEMS = [
+    ['intakeCheck','攝入盤點時間'],['rehabFrom','復健提醒起'],['rehabDeadline','復健期限'],
+    ['gridFrom','進度盤點起'],['urineFrom','睡前尿液起'],['bpMorning','早血壓期限'],['bpNight','晚血壓期限']
+];
+const UI_NUM_ITEMS = [
+    ['fluidMin','攝入正常下限','cc'],['fluidMax','攝入上限／超標','cc'],
+    ['uFactorNone','尿量倍率·無藥',''],['uFactorAux','尿量倍率·輔助',''],['uFactorFull','尿量倍率·完整',''],
+    ['catheterHours','導尿管每次上限','小時'],['catheterTimes','導尿管每日','次'],
+    ['bowelMinH','未解便警告·起','小時'],['bowelMaxH','未解便警告·迄','小時']
+];
+let curDiuretics = [], curNotices = [], curReminders = [];   // 動態清單，儲存時從這裡讀
+
+function card(title, inner){ return `<div class="bg-white rounded-3xl p-4 shadow-sm border-2 border-purple-100"><h3 class="font-black text-gray-700 text-sm mb-2">${title}</h3>${inner}</div>`; }
+function chkRow(id, on, label){ return `<label class="flex items-center gap-2 py-1 text-xs font-bold text-gray-700 cursor-pointer"><input type="checkbox" id="ui-${id}" class="w-4 h-4" ${on?'checked':''}> ${label}</label>`; }
+function textBlock(label, key, val){
+    return `<div class="mb-2">${label ? `<p class="text-[11px] font-bold text-gray-500 mb-1">${label}</p>` : ''}
+        <input type="text" id="ui-text-${key}-zh" value="${esc(val.zh)}" placeholder="中文（留空＝內建）" class="w-full bg-gray-50 border-0 rounded-xl py-1.5 px-2 text-xs font-bold mb-1">
+        <input type="text" id="ui-text-${key}-id" value="${esc(val.id)}" placeholder="Indonesia（留空＝內建）" class="w-full bg-gray-50 border-0 rounded-xl py-1.5 px-2 text-xs font-bold"></div>`;
+}
+/* 縮排子區塊：時段／數字／血壓區間直接掛在對應勾選項底下（勾選＝要不要顯示，欄位＝門檻可改） */
+function sub(inner){ return `<div class="ml-6 mb-2 bg-gray-50/70 border border-gray-100 rounded-xl p-2">${inner}</div>`; }
+function editText(key, val){
+    const filled = (val.zh || val.id) ? ' open' : '';
+    return `<details class="mb-1"${filled}><summary class="text-[11px] font-bold text-purple-500 cursor-pointer">✏️ 自訂文字（空＝用內建）</summary><div class="mt-1">${textBlock('', key, val)}</div></details>`;
+}
+function numInline(k, l, u, val){
+    return `<label class="text-[11px] font-bold text-gray-600 inline-flex items-center gap-1 mr-3 mb-1">${l}<input type="number" step="any" id="ui-num-${k}" value="${esc(val)}" class="w-20 bg-white border border-gray-200 rounded-lg py-1 px-2 text-xs font-bold">${u ? `<span class="text-[10px] text-gray-400">${u}</span>` : ''}</label>`;
+}
+function timeInline(k, l, val){
+    return `<label class="text-[11px] font-bold text-gray-600 inline-flex items-center gap-1 mr-3 mb-1">${l}<input type="time" id="ui-time-${k}" value="${esc(val)}" class="bg-white border border-gray-200 rounded-lg py-1 px-2 text-xs font-bold"></label>`;
+}
+function diseaseGroups(){   // DISEASES（care-clinical.js）依 system 分組，保留原順序＝7 組標題
+    const order = [], groups = {};
+    (typeof DISEASES !== 'undefined' ? DISEASES : []).forEach(d => {
+        if (!groups[d.system]) { groups[d.system] = []; order.push(d.system); }
+        groups[d.system].push(d);
+    });
+    return order.map(sys => [sys, groups[sys]]);
+}
+function renderSettings(){
+    const ui = careUI(cachedGoals);
+    curDiuretics = (ui.diuretics || []).map(d => ({ name:d.name, aux:!!d.aux }));
+    curNotices = (ui.notices || []).map(n => ({ on:!!n.on, zh:n.zh||'', id:n.id||'', pos:n.pos||'top' }));
+    curReminders = (ui.reminders || []).map(r => ({ on:!!r.on, time:r.time||'', zh:r.zh||'', id:r.id||'' }));
+    const curDiseases = ui.diseases || [];   // 固定目錄勾選框，非動態清單；勾選狀態即來源，存檔時直接讀 DOM
+
+    const subj = card('👤 內文稱呼（用於警語／提示文字中對照顧對象的稱呼）', `
+        <div class="flex gap-2">
+            <input type="text" id="ui-subj-zh" value="${esc(ui.subject.zh)}" placeholder="中文稱呼（例：案主）" class="flex-1 min-w-0 bg-gray-50 border-0 rounded-xl py-1.5 px-2 text-xs font-bold">
+            <input type="text" id="ui-subj-id" value="${esc(ui.subject.id)}" placeholder="Indonesia（contoh: Klien）" class="flex-1 min-w-0 bg-gray-50 border-0 rounded-xl py-1.5 px-2 text-xs font-bold">
+        </div>`);
+    const modes = card('🧾 記錄模式', `
+        <p class="text-xs font-bold text-gray-500 mb-1">尿液</p>
+        <div class="flex flex-wrap gap-3 mb-2 text-xs font-bold">
+            <label class="flex items-center gap-1"><input type="radio" name="ui-urineMode" value="cc" ${ui.urineMode!=='count'?'checked':''}> 容量 CC（現狀）</label>
+            <label class="flex items-center gap-1"><input type="radio" name="ui-urineMode" value="count" ${ui.urineMode==='count'?'checked':''}> 次數制（只記顏色+利尿藥）</label>
+        </div>
+        <p class="text-[10px] text-gray-400 mb-2">※ 次數制不填 CC，自動計 1 筆；會關閉「尿量 CC 目標／超標警告」。</p>
+        <p class="text-xs font-bold text-gray-500 mb-1">排便</p>
+        <div class="flex flex-wrap gap-3 text-xs font-bold">
+            <label class="flex items-center gap-1"><input type="radio" name="ui-stoolMode" value="status" ${ui.stoolMode!=='weight'?'checked':''}> 狀態+利便藥（現狀）</label>
+            <label class="flex items-center gap-1"><input type="radio" name="ui-stoolMode" value="weight" ${ui.stoolMode==='weight'?'checked':''}> 記重量（g，目標仍算次數）</label>
+        </div>`);
+    const diur = card('💊 利尿藥物（填寫頁可複選；換算倍率取最高）', `
+        <p class="text-[10px] text-gray-400 font-bold mb-2">用途：這份清單＝填寫頁「尿液」的當日藥物按鈕。每種藥屬「輔助」或「完整」，決定當日尿液目標＝當日總攝入 × 下方倍率；同日選多種藥時取最高倍率。</p>
+        <div id="diuretic-list" class="space-y-2"></div>
+        <button type="button" onclick="addDiuretic()" class="mt-2 bg-sky-50 border border-sky-200 text-sky-600 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95">＋ 新增藥物</button>
+        <div class="mt-3 pt-2 border-t border-gray-100">
+            <p class="text-[11px] font-black text-gray-500 mb-1">尿液目標換算倍率</p>
+            ${numInline('uFactorNone','無藥','×', ui.num.uFactorNone)}${numInline('uFactorAux','輔助','×', ui.num.uFactorAux)}${numInline('uFactorFull','完整','×', ui.num.uFactorFull)}
+        </div>`);
+
+    // 👁️ 顯示項目：每項＝勾選（顯示與否）＋可編文字＋相關門檻直接掛在底下
+    const showRows = {
+        bedRail: editText('bedRail', ui.text.bedRail),
+        catheter: editText('catheter', ui.text.catheter)
+            + `<div class="mt-1">${numInline('catheterHours','每次上限','小時', ui.num.catheterHours)}${numInline('catheterTimes','每日','次', ui.num.catheterTimes)}</div>`,
+        bpGuide: editText('bpGuide', ui.text.bpGuide),
+        rehabNote: editText('rehabNote', ui.text.rehabNote),
+        standWarn: editText('standWarn', ui.text.standWarn),
+        enemaWarn: editText('enemaWarn', ui.text.enemaWarn),
+        urineRangeInfo: `${numInline('fluidMin','攝入正常下限','cc', ui.num.fluidMin)}<p class="text-[10px] text-gray-400 mt-1">※ 此列文字依目標／倍率即時計算，不可自訂。</p>`
+    };
+    const show = card('👁️ 顯示項目（勾＝顯示；✏️＝改成你的字）',
+        UI_SHOW_ITEMS.map(([k,l]) => chkRow('show-'+k, ui.show[k], l) + (showRows[k] ? sub(showRows[k]) : '')).join(''));
+
+    const bpRow = (slot, label, r) => `<p class="text-[11px] font-black text-gray-500 mt-1">${label}</p><div class="grid grid-cols-3 gap-1">${['sys','dia','hr'].map(k => {
+        const nm = {sys:'收縮',dia:'舒張',hr:'心跳'}[k];
+        return `<div class="text-[10px] font-bold text-gray-500">${nm}<div class="flex items-center gap-0.5"><input type="number" id="ui-bp-${slot}-${k}-0" value="${esc(r[k][0])}" class="w-full bg-gray-50 border-0 rounded-lg py-1 px-1 text-xs font-bold text-center">–<input type="number" id="ui-bp-${slot}-${k}-1" value="${esc(r[k][1])}" class="w-full bg-gray-50 border-0 rounded-lg py-1 px-1 text-xs font-bold text-center"></div></div>`;
+    }).join('')}</div>`;
+
+    // 🔔 彈窗／提醒：時段（原🕐卡）、門檻數字（原🔢卡）、血壓區間（原🩺卡）直接掛在對應提醒底下
+    const popupRows = {
+        intake21: timeInline('intakeCheck','盤點時間', ui.time.intakeCheck),
+        rehabRemind: timeInline('rehabFrom','提醒起', ui.time.rehabFrom) + timeInline('rehabDeadline','期限', ui.time.rehabDeadline),
+        urineRemind: timeInline('urineFrom','提醒起', ui.time.urineFrom),
+        gridRemind: timeInline('gridFrom','盤點起', ui.time.gridFrom),
+        bowelAlert: numInline('bowelMinH','警告起','小時', ui.num.bowelMinH) + numInline('bowelMaxH','警告迄','小時', ui.num.bowelMaxH),
+        bpAlert: timeInline('bpMorning','早壓期限', ui.time.bpMorning) + timeInline('bpNight','晚壓期限', ui.time.bpNight)
+            + `<p class="text-[11px] font-black text-gray-500 mt-2">🩺 血壓合理區間（下限–上限）</p>`
+            + bpRow('early','🌞 早（服藥前）', ui.bp.early) + bpRow('late','🌙 晚（睡前）', ui.bp.late),
+        fluidOver: numInline('fluidMax','攝入上限／超標','cc', ui.num.fluidMax),
+        urineOver: `<p class="text-[10px] text-gray-400">超標門檻＝當日尿液目標（倍率在上方 💊 卡設定）。</p>`
+    };
+    const popup = card('🔔 彈窗／提醒（時段與門檻直接設在各項下方）',
+        UI_POPUP_ITEMS.map(([k,l]) => chkRow('popup-'+k, ui.popup[k], l) + (popupRows[k] ? sub(popupRows[k]) : '')).join('')
+        + `<div class="mt-3 pt-2 border-t border-gray-100">
+            <p class="text-[11px] font-black text-gray-500 mb-1">⏰ 自訂時間提醒（到點在日誌頁彈窗，每支手機每日提醒一次）</p>
+            <div id="reminder-list" class="space-y-2"></div>
+            <button type="button" onclick="addReminder()" class="mt-2 bg-sky-50 border border-sky-200 text-sky-600 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95">＋ 新增提醒</button>
+        </div>`);
+
+    const notice = card('📢 自訂公告（勾選＋文字 → 顯示在使用者頁）', `<div id="notice-list" class="space-y-2"></div>
+        <button type="button" onclick="addNotice()" class="mt-2 bg-amber-50 border border-amber-200 text-amber-600 rounded-2xl px-3 py-1.5 text-[11px] font-black active:scale-95">＋ 新增公告</button>`);
+    const dx = card('🏥 病患疾病（可複選） / Penyakit pasien', diseaseGroups().map(([sys, list]) =>
+        `<p class="text-[11px] font-bold text-gray-500 mt-2 first:mt-0 mb-1">${esc(sys)}</p>
+        <div class="grid grid-cols-2 gap-x-2">${list.map(d =>
+            `<label class="flex items-center gap-2 py-1 text-xs font-bold text-gray-700 cursor-pointer"><input type="checkbox" class="dx-chk w-4 h-4" value="${d.id}" ${curDiseases.includes(d.id)?'checked':''}> ${esc(d.zh)}（${esc(d.idn)}）</label>`
+        ).join('')}</div>`
+    ).join('') + `<p class="text-[10px] text-gray-400 font-bold mt-2">勾選後按最下方「儲存所有設定」，📈 健康趨勢分析的研判建構器會吃這份疾病清單。</p>`);
+
+    document.getElementById('dx-slot').innerHTML = dx;   // 疾病卡固定放在 📈 健康趨勢分析入口上方
+    document.getElementById('ui-settings').innerHTML = subj+modes+diur+show+popup+notice;
+    renderDiuretics(); renderNotices(); renderReminders();
+}
+function renderDiuretics(){
+    document.getElementById('diuretic-list').innerHTML = curDiuretics.map((d,i) =>
+        `<div class="flex items-center gap-1.5">
+            <input type="text" value="${esc(d.name)}" oninput="curDiuretics[${i}].name=this.value" placeholder="藥名" class="flex-1 min-w-0 bg-gray-50 border-0 rounded-xl py-1.5 px-2 text-xs font-bold">
+            <select onchange="curDiuretics[${i}].aux=(this.value==='aux')" class="bg-gray-50 border-0 rounded-xl py-1.5 px-1 text-[11px] font-bold shrink-0">
+                <option value="aux" ${d.aux?'selected':''}>輔助 ×倍率</option>
+                <option value="full" ${!d.aux?'selected':''}>完整 ×倍率</option>
+            </select>
+            <button type="button" onclick="curDiuretics.splice(${i},1);renderDiuretics()" class="shrink-0 text-red-400 text-lg px-1 active:scale-90">🗑️</button>
+        </div>`).join('') || '<p class="text-[11px] text-gray-400">尚無藥物，按下方新增</p>';
+}
+function addDiuretic(){ curDiuretics.push({ name:'', aux:true }); renderDiuretics(); }
+function renderNotices(){
+    const posOpt = cur => [['top','頂部'],['output','排出頁']].map(([v,l])=>`<option value="${v}" ${cur===v?'selected':''}>${l}</option>`).join('');
+    document.getElementById('notice-list').innerHTML = curNotices.map((n,i) =>
+        `<div class="border border-gray-200 rounded-xl p-2 space-y-1">
+            <div class="flex items-center gap-2">
+                <label class="flex items-center gap-1 text-[11px] font-bold text-gray-600"><input type="checkbox" ${n.on?'checked':''} onchange="curNotices[${i}].on=this.checked"> 顯示</label>
+                <select onchange="curNotices[${i}].pos=this.value" class="bg-gray-50 border-0 rounded-lg py-1 px-1 text-[11px] font-bold">${posOpt(n.pos)}</select>
+                <button type="button" onclick="curNotices.splice(${i},1);renderNotices()" class="ml-auto text-red-400 text-lg px-1 active:scale-90">🗑️</button>
+            </div>
+            <input type="text" value="${esc(n.zh)}" oninput="curNotices[${i}].zh=this.value" placeholder="中文提示文字" class="w-full bg-gray-50 border-0 rounded-lg py-1.5 px-2 text-xs font-bold">
+            <input type="text" value="${esc(n.id)}" oninput="curNotices[${i}].id=this.value" placeholder="Indonesia (opsional)" class="w-full bg-gray-50 border-0 rounded-lg py-1.5 px-2 text-xs font-bold">
+        </div>`).join('') || '<p class="text-[11px] text-gray-400">尚無公告，按下方新增</p>';
+}
+function addNotice(){ curNotices.push({ on:true, zh:'', id:'', pos:'top' }); renderNotices(); }
+function renderReminders(){
+    document.getElementById('reminder-list').innerHTML = curReminders.map((r,i) =>
+        `<div class="border border-gray-200 rounded-xl p-2 space-y-1">
+            <div class="flex items-center gap-2">
+                <label class="flex items-center gap-1 text-[11px] font-bold text-gray-600"><input type="checkbox" ${r.on?'checked':''} onchange="curReminders[${i}].on=this.checked"> 啟用</label>
+                <input type="time" value="${esc(r.time)}" onchange="curReminders[${i}].time=this.value" class="bg-gray-50 border-0 rounded-lg py-1 px-2 text-xs font-bold">
+                <button type="button" onclick="curReminders.splice(${i},1);renderReminders()" class="ml-auto text-red-400 text-lg px-1 active:scale-90">🗑️</button>
+            </div>
+            <input type="text" value="${esc(r.zh)}" oninput="curReminders[${i}].zh=this.value" placeholder="提醒內容（中文）" class="w-full bg-gray-50 border-0 rounded-lg py-1.5 px-2 text-xs font-bold">
+            <input type="text" value="${esc(r.id)}" oninput="curReminders[${i}].id=this.value" placeholder="Indonesia (opsional)" class="w-full bg-gray-50 border-0 rounded-lg py-1.5 px-2 text-xs font-bold">
+        </div>`).join('') || '<p class="text-[11px] text-gray-400">尚無自訂提醒，按下方新增</p>';
+}
+function addReminder(){ curReminders.push({ on:true, time:'', zh:'', id:'' }); renderReminders(); }
+function readSettings(){
+    const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+    const chk = id => { const el = document.getElementById(id); return el ? el.checked : false; };
+    const D = CARE_UI_DEFAULTS;
+    const patch = {
+        urineMode: (document.querySelector('input[name="ui-urineMode"]:checked')||{}).value || 'cc',
+        stoolMode: (document.querySelector('input[name="ui-stoolMode"]:checked')||{}).value || 'status',
+        diuretics: curDiuretics.filter(d => String(d.name).trim()).map(d => ({ name:d.name.trim(), aux:!!d.aux })),
+        notices: curNotices.filter(n => String(n.zh).trim() || String(n.id).trim()).map(n => ({ on:!!n.on, zh:n.zh.trim(), id:(n.id||'').trim(), pos:n.pos==='output'?'output':'top' })),
+        reminders: curReminders.filter(r => /^\d{2}:\d{2}$/.test(String(r.time)) && (String(r.zh).trim() || String(r.id).trim()))
+            .map(r => ({ on:!!r.on, time:r.time, zh:String(r.zh).trim(), id:String(r.id||'').trim() })),
+        diseases: Array.from(document.querySelectorAll('.dx-chk:checked')).map(el => el.value),
+        subject: { zh: val('ui-subj-zh').trim() || D.subject.zh, id: val('ui-subj-id').trim() || D.subject.id },
+        show: {}, popup: {}, text: {}, time: {}, num: {}, bp: { early:{}, late:{} }
+    };
+    UI_SHOW_ITEMS.forEach(([k]) => patch.show[k] = chk('ui-show-'+k));
+    UI_POPUP_ITEMS.forEach(([k]) => patch.popup[k] = chk('ui-popup-'+k));
+    ['bedRail','catheter','bpGuide','rehabNote','standWarn','enemaWarn'].forEach(k => patch.text[k] = { zh: val('ui-text-'+k+'-zh').trim(), id: val('ui-text-'+k+'-id').trim() });
+    UI_TIME_ITEMS.forEach(([k]) => { const v = val('ui-time-'+k); patch.time[k] = /^\d{2}:\d{2}$/.test(v) ? v : D.time[k]; });
+    UI_NUM_ITEMS.forEach(([k]) => { const v = parseFloat(val('ui-num-'+k)); patch.num[k] = isFinite(v) ? v : D.num[k]; });
+    ['early','late'].forEach(slot => ['sys','dia','hr'].forEach(k => {
+        const lo = parseFloat(val('ui-bp-'+slot+'-'+k+'-0')), hi = parseFloat(val('ui-bp-'+slot+'-'+k+'-1'));
+        patch.bp[slot][k] = [ isFinite(lo)?lo:D.bp[slot][k][0], isFinite(hi)?hi:D.bp[slot][k][1] ];
+    }));
+    return patch;
+}
+function saveSettings(){
+    const json = careSaveUI(cachedGoals, readSettings());   // 就地更新 cachedGoals.last_med
+    fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'setMed', val: json }) })
+        .then(r=>r.json()).then(()=>{ renderSettings(); safeAlert('✅ 設定已儲存，所有裝置同步。'); })
+        .catch(()=>safeAlert('⚠️ 儲存失敗，請檢查網路。'));
+}
+
+function loadData(){
+    document.getElementById('loading').classList.remove('hidden');
+    fetch(`${GAS_URL}?date=${careTodayStr()}&t=${Date.now()}`, { cache:'no-store' })
+        .then(r => r.json())
+        .then(data => { cachedGoals = data.goals || {}; renderUserSetup(); renderSettings(); })
+        .catch(() => safeAlert('⚠️ 同步失敗，名字欄先顯示預設。'))
+        .finally(() => document.getElementById('loading').classList.add('hidden'));
+}
+
+(function init(){
+    // 與 admin.html 共用同一個 PIN 授權（sessionStorage）
+    if (sessionStorage.getItem('care_admin_ok') !== '1') {
+        if (!careAskPin('管理設定需要密碼 / Perlu PIN admin')) { location.href = 'index.html'; return; }
+        sessionStorage.setItem('care_admin_ok', '1');
+    }
+    renderUserSetup();
+    renderSettings();   // 先用預設/快取渲染，loadData 回來再以雲端值重繪
+    loadData();
+})();
+</script>
+</body>
+</html>

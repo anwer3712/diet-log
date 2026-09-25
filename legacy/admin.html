@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者總表 — 陽光照護日誌</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="care-auth.js?v=1"></script>
+    <script src="care-tasks.js?v=14"></script>
+    <style>
+        body { background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 45%, #fff1f2 100%); }
+        .animate-spin-slow { animation: spin 3s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* 警示一律動態呈現：超標跳動、錯誤框紅光暈 */
+        .over-flash { animation: over-flash 1s infinite ease-in-out; }
+        @keyframes over-flash {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.15); opacity: .65; }
+        }
+        .glow-red { animation: glow-red 1.2s infinite ease-in-out; }
+        @keyframes glow-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(153, 27, 27, .8); }
+            50% { box-shadow: 0 0 18px 6px rgba(153, 27, 27, .4); }
+        }
+        @keyframes icon-bounce-gentle {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-4px) scale(1.08); }
+        }
+        .heading-icon { display: inline-block; animation: icon-bounce-gentle 2s ease-in-out infinite; }
+        @media print { .no-print { display: none !important; } body { background: #fff; } }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen pb-12 font-sans">
+
+    <div class="max-w-3xl mx-auto px-4 pt-5">
+
+        <div class="text-center mb-3">
+            <a href="index.html"><h1 class="text-xl font-black text-sky-600 tracking-wide"><span class="heading-icon">🗂️</span> 管理者總表</h1></a>
+            <p class="text-[11px] text-gray-400 font-bold mt-0.5">使用者 U1–U5 合併檢視（點標題回日誌）</p>
+        </div>
+
+        <!-- 導覽：其他內容移到 admin-settings.html -->
+        <div class="no-print grid grid-cols-2 gap-2 mb-3">
+            <a href="index.html" class="bg-rose-50 border border-rose-200 text-rose-600 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">📝 回日誌</a>
+            <a href="admin-settings.html" class="bg-purple-50 border border-purple-200 text-purple-700 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">⚙️ 管理設定（顯示／提醒／模式／使用者）</a>
+            <a href="trends.html" class="col-span-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-center py-2 rounded-2xl text-[11px] font-black active:scale-95">📈 健康趨勢分析（15 圖＋研判建構器）</a>
+        </div>
+
+        <!-- 進度格（病患層級，三人共同達成） -->
+        <div class="bg-white rounded-3xl p-3 shadow-sm border-2 border-sky-100 mb-3 overflow-x-auto">
+            <div id="progress-grid" class="text-center text-[10px] text-gray-300 font-bold">⏳</div>
+        </div>
+
+        <!-- 預計目標 vs 達成總數（U1–U5 合計） -->
+        <div id="goals-table" class="mb-3"></div>
+
+        <!-- 日期 + 使用者篩選 -->
+        <div class="no-print bg-white rounded-3xl p-3 shadow-sm border border-gray-100 mb-3 space-y-2">
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="shiftDate(-1)" class="bg-gray-100 text-gray-600 px-3 py-2 rounded-2xl text-sm font-black active:scale-95">◀</button>
+                <input id="report-date" type="date" class="flex-1 bg-gray-50 border-0 rounded-2xl py-2 px-3 text-sm font-bold text-gray-700 text-center" onchange="loadData()">
+                <button type="button" onclick="shiftDate(1)" class="bg-gray-100 text-gray-600 px-3 py-2 rounded-2xl text-sm font-black active:scale-95">▶</button>
+            </div>
+            <div id="user-filter" class="flex gap-1.5 justify-center"></div>
+        </div>
+
+        <div id="loading" class="text-center py-6 text-gray-400 text-sm font-bold hidden"><span class="inline-block animate-spin-slow">🔄</span> 讀取中…</div>
+
+        <div id="admin-container"></div>
+    </div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycby-3Q--z4t03yOtgtMpkbhYccmxD9dqvmrqQdX4sg4vZNBfjgyuKYuL6HZuHkro7p0o/exec";
+
+const CAT_SHORT = {
+    '飲水量':'飲水', '服藥飲水':'服藥', '營養飲品':'營養', '進食':'進食',
+    '尿液':'尿液', '排便':'排便',
+    '仰臥抬腿':'仰臥抬腿', '大腿內收':'大腿內收', '橋式抬臀':'橋式抬臀', '站立':'站立',
+    '雙手舉水瓶':'舉水瓶', '腳底板抬壓':'抬腳壓', '膝蓋彎伸':'膝彎伸'
+};
+function catShort(cat){
+    if (CAT_SHORT[cat]) return CAT_SHORT[cat];
+    if (cat && cat.indexOf('血壓/心跳') === 0) return '血壓' + (cat.includes('(早)') ? '(早)' : cat.includes('(晚)') ? '(晚)' : '');
+    return cat;
+}
+function unitOf(cat){
+    if (['排便'].concat(CARE_EX_TYPES).includes(cat)) return '次';
+    if (['雙手舉水瓶','腳底板抬壓','膝蓋彎伸'].includes(cat)) return '組';
+    if (cat && cat.indexOf('血壓') === 0) return '';
+    return 'cc';
+}
+
+let FILTER = 'all';   // all | 1 | 2 | 3 | none
+let cachedRecords = [];
+let cachedGoals = {};
+
+/* 目標值後端按日期存：換到還沒設定的日期會空白 → 沿用本機記住的「前一次數值」
+ * （與 index.html 共用同一把 localStorage 'last_goals'，同裝置設過就看得到） */
+function getLastGoals(){ try { return JSON.parse(localStorage.getItem('last_goals') || '{}'); } catch(e) { return {}; } }
+function saveLastGoal(item, val){
+    if (val === '' || val === null || typeof val === 'undefined') return;
+    const g = getLastGoals(); g[item] = val;
+    localStorage.setItem('last_goals', JSON.stringify(g));
+}
+/* 讀目標：雲端當日值 → 本機前次值 */
+function goalOf(k){ return cachedGoals['goal_' + k] || getLastGoals()[k] || ''; }
+
+/* ===== 預計目標 vs 達成總數（U1–U5 合計；設定類功能移到 admin-settings.html）
+ * 復健四項：達成總數＝各筆「次數」加總（index / anak 存的都是實際完成次數，
+ * 不再以筆數計，避免一筆 10 次卻顯示 1 次）；預計目標可直接點✏️設定並同步雲端 ===== */
+function goalsTableHtml(records){
+    const sum = cats => records.filter(r => cats.includes(r.category)).reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+    const cnt = cat => records.filter(r => r.category === cat).length;
+    const g = goalOf;   // 雲端當日值 → 本機前次值 fallback
+    const intake = sum(['飲水量', '服藥飲水', '營養飲品', '進食']);
+    const urine = sum(['尿液']);
+    // 尿液目標＝已達攝入 ×0.9；利尿藥物（輔助）×1.1；利尿藥物 ×1.3。排便目標＝1 次；利便藥物 2 顆以上＝顆數
+    const ui = careUI(cachedGoals);   // 超標門檻／倍率／尿液模式吃管理設定
+    const med = careMedFromRecords(records);
+    const uCount = ui.urineMode === 'count';
+    const uGoal = careUrineGoal(intake, med.diuretic, ui);
+    const uLabel = med.diuretic === 'full' ? `（利尿藥物 ×${ui.num.uFactorFull}）` : med.diuretic === 'aux' ? `（利尿藥物(輔助) ×${ui.num.uFactorAux}）` : `（×${ui.num.uFactorNone}）`;
+    const sGoal = careStoolGoal(med.laxPills);
+    // [名稱, 目標顯示, 達成顯示, 超標?, 可編輯目標的 category（null＝不可編輯）]
+    const rows = [
+        ['💧 總攝入水量', (g('總攝入水量') || '—') + ' cc', intake + ' cc', intake > ui.num.fluidMax, '總攝入水量'],
+        ['🚽 尿液', uCount ? '次數制' : (intake ? uGoal + ' cc ' + uLabel : '—'), uCount ? (cnt('尿液') + ' 次') : (urine + ' cc'), !uCount && urine > 0 && uGoal > 0 && urine > uGoal, null],
+        ['💩 排便', sGoal + ' 次' + (med.laxPills > 0 ? `（利便藥物${med.laxPills}顆）` : ''), cnt('排便') + ' 次', false, null]
+    ].concat(CARE_EX_TYPES.map(ex => ['🐰 ' + ex, (g(ex) || '—') + ' 次', sum([ex]) + ' 次（' + cnt(ex) + ' 筆）', false, ex]));
+    return `<div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-3 py-2 text-[10px] font-black text-gray-400 border-b border-gray-100">🎯 預計目標 vs 達成總數（U1–U5 合計）｜點 ✏️ 設定目標</div>
+        <table class="w-full text-left">
+            <thead><tr class="text-[9px] text-gray-400 font-black border-b border-gray-100 bg-gray-50/50">
+                <th class="py-1 px-3">項目</th><th class="py-1 px-3">預計目標</th><th class="py-1 px-3">達成總數</th>
+            </tr></thead>
+            <tbody>${rows.map(([n, goal, got, over, editCat]) => `<tr class="border-b border-gray-50 ${over ? 'bg-red-50/70' : ''}">
+                <td class="py-1.5 px-3 text-[11px] font-black text-gray-700">${n}</td>
+                <td class="py-1.5 px-3 text-[11px] font-bold text-gray-500">${editCat
+                    ? `<button type="button" onclick="editGoal('${editCat}')" class="inline-flex items-center gap-1 rounded-lg px-1.5 py-0.5 -mx-1.5 hover:bg-purple-50 active:scale-95 transition-all">${goal} <span class="text-purple-400">✏️</span></button>`
+                    : goal}</td>
+                <td class="py-1.5 px-3 text-[12px] font-black ${over ? 'text-red-600' : 'text-gray-800'}">${got}${over ? ' <span class="over-flash inline-block">⚠️超標</span>' : ''}</td>
+            </tr>`).join('')}</tbody>
+        </table></div>`;
+}
+
+/* 目標直接在總表設定（含復健四項）：寫回雲端 goal_<category>，
+ * 後端 sheet 若尚無該項目列會由 GAS setGoal 建立，補齊新復健項目的目標欄位 */
+function editGoal(cat){
+    const unit = unitOf(cat);
+    const cur = goalOf(cat);
+    let v;
+    try { v = prompt(`設定「${cat}」每日預計目標（${unit}）`, cur); } catch(e) { return; }
+    if (v === null) return;
+    v = String(v).trim();
+    if (v === '' || isNaN(Number(v)) || Number(v) < 0) { alert('請輸入 0 以上的數字'); return; }
+    cachedGoals['goal_' + cat] = v;   // 樂觀更新
+    saveLastGoal(cat, v);             // 記住，之後未設定的日期沿用
+    render();
+    fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'setGoal', category:cat, amount:v }) })
+        .catch(() => alert('⚠️ 目標同步失敗，請檢查網路後重試'));
+}
+
+function renderFilter(counts){
+    const nm = u => careUserName(cachedGoals, u);
+    const defs = [['1','👤'+nm('1')],['2','👤'+nm('2')],['3','👤'+nm('3')],['4','👤'+nm('4')],['5','👦'+nm('5')],['all','👤ALL']];
+    document.getElementById('user-filter').innerHTML = defs.map(([k,lbl]) => {
+        const c = counts ? (counts[k] || 0) : 0;
+        return `<button type="button" onclick="setFilter('${k}')" class="px-3 py-1.5 rounded-full text-[11px] font-black border ${FILTER===k?'bg-sky-500 text-white border-sky-500':'bg-white text-gray-500 border-gray-200'}">${lbl}${counts?` <span class="opacity-70">${c}</span>`:''}</button>`;
+    }).join('');
+}
+function setFilter(k){ FILTER = k; render(); }
+
+function shiftDate(days){
+    const inp = document.getElementById('report-date');
+    const d = new Date(inp.value + 'T00:00:00');
+    d.setDate(d.getDate() + days);
+    inp.value = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().split('T')[0];
+    loadData();
+}
+
+function loadData(){
+    const date = document.getElementById('report-date').value;
+    const url = new URL(location); url.searchParams.set('date', date); history.replaceState(null,'',url);
+    document.getElementById('loading').classList.remove('hidden');
+    fetch(`${GAS_URL}?date=${date}&t=${Date.now()}`, { cache:'no-store' })
+        .then(r => r.json())
+        .then(data => {
+            cachedRecords = (data.records||[]).filter(r => r.status !== '無效');
+            cachedGoals = data.goals || {};
+            Object.keys(cachedGoals).forEach(k => { if (k.startsWith('goal_')) saveLastGoal(k.replace('goal_', ''), cachedGoals[k]); });
+            render();
+        })
+        .catch(() => { document.getElementById('admin-container').innerHTML =
+            `<div class="glow-red text-center py-6 text-red-500 text-sm font-bold bg-white rounded-3xl border-2 border-red-300">⚠️ 同步失敗，請檢查網路</div>`; })
+        .finally(() => document.getElementById('loading').classList.add('hidden'));
+}
+
+function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, ch => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+    }[ch]));
+}
+
+function render(){
+    const date = document.getElementById('report-date').value;
+    const safeDate = escapeHtml(date);
+    const records = cachedRecords;
+
+    // 進度格＝病患層級（不分記錄者）
+    const { tasks, lateRecIds } = careComputeTasks(records, date, cachedGoals);
+    careRenderGrid(document.getElementById('progress-grid'), tasks, 'zh');
+    document.getElementById('goals-table').innerHTML = goalsTableHtml(records);
+
+    // 各使用者筆數
+    const counts = { all: records.length, '1':0, '2':0, '3':0, '4':0, '5':0, 'A':0, none:0 };
+    records.forEach(r => { const u = careUserOfNote(r.note); counts[u || 'none']++; });
+    renderFilter(counts);
+
+    // 👤ALL＝全表（含舊的未標記紀錄）；U1/U2/U3＝各自的紀錄
+    const show = records.filter(r => {
+        const u = careUserOfNote(r.note);
+        if (FILTER === 'all') return true;
+        return u === FILTER;
+    });
+
+    let bodyRows = '';
+    CARE_SLOTS.forEach(slot => {
+        const recs = show
+            .filter(r => careInSlot(r.time, slot))
+            .sort((a,b) => a.time.localeCompare(b.time));
+        const missed = FILTER === 'all' ? tasks.filter(t => t.slot === slot.key && t.state === 'missed') : [];
+        const n = recs.length + missed.length;
+        if (n === 0) return;
+
+        const slotCell = `<td rowspan="${n}" class="align-top py-1.5 px-2 text-[10px] font-black text-gray-500 bg-gray-50/80 whitespace-nowrap border-r border-gray-100">${slot.zh}<div class="text-[8px] text-gray-300">${slot.start}-${slot.end}</div></td>`;
+        let first = true;
+                recs.forEach(r => {
+                                const late = lateRecIds.has(r.recordId);
+                                const c = late ? 'text-amber-600' : 'text-gray-700';
+                                const u = careUserOfNote(r.note);
+                                const note = careEscapeHtml(careNoteDisplay(r.note, 'zh'));
+                                const safeTime = careEscapeHtml(r.time);
+                                const safeCat = careEscapeHtml(catShort(r.category));
+                                const safeAmount = careEscapeHtml(r.amount !== '' && r.amount !== undefined ? r.amount : '');
+                                const uColor = { '1':'bg-rose-100 text-rose-600', '2':'bg-sky-100 text-sky-600', '3':'bg-green-100 text-green-700', '4':'bg-amber-100 text-amber-700', '5':'bg-indigo-100 text-indigo-600', 'A':'bg-purple-100 text-purple-600' }[u] || 'bg-gray-100 text-gray-400';
+                                bodyRows += `<tr class="border-b border-gray-50 ${late?'bg-amber-50/60':''}">
+                                ${first ? slotCell : ''}
+                                <td class="py-1.5 px-2 text-[11px] font-black whitespace-nowrap ${c}">${safeTime}${late?'🟧':''}</td>
+                                <td class="py-1.5 px-2"><span class="text-[9px] font-black px-1.5 py-0.5 rounded-md ${uColor}">${u?'U'+u:'—'}</span></td>
+                                <td class="py-1.5 px-2 text-[11px] font-bold ${c}">${safeCat} ${safeAmount}${unitOf(r.category)}</td>
+                                <td class="py-1.5 px-2 text-[10px] ${late ? 'text-amber-500 font-bold' : 'text-gray-400'}">${late ? '補齊' + (note?'｜'+note:'') : (note || '')}</td>
+                                </tr>`;
+                                first = false;
+                });
+        missed.forEach(t => {
+            bodyRows += `<tr class="border-b border-gray-50 bg-red-50/60">
+                ${first ? slotCell : ''}
+                <td class="py-1.5 px-2 text-[12px] font-black text-red-600">XX</td>
+                <td class="py-1.5 px-2"><span class="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-red-100 text-red-500">—</span></td>
+                <td class="py-1.5 px-2 text-[11px] font-black text-red-600">${t.full_zh}</td>
+                <td class="py-1.5 px-2 text-[10px] font-bold text-red-400">未完成</td>
+            </tr>`;
+            first = false;
+        });
+    });
+
+    const done = tasks.filter(t=>t.state==='done').length,
+          late = tasks.filter(t=>t.state==='late').length,
+          miss = tasks.filter(t=>t.state==='missed').length;
+
+    document.getElementById('admin-container').innerHTML = `
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-3 py-2 text-[10px] font-black text-gray-400 border-b border-gray-100 flex justify-between">
+            <span>${safeDate}${FILTER!=='all' ? '（篩選：' + (FILTER==='none'?'未標記':'U'+FILTER) + '）' : ''}</span>
+            <span><span class="text-green-600">✓${done}</span>　<span class="text-amber-500">補${late}</span>　<span class="text-red-600">✕${miss}</span>　共${show.length}筆</span>
+        </div>
+        <table class="w-full text-left">
+            <thead><tr class="text-[9px] text-gray-400 font-black border-b border-gray-100 bg-gray-50/50">
+                <th class="py-1 px-2">時間段</th>
+                <th class="py-1 px-2">記錄時間</th>
+                <th class="py-1 px-2">記錄者</th>
+                <th class="py-1 px-2">記錄事件</th>
+                <th class="py-1 px-2">備註</th>
+            </tr></thead>
+            <tbody>${bodyRows || `<tr><td colspan="5" class="py-4 text-center text-[11px] text-gray-300">📭 無符合紀錄</td></tr>`}</tbody>
+        </table>
+    </div>
+    <p class="text-[10px] text-gray-300 font-bold text-center mt-3">舊紀錄無 👤 標記者列於「未標記」。趨勢分析可用試算表樞紐或免費 Looker Studio 連接原始試算表。</p>`;
+}
+
+(function init(){
+    // 管理者密碼閘門（同裝置一次授權，關閉瀏覽器後重問）
+    if (sessionStorage.getItem('care_admin_ok') !== '1') {
+        if (!careAskPin('管理者總表需要密碼 / Perlu PIN admin')) { location.href = 'index.html'; return; }
+        sessionStorage.setItem('care_admin_ok', '1');
+    }
+    const p = new URLSearchParams(location.search).get('date');
+    document.getElementById('report-date').value = (p && /^\d{4}-\d{2}-\d{2}$/.test(p)) ? p : careTodayStr();
+    renderFilter(null);
+    loadData();
+})();
+</script>
+</body>
+</html>

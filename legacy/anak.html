@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>陽光日誌 — 兒童版 / Catatan Mentari — Anak</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="care-auth.js?v=1"></script>
+    <script src="care-tasks.js?v=14"></script>
+    <style>
+        /* ============================================================
+         * 兒童＋先天遠視設計原則：超大字、白底高對比、粗實心框、
+         * 引導一律用「粗框＋強光暈」動態（禁用淡色/細閃動，他看不到）
+         * 主色改為深青 teal（原 sky 藍停用）；紅色只留給緊急警示
+         * ============================================================ */
+        :root {
+            --ink: #111827;
+            --line: #d1d5db;
+            --accent: #0f766e;        /* 深青：選取/主要動作 */
+            --accent-soft: #ccfbf1;
+            --guide: #6d28d9;         /* 深紫：目前步驟引導（與大人版一致） */
+            --guide2: #a855f7;
+            --danger: #b91c1c;        /* 深紅：緊急專用 */
+        }
+        body { background: #ffffff; color: var(--ink); font-size: 22px; }
+
+        /* 步驟卡：粗框＋左上超大數字徽章 */
+        .step { position: relative; border: 4px solid var(--line); border-radius: 1.75rem; }
+        .stepnum {
+            position: absolute; top: -1.35rem; left: -0.4rem;
+            width: 3.6rem; height: 3.6rem; border-radius: 9999px;
+            background: #111827; color: #fff;
+            font-size: 2.1rem; font-weight: 900; line-height: 1;
+            display: flex; align-items: center; justify-content: center;
+            border: 4px solid #fff; box-shadow: 0 3px 10px rgba(0,0,0,.25);
+            z-index: 10;
+        }
+        /* 目前步驟：深紫粗框動態引導（取代 DI SINI 文字）；加粗 6px＋大光暈，遠視兒童看得清楚 */
+        .step.now { border-color: var(--guide); border-width: 6px; animation: guide-step 1.1s infinite ease-in-out; }
+        .step.now .stepnum { background: var(--guide); animation: badge-pulse 1.1s infinite ease-in-out; }
+        @keyframes guide-step {
+            0%, 100% { border-color: var(--guide);  box-shadow: 0 0 0 4px rgba(109,40,217,.5); }
+            50%      { border-color: var(--guide2); box-shadow: 0 0 0 14px rgba(109,40,217,.32); }
+        }
+        @keyframes badge-pulse {
+            0%, 100% { transform: scale(1); }
+            50%      { transform: scale(1.12); }
+        }
+
+        /* 藍色閃動邊框：紫色大框標示「目前步驟」，藍色閃框標示「現在要填的欄位」
+         * （遠視友善：粗框＋強光暈，不用淡色細閃） */
+        .guide-flash { border-color: #0284c7 !important; border-radius: 1rem; animation: guide-flash 1.1s infinite ease-in-out; }
+        @keyframes guide-flash {
+            0%, 100% { box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.9); }
+            50%      { box-shadow: 0 0 20px 9px rgba(2, 132, 199, 0.45); }
+        }
+
+        /* 出現動畫：步驟/彈窗滑入 */
+        .enter { animation: pop-in .35s cubic-bezier(.2, .9, .3, 1.3); }
+        @keyframes pop-in {
+            from { opacity: 0; transform: translateY(14px) scale(.96); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* 圖片動畫呈現：呼吸動態微浮、懸停縮放微光、載入進場 */
+        @keyframes img-breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        @keyframes img-fade-in {
+            from { opacity: 0; transform: translateY(6px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animated-img {
+            animation: img-fade-in 0.4s ease-out, img-breathe 4s ease-in-out infinite 0.4s;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+        }
+        .choice:hover .animated-img, .animated-img:hover {
+            transform: scale(1.06);
+            filter: brightness(1.05);
+        }
+
+        /* 標題前頭動畫圖示以提高辨識度 */
+        @keyframes icon-bounce-gentle {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-4px) scale(1.15); }
+        }
+        .heading-icon, h1 .heading-icon, h2 .heading-icon, h3 .heading-icon {
+            display: inline-block;
+            animation: icon-bounce-gentle 2s infinite ease-in-out;
+            transform-origin: center bottom;
+        }
+
+        /* 緊急警示動態：深紅強光暈＋進場搖晃，務必醒目 */
+        .alert-banner { animation: shake .5s ease 2, glow-red 1.2s infinite ease-in-out; }
+        .glow-red { animation: glow-red 1.2s infinite ease-in-out; }
+        @keyframes glow-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(153, 27, 27, .9); }
+            50%      { box-shadow: 0 0 26px 10px rgba(153, 27, 27, .5); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-7px); } 40% { transform: translateX(7px); }
+            60% { transform: translateX(-5px); } 80% { transform: translateX(5px); }
+        }
+        .bounce-big { display: inline-block; animation: bounce-big 1s infinite; }
+        @keyframes bounce-big {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-12px); }
+        }
+        .modal-card { animation: pop-in .3s cubic-bezier(.2, .9, .3, 1.3); }
+        .modal-card.danger { animation: pop-in .3s cubic-bezier(.2, .9, .3, 1.3), shake .5s ease .3s 2, glow-red 1.2s infinite ease-in-out .9s; }
+
+        /* 按鈕通用 */
+        .bigbtn { min-height: 64px; transition: transform .12s ease, background-color .2s, color .2s, border-color .2s; }
+        .bigbtn:active { transform: scale(.95); }
+        .choice { border: 4px solid #1f2937; border-radius: 1.25rem; font-weight: 900; background: #fff; }
+        .choice.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .chip.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .ringed { box-shadow: 0 0 0 6px var(--accent); border-color: var(--accent) !important; }
+
+        .animate-spin-slow { animation: spin 3s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* ===== 兒童版四大類自製 SVG 動畫圖示 ===== */
+        .type-icon-box {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.25rem auto;
+            position: relative;
+        }
+        .type-icon-svg {
+            width: 64px;
+            height: 64px;
+            overflow: visible;
+        }
+        .type-btn.selected .type-icon-box {
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35));
+        }
+
+        /* 1. 兔子復健運動動畫 */
+        @keyframes bunny-body-bounce {
+            0%, 100% { transform: translateY(0) scale(1, 1); }
+            40% { transform: translateY(-7px) scale(0.98, 1.04); }
+            50% { transform: translateY(-8px) scale(0.97, 1.05); }
+            75% { transform: translateY(1px) scale(1.04, 0.96); }
+        }
+        @keyframes bunny-ear-wiggle-l {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-10deg); }
+        }
+        @keyframes bunny-ear-wiggle-r {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(10deg); }
+        }
+        @keyframes bunny-arm-dumbbell {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes bunny-sparkle {
+            0%, 100% { transform: scale(0.6) rotate(0deg); opacity: 0.3; }
+            50% { transform: scale(1.2) rotate(45deg); opacity: 1; }
+        }
+        @keyframes bunny-sweat {
+            0% { transform: translateY(-3px); opacity: 0; }
+            50% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(5px); opacity: 0; }
+        }
+        .anim-bunny-body {
+            animation: bunny-body-bounce 1.2s infinite ease-in-out;
+            transform-origin: bottom center;
+        }
+        .anim-bunny-ear-l {
+            animation: bunny-ear-wiggle-l 1.2s infinite ease-in-out;
+            transform-origin: 22px 28px;
+        }
+        .anim-bunny-ear-r {
+            animation: bunny-ear-wiggle-r 1.2s infinite ease-in-out;
+            transform-origin: 42px 28px;
+        }
+        .anim-bunny-dumbbell {
+            animation: bunny-arm-dumbbell 1.2s infinite ease-in-out;
+            transform-origin: center center;
+        }
+        .anim-bunny-sparkle {
+            animation: bunny-sparkle 1.2s infinite ease-in-out;
+            transform-origin: 52px 14px;
+        }
+        .anim-bunny-sweat {
+            animation: bunny-sweat 1.2s infinite ease-in-out;
+        }
+
+        /* 2. 吃喝飲食動畫 */
+        @keyframes steam-drift-1 {
+            0% { transform: translateY(0) scaleY(0.7); opacity: 0; }
+            50% { opacity: 0.85; }
+            100% { transform: translateY(-9px) scaleY(1.2); opacity: 0; }
+        }
+        @keyframes steam-drift-2 {
+            0% { transform: translateY(0) scaleY(0.7); opacity: 0; }
+            50% { opacity: 0.9; }
+            100% { transform: translateY(-11px) scaleY(1.3); opacity: 0; }
+        }
+        @keyframes food-spoon-dip {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(-10deg); }
+        }
+        @keyframes food-bowl-sway {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-2px) rotate(1.5deg); }
+        }
+        @keyframes drink-straw-sip {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-5deg); }
+        }
+        .anim-steam-1 {
+            animation: steam-drift-1 1.6s infinite ease-out;
+        }
+        .anim-steam-2 {
+            animation: steam-drift-2 1.6s infinite ease-out 0.5s;
+        }
+        .anim-steam-3 {
+            animation: steam-drift-1 1.6s infinite ease-out 0.9s;
+        }
+        .anim-food-spoon {
+            animation: food-spoon-dip 1.5s infinite ease-in-out;
+            transform-origin: 48px 24px;
+        }
+        .anim-food-bowl {
+            animation: food-bowl-sway 2s infinite ease-in-out;
+            transform-origin: center bottom;
+        }
+        .anim-drink-straw {
+            animation: drink-straw-sip 1.8s infinite ease-in-out;
+            transform-origin: 42px 30px;
+        }
+
+        /* 3. 尿尿大便動畫 */
+        @keyframes flush-water-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes water-splash-drop-1 {
+            0%, 100% { transform: translateY(0) scale(0.6); opacity: 0.2; }
+            50% { transform: translateY(-9px) scale(1.1); opacity: 1; }
+        }
+        @keyframes water-splash-drop-2 {
+            0%, 100% { transform: translateY(0) scale(0.6); opacity: 0.2; }
+            50% { transform: translateY(-7px) scale(1.2); opacity: 1; }
+        }
+        @keyframes toilet-handle-jiggle {
+            0%, 100% { transform: rotate(0deg); }
+            30% { transform: rotate(-22deg); }
+            60% { transform: rotate(6deg); }
+            80% { transform: rotate(-3deg); }
+        }
+        .anim-flush-spin {
+            animation: flush-water-spin 2s linear infinite;
+            transform-origin: 32px 33px;
+        }
+        .anim-splash-1 {
+            animation: water-splash-drop-1 1.4s infinite ease-in-out;
+        }
+        .anim-splash-2 {
+            animation: water-splash-drop-2 1.4s infinite ease-in-out 0.4s;
+        }
+        .anim-toilet-handle {
+            animation: toilet-handle-jiggle 2.5s infinite ease-in-out;
+            transform-origin: 15px 16px;
+        }
+
+        /* 4. 血壓心跳動畫 */
+        @keyframes heart-pulse-double {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.22); }
+            28% { transform: scale(1.04); }
+            42% { transform: scale(1.18); }
+            70% { transform: scale(1); }
+        }
+        @keyframes heart-aura-expand {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            60% { transform: scale(1.3); opacity: 0; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        @keyframes ecg-dash-move {
+            0% { stroke-dashoffset: 60; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .anim-heart-pump {
+            animation: heart-pulse-double 1.2s infinite ease-in-out;
+            transform-origin: 32px 32px;
+        }
+        .anim-heart-aura {
+            animation: heart-aura-expand 1.2s infinite ease-out;
+            transform-origin: 32px 31px;
+        }
+        .anim-ecg-line {
+            stroke-dasharray: 60;
+            animation: ecg-dash-move 1.5s linear infinite;
+        }
+
+        #toast { transition: opacity .3s, transform .3s; transform: translate(-50%, 20px); }
+        #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { animation: none !important; transition: none !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16 font-sans">
+    <div class="max-w-md mx-auto px-3 pt-4 space-y-8">
+
+        <!-- 頂部：標題本身就是回大人版的連結（不另設按鈕，畫面乾淨） -->
+        <header class="space-y-2">
+            <div class="flex items-center justify-between gap-2">
+                <a href="index.html" class="flex-1 min-w-0 active:opacity-60">
+                    <h1 class="text-3xl font-black truncate">☀️ <span data-t="title"></span> <span class="text-lg align-middle text-gray-400">👤›</span></h1>
+                </a>
+                <div id="lang-switch" class="flex gap-1 shrink-0"></div>
+            </div>
+            <!-- 🎯今日目標 vs ✅目前已達 顯著數值儀表卡 -->
+            <div id="anak-goal-card" class="bg-white border-4 border-gray-800 rounded-3xl p-3.5 shadow-md space-y-2.5">
+                <div class="grid grid-cols-2 gap-2.5 items-stretch">
+                    <!-- 今日目標 -->
+                    <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-2.5 text-center flex flex-col justify-center">
+                        <div class="text-xs font-black text-amber-800 flex items-center justify-center gap-1">
+                            <span>🎯</span><span data-t="goalLbl">今日目標</span>
+                        </div>
+                        <div class="mt-1 flex items-baseline justify-center gap-1">
+                            <span id="goal-num" class="text-3xl font-black text-amber-950">--</span>
+                            <span class="text-base font-bold text-amber-700">cc</span>
+                        </div>
+                    </div>
+                    <!-- 目前已達 -->
+                    <div id="done-box" class="bg-teal-50 border-2 border-teal-300 rounded-2xl p-2.5 text-center flex flex-col justify-center transition-colors">
+                        <div class="text-xs font-black text-teal-800 flex items-center justify-center gap-1">
+                            <span>✅</span><span data-t="doneLbl">目前已達</span>
+                            <button type="button" onclick="loadDay()" class="ml-1 inline-block active:scale-90 transition-transform" title="重新整理">
+                                <span id="sync-icon" class="text-xs">🔄</span>
+                            </button>
+                        </div>
+                        <div class="mt-1 flex items-baseline justify-center gap-1" id="done-text-wrap" style="color: var(--accent)">
+                            <span id="done-num" class="text-3xl font-black">0</span>
+                            <span class="text-base font-bold text-gray-500">cc</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 達成度進度條 -->
+                <div class="space-y-1 px-1">
+                    <div class="flex items-center justify-between text-xs font-black text-gray-500">
+                        <span class="flex items-center gap-1">
+                            <span class="inline-block animate-bounce text-sm">💧</span>
+                            <span data-t="waterProg">今日飲水進度</span>
+                        </span>
+                        <span id="goal-pct" class="text-sm font-black" style="color: var(--accent)">0%</span>
+                    </div>
+                    <div class="h-3.5 rounded-full bg-gray-200 overflow-hidden border border-gray-300 p-0.5">
+                        <div id="goal-bar" class="h-full rounded-full transition-all duration-700" style="width:0%; background: var(--accent)"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="warn-box" class="space-y-2 text-center"></div>
+            <!-- 兒童改4：床欄安全警示（與成人版同規則，兒童大字🚨常駐） -->
+            <div id="anak-bedrail" class="border-4 rounded-3xl p-2.5 text-center mt-1" style="border-color: var(--danger); background:#fff1f2; color: var(--danger)">
+                <p class="text-xl font-black leading-snug"><span class="bounce-big">🚨</span> <span id="anak-bedrail-zh">床圍欄放下時，照顧者不得離開病患 1 公尺</span></p>
+                <p id="anak-bedrail-id" class="text-sm font-bold leading-snug">Saat pagar tempat tidur diturunkan, jangan tinggalkan pasien lebih dari 1 meter</p>
+            </div>
+        </header>
+
+        <!-- 一、日期＋時間（12 小時制：☀️ 白天 06–18、🌙 夜晚 18–06） -->
+        <section id="step1" class="step now bg-white p-4 pt-6 space-y-3">
+            <div class="stepnum">1</div>
+            <h2 class="text-2xl font-black text-center">📅 <span data-t="s1"></span></h2>
+            <div class="relative">
+                <div id="date-display" class="w-full bg-white border-4 border-gray-800 rounded-2xl py-3 px-3 text-3xl font-black text-center"></div>
+                <input id="input-date" type="date" class="absolute inset-0 w-full h-full opacity-0">
+            </div>
+            <div class="flex gap-2 items-center justify-center">
+                <span id="daynight" class="text-5xl shrink-0">☀️</span>
+                <select id="sel-hour" class="flex-1 min-w-0 bg-white border-4 border-gray-800 rounded-2xl py-3 text-3xl font-black text-center"></select>
+                <span class="text-3xl font-black">:</span>
+                <select id="sel-min" class="flex-1 min-w-0 bg-white border-4 border-gray-800 rounded-2xl py-3 text-3xl font-black text-center"></select>
+            </div>
+            <button id="step1-ok" type="button" onclick="okStep1()" class="bigbtn w-full text-white rounded-2xl text-3xl font-black py-3" style="background: var(--accent)" data-t="ok"></button>
+        </section>
+
+        <!-- 二、四大類（大圖示優先，字最少） -->
+        <section id="step2" class="step bg-white p-4 pt-6 space-y-3 hidden">
+            <div class="stepnum">2</div>
+            <h2 class="text-2xl font-black text-center">👇 <span data-t="s2"></span></h2>
+            <div id="type-grid" class="grid grid-cols-2 gap-3">
+                <button type="button" onclick="pickType('makan')" id="type-makan" class="bigbtn type-btn choice py-3 px-2 flex flex-col items-center justify-center">
+                    <div class="type-icon-box">
+                        <svg class="type-icon-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 飲料杯 -->
+                            <g id="drink-group">
+                                <path d="M42 32 L46 54 Q46 56 44 56 L38 56 Q36 56 36 54 L38 32 Z" fill="#FED7AA" stroke="#1F2937" stroke-width="2"/>
+                                <rect x="36" y="30" width="10" height="3" rx="1.5" fill="#FB923C" stroke="#1F2937" stroke-width="1.5"/>
+                                <path class="anim-drink-straw" d="M42 30 L45 16 L49 14" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                            </g>
+                            <!-- 蒸氣 -->
+                            <path class="anim-steam-1" d="M19 23 Q16 16 20 10" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                            <path class="anim-steam-2" d="M26 21 Q30 14 27 8" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                            <path class="anim-steam-3" d="M33 23 Q30 17 34 11" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                            <!-- 飯碗 -->
+                            <g class="anim-food-bowl">
+                                <path d="M11 34 Q26 36 41 34 C39 48 34 56 26 56 C18 56 13 48 11 34 Z" fill="#38BDF8" stroke="#1F2937" stroke-width="2.5"/>
+                                <ellipse cx="26" cy="34" rx="15" ry="6" fill="#FEF3C7" stroke="#1F2937" stroke-width="2"/>
+                                <ellipse cx="26" cy="33" rx="11" ry="3.5" fill="#FFFFFF"/>
+                                <g class="anim-food-spoon">
+                                    <ellipse cx="21" cy="27" rx="3.5" ry="5" transform="rotate(35 21 27)" fill="#F8FAFC" stroke="#1F2937" stroke-width="1.8"/>
+                                    <line x1="23" y1="29" x2="33" y2="41" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round"/>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="text-xl leading-tight" data-t="tMakan"></span>
+                </button>
+
+                <button type="button" onclick="pickType('keluar')" id="type-keluar" class="bigbtn type-btn choice py-3 px-2 flex flex-col items-center justify-center">
+                    <div class="type-icon-box">
+                        <svg class="type-icon-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 馬桶水箱 -->
+                            <rect x="20" y="10" width="24" height="22" rx="3" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                            <rect x="18" y="7" width="28" height="5" rx="2" fill="#E2E8F0" stroke="#1F2937" stroke-width="2"/>
+                            <!-- 馬桶沖水手把 -->
+                            <g class="anim-toilet-handle">
+                                <line x1="15" y1="16" x2="20" y2="16" stroke="#F59E0B" stroke-width="3" stroke-linecap="round"/>
+                                <circle cx="14" cy="16" r="2.5" fill="#D97706"/>
+                            </g>
+                            <!-- 馬桶底座 -->
+                            <path d="M22 32 Q32 32 42 32 L39 52 Q32 57 25 52 Z" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                            <path d="M24 52 L22 57 Q32 59 42 57 L40 52 Z" fill="#E2E8F0" stroke="#1F2937" stroke-width="2"/>
+                            <!-- 馬桶坐墊與水渦 -->
+                            <ellipse cx="32" cy="33" rx="14" ry="7" fill="#A5F3FC" stroke="#1F2937" stroke-width="2.5"/>
+                            <g class="anim-flush-spin">
+                                <circle cx="32" cy="33" r="4" fill="none" stroke="#0284C7" stroke-width="2" stroke-dasharray="6 3"/>
+                            </g>
+                            <!-- 水花四濺 -->
+                            <circle class="anim-splash-1" cx="26" cy="22" r="2.5" fill="#38BDF8"/>
+                            <circle class="anim-splash-2" cx="38" cy="20" r="2.2" fill="#0EA5E9"/>
+                            <circle class="anim-splash-1" cx="32" cy="17" r="1.8" fill="#38BDF8"/>
+                        </svg>
+                    </div>
+                    <span class="text-xl leading-tight" data-t="tKeluar"></span>
+                </button>
+
+                <button type="button" onclick="pickType('latihan')" id="type-latihan" class="bigbtn type-btn choice py-3 px-2 flex flex-col items-center justify-center">
+                    <div class="type-icon-box">
+                        <svg class="type-icon-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 閃爍活力星星 -->
+                            <path class="anim-bunny-sparkle" d="M52 14 L53 16.5 L56 17 L53.5 18.5 L53 21 L51.5 18.5 L49 18 L51 16.5 Z" fill="#FBBF24"/>
+                            <!-- 努力水滴 -->
+                            <path class="anim-bunny-sweat" d="M12 24 Q14 21 15 24 Q15 27 12 27 Q9 27 12 24 Z" fill="#38BDF8"/>
+
+                            <!-- 兔子整體律動 -->
+                            <g class="anim-bunny-body">
+                                <!-- 左耳 -->
+                                <g class="anim-bunny-ear-l">
+                                    <path d="M22 28 C18 16 16 6 22 4 C27 4 27 16 26 28 Z" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                                    <path d="M22 24 C19 15 18 8 22 7 C25 7 25 15 24 24 Z" fill="#F472B6"/>
+                                </g>
+                                <!-- 右耳 -->
+                                <g class="anim-bunny-ear-r">
+                                    <path d="M42 28 C46 16 48 6 42 4 C37 4 37 16 38 28 Z" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                                    <path d="M42 24 C45 15 46 8 42 7 C39 7 39 15 40 24 Z" fill="#F472B6"/>
+                                </g>
+                                <!-- 身體/復健衣 -->
+                                <path d="M22 44 Q32 42 42 44 L44 55 Q32 58 20 55 Z" fill="#60A5FA" stroke="#1F2937" stroke-width="2.5"/>
+                                <!-- 雙腳 -->
+                                <ellipse cx="23" cy="57" rx="5" ry="3" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
+                                <ellipse cx="41" cy="57" rx="5" ry="3" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
+                                <!-- 兔子頭部 -->
+                                <ellipse cx="32" cy="33" rx="15" ry="13" fill="#FFFFFF" stroke="#1F2937" stroke-width="2.5"/>
+                                <!-- 運動頭帶 -->
+                                <path d="M18 29 Q32 27 46 29" stroke="#EF4444" stroke-width="4.5" stroke-linecap="round"/>
+                                <circle cx="46" cy="29" r="2.5" fill="#DC2626"/>
+                                <!-- 眼睛 -->
+                                <path d="M26 34 Q28 31 30 34" stroke="#1F2937" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                <path d="M34 34 Q36 31 38 34" stroke="#1F2937" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                <!-- 鼻子與微笑嘴巴 -->
+                                <polygon points="32,36 30.5,38 33.5,38" fill="#F472B6"/>
+                                <path d="M32 38 Q30 40 28 39 M32 38 Q34 40 36 39" stroke="#1F2937" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+                                <!-- 腮紅 -->
+                                <circle cx="23" cy="37" r="2.5" fill="#FCA5A5" opacity="0.8"/>
+                                <circle cx="41" cy="37" r="2.5" fill="#FCA5A5" opacity="0.8"/>
+                            </g>
+
+                            <!-- 舉啞鈴復健動作 -->
+                            <g class="anim-bunny-dumbbell">
+                                <!-- 左啞鈴與手臂 -->
+                                <rect x="5" y="31" width="4" height="12" rx="2" fill="#F59E0B" stroke="#1F2937" stroke-width="1.5"/>
+                                <rect x="13" y="31" width="4" height="12" rx="2" fill="#F59E0B" stroke="#1F2937" stroke-width="1.5"/>
+                                <rect x="8" y="35" width="6" height="4" fill="#9CA3AF" stroke="#1F2937" stroke-width="1.5"/>
+                                <circle cx="11" cy="37" r="3.5" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
+                                <!-- 右啞鈴與手臂 -->
+                                <rect x="47" y="31" width="4" height="12" rx="2" fill="#F59E0B" stroke="#1F2937" stroke-width="1.5"/>
+                                <rect x="55" y="31" width="4" height="12" rx="2" fill="#F59E0B" stroke="#1F2937" stroke-width="1.5"/>
+                                <rect x="50" y="35" width="6" height="4" fill="#9CA3AF" stroke="#1F2937" stroke-width="1.5"/>
+                                <circle cx="53" cy="37" r="3.5" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="text-xl leading-tight" data-t="tLatihan"></span>
+                </button>
+
+                <button type="button" onclick="pickType('tensi')" id="type-tensi" class="bigbtn type-btn choice py-3 px-2 flex flex-col items-center justify-center">
+                    <div class="type-icon-box">
+                        <svg class="type-icon-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 擴散光環 -->
+                            <circle class="anim-heart-aura" cx="32" cy="31" r="18" stroke="#FDA4AF" stroke-width="2.5" fill="none"/>
+                            <!-- 跳動心臟 -->
+                            <g class="anim-heart-pump">
+                                <path d="M32 50 C18 40 13 32 13 23 C13 16 18 11 25 11 C29 11 31 13 32 15 C33 13 35 11 39 11 C46 11 51 16 51 23 C51 32 46 40 32 50 Z" fill="#F43F5E" stroke="#9F1239" stroke-width="2.5"/>
+                                <ellipse cx="21" cy="17" rx="3.5" ry="2" transform="rotate(-30 21 17)" fill="#FFFFFF" opacity="0.7"/>
+                                <path class="anim-ecg-line" d="M17 29 L23 29 L26 22 L29 37 L33 19 L36 34 L39 29 L47 29" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="text-xl leading-tight" data-t="tTensi"></span>
+                </button>
+            </div>
+            <button id="step2-ok" type="button" onclick="confirmStep2()" class="bigbtn w-full text-white rounded-2xl text-3xl font-black py-3 hidden" style="background: var(--accent)" data-t="ok"></button>
+        </section>
+
+        <!-- 三、細項 -->
+        <section id="step2b" class="step bg-white p-4 pt-6 space-y-3 hidden">
+            <div class="stepnum">3</div>
+            <h2 class="text-2xl font-black text-center">🤔 <span data-t="s3"></span></h2>
+
+            <!-- a. 吃進去的 -->
+            <div id="panel-makan" class="space-y-3 hidden">
+                <div id="item-grid-makan" class="grid grid-cols-2 gap-3">
+                    <button type="button" onclick="pickItem('air')"  id="item-air"  class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">💧</span><span class="text-lg" data-t="iAir"></span></button>
+                    <button type="button" onclick="pickItem('obat')" id="item-obat" class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">💊</span><span class="text-lg" data-t="iObat"></span></button>
+                    <button type="button" onclick="pickItem('susu')" id="item-susu" class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">🥛</span><span class="text-lg" data-t="iSusu"></span></button>
+                    <button type="button" onclick="pickItem('food')" id="item-food" class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">🥣</span><span class="text-lg" data-t="iFood"></span></button>
+                </div>
+                <div id="quick-susu" class="grid grid-cols-2 gap-3 hidden">
+                    <button type="button" onclick="setAmount(120)" class="bigbtn rounded-2xl border-4 font-black text-xl py-3" style="border-color: var(--accent); background: var(--accent-soft)" data-t="halfCan"></button>
+                    <button type="button" onclick="setAmount(240)" class="bigbtn rounded-2xl border-4 font-black text-xl py-3" style="border-color: var(--accent); background: var(--accent-soft)" data-t="fullCan"></button>
+                </div>
+                <!-- 湯湯水水（羅馬拼音）：buding 預設 135cc；其餘由照顧者填 cc -->
+                <div id="quick-food" class="hidden space-y-2">
+                    <p class="text-lg font-black text-center text-gray-600" data-t="foodMeasure"></p>
+                    <img src="math.jpg" alt="" loading="lazy" class="w-full rounded-2xl border animated-img">
+                    <div id="food-grid" class="grid grid-cols-2 gap-2"></div>
+                    <input id="food-other" type="text" class="w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-2xl font-black">
+                    <!-- 秤重計算：吃之前的食物重量 - 吃完後食物的重量 = 進食量 -->
+                    <div class="bg-orange-50 border-4 border-orange-300 rounded-2xl p-3 space-y-2 text-left">
+                        <p class="text-xl font-black text-orange-900">⚖️ <span class="lang-zh">進食秤重計算</span><span class="lang-id">Hitung Berat Makanan</span></p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-sm font-black text-gray-600 mb-1">吃之前 (g)</label>
+                                <input id="anak-food-before" type="number" step="any" min="0" placeholder="0" oninput="calcAnakFood()" class="w-full border-4 border-gray-800 rounded-xl p-2 text-2xl font-black text-center bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-black text-gray-600 mb-1">吃完後 (g)</label>
+                                <input id="anak-food-after" type="number" step="any" min="0" placeholder="0" oninput="calcAnakFood()" class="w-full border-4 border-gray-800 rounded-xl p-2 text-2xl font-black text-center bg-white">
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-lg font-black bg-white rounded-xl p-2 border-2 border-orange-200">
+                            <span>＝ 進食量 / Asupan:</span>
+                            <span id="anak-food-diff" class="text-2xl font-black text-[#0f766e]">0 g/cc</span>
+                        </div>
+                    </div>
+                    <!-- 胃口（必選）：好/普通/差 -->
+                    <p class="text-2xl font-black">😋 <span data-t="appTitle"></span></p>
+                    <div id="appetite-grid" class="grid grid-cols-3 gap-2">
+                        <button type="button" data-app="好"   onclick="pickAppetite('好')"   class="app-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-xl py-3" data-t="aGood"></button>
+                        <button type="button" data-app="普通" onclick="pickAppetite('普通')" class="app-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-xl py-3" data-t="aNormal"></button>
+                        <button type="button" data-app="差"   onclick="pickAppetite('差')"   class="app-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-xl py-3" data-t="aPoor"></button>
+                    </div>
+                </div>
+                <div id="amount-row">
+                    <p class="text-2xl font-black" data-t="howMuch"></p>
+                    <div class="flex items-center gap-2">
+                        <input id="input-amount" type="number" min="1" class="flex-1 w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
+                        <span class="text-3xl font-black">cc</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- b. 排出來的（尿液改用 🚽，與飲水 💧 區隔） -->
+            <div id="panel-keluar" class="space-y-3 hidden">
+                <div id="item-grid-keluar" class="grid grid-cols-2 gap-3">
+                    <button type="button" onclick="pickItem('pipis')" id="item-pipis" class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">🚽</span><span class="text-xl" data-t="iPipis"></span></button>
+                    <button type="button" onclick="pickItem('pup')"   id="item-pup"   class="bigbtn item-btn choice py-3"><span class="block text-5xl leading-none mb-1">💩</span><span class="text-xl" data-t="iPup"></span></button>
+                </div>
+                <div id="pipis-extra" class="hidden space-y-2">
+                    <div id="pipis-amount-row" class="space-y-2">
+                        <p class="text-2xl font-black" data-t="howMuch"></p>
+                        <div class="flex items-center gap-2">
+                            <input id="pipis-amount" type="number" min="1" class="flex-1 w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
+                            <span class="text-3xl font-black">cc</span>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-black">🎨 <span data-t="color"></span></p>
+                    <div id="color-grid" class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="pickColor(this,'淡紅色 / Merah Muda')"   class="color-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" style="background:#fda4af" data-t="cPink"></button>
+                        <button type="button" onclick="pickColor(this,'深黃色 / Kuning Tua')"   class="color-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" style="background:#f59e0b" data-t="cDark"></button>
+                        <button type="button" onclick="pickColor(this,'正常淺黃 / Kuning Muda')" class="color-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" style="background:#fde68a" data-t="cLight"></button>
+                    </div>
+                    <!-- 當日利尿藥物（可選，預設鎖定沿用前一次，管理者 PIN 解鎖才能改）：無 / 利尿藥物（輔助） / 利尿藥物 -->
+                    <p class="text-2xl font-black">💊 <span data-t="umed"></span> <span class="text-base text-gray-500" data-t="opt"></span> <span id="umed-lock" class="text-xl">🔒</span></p>
+                    <div id="umed-grid" class="grid grid-cols-3 gap-2 opacity-60" onclick="tryUnlockMed()">
+                        <button type="button" data-med=""     onclick="pickUmed('')"     class="umed-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" data-t="mNone"></button>
+                        <button type="button" data-med="aux"  onclick="pickUmed('aux')"  class="umed-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-base py-3 leading-tight" data-t="mAux"></button>
+                        <button type="button" data-med="full" onclick="pickUmed('full')" class="umed-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-base py-3 leading-tight" data-t="mFull"></button>
+                    </div>
+                </div>
+                <div id="pup-extra" class="hidden space-y-2">
+                    <p class="text-2xl font-black" data-t="pupHow"></p>
+                    <div id="status-grid" class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="pickStatus(this,'稀便 / feses encer')"        class="status-btn bigbtn rounded-2xl border-4 border-gray-800 bg-orange-100 font-black text-xl py-3" data-t="pEncer"></button>
+                        <button type="button" onclick="pickStatus(this,'大便乾硬 / Kering dan keras')" class="status-btn bigbtn rounded-2xl border-4 border-gray-800 bg-amber-100 font-black text-xl py-3" data-t="pKeras"></button>
+                        <button type="button" onclick="pickStatus(this,'正常 / Normal')"             class="status-btn bigbtn rounded-2xl border-4 border-gray-800 bg-green-100 font-black text-xl py-3" data-t="pNormal"></button>
+                    </div>
+                    <p class="text-2xl font-black" data-t="glis"></p>
+                    <div id="glis-grid" class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="pickGliserin(this,true)"  class="glis-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-3" data-t="yes"></button>
+                        <button type="button" onclick="pickGliserin(this,false)" class="glis-btn bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-3" data-t="no"></button>
+                    </div>
+                    <!-- 當日利便藥物（可選，預設鎖定沿用前一次，管理者 PIN 解鎖才能改）：無 / 1顆 / 2顆 -->
+                    <p class="text-2xl font-black">💊 <span data-t="lax"></span> <span class="text-base text-gray-500" data-t="opt"></span> <span id="lax-lock" class="text-xl">🔒</span></p>
+                    <div id="lax-grid" class="grid grid-cols-3 gap-2 opacity-60" onclick="tryUnlockMed()">
+                        <button type="button" data-lax="0" onclick="pickLax(0)" class="lax-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3" data-t="mNone"></button>
+                        <button type="button" data-lax="1" onclick="pickLax(1)" class="lax-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3">1<span class="block text-sm leading-none" data-t="pill"></span></button>
+                        <button type="button" data-lax="2" onclick="pickLax(2)" class="lax-btn chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-lg py-3">2<span class="block text-sm leading-none" data-t="pill"></span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- c. 運動（分級復健：初級/中級/高級，實照＋圖示，做完填次數） -->
+            <div id="panel-latihan" class="space-y-4 hidden">
+                <!-- 初級 -->
+                <div class="space-y-1.5">
+                    <p class="text-xl font-black text-emerald-700">🟢 <span class="lang-zh">初級復健</span><span class="lang-id">Tingkat Dasar</span></p>
+                    <div id="item-grid-latihan-basic" class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="pickItem('botol')" id="item-botol" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/bottle-1.jpg" onerror="this.src='rehab-img/legraise-1.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🍾</span> <span class="text-base font-black" data-t="iBotol"></span></button>
+                        <button type="button" onclick="pickItem('tekan')" id="item-tekan" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/ankle-1.jpg" onerror="this.src='rehab-img/legraise-1.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🦶</span> <span class="text-base font-black" data-t="iTekan"></span></button>
+                        <button type="button" onclick="pickItem('lutut')" id="item-lutut" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/knee-1.jpg" onerror="this.src='rehab-img/legraise-1.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🦵</span> <span class="text-base font-black" data-t="iLutut"></span></button>
+                    </div>
+                </div>
+                <!-- 中級 -->
+                <div class="space-y-1.5">
+                    <p class="text-xl font-black text-amber-700">🟡 <span class="lang-zh">中級復健</span><span class="lang-id">Tingkat Menengah</span></p>
+                    <div id="item-grid-latihan-mid" class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="pickItem('kaki')"   id="item-kaki"   class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/legraise-1.jpg"  loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🦵</span> <span class="text-base font-black" data-t="iKaki"></span></button>
+                        <button type="button" onclick="pickItem('popok')"  id="item-popok"  class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/adduction-1.jpg" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🩲</span> <span class="text-base font-black" data-t="iPopok"></span></button>
+                        <button type="button" onclick="pickItem('pantat')" id="item-pantat" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/bridge-1.jpg"    loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🍑</span> <span class="text-base font-black" data-t="iPantat"></span></button>
+                    </div>
+                </div>
+                <!-- 高級 -->
+                <div class="space-y-1.5">
+                    <p class="text-xl font-black text-rose-700">🔴 <span class="lang-zh">高級復健</span><span class="lang-id">Tingkat Lanjut</span></p>
+                    <div id="item-grid-latihan-adv" class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="pickItem('diri')"   id="item-diri"   class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-2.jpg"     loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🧍</span> <span class="text-base font-black" data-t="iDiri"></span></button>
+                        <button type="button" onclick="pickItem('goyang')" id="item-goyang" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-sway-1.jpg" onerror="this.src='rehab-img/stand-2.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🕺</span> <span class="text-base font-black" data-t="iGoyang"></span></button>
+                        <button type="button" onclick="pickItem('angkat')" id="item-angkat" class="bigbtn item-btn choice p-2 pb-3"><img src="rehab-img/stand-raise-1.jpg" onerror="this.src='rehab-img/stand-2.jpg'" loading="lazy" alt="" class="w-full h-20 object-cover rounded-xl mb-1 pointer-events-none animated-img"><span class="text-2xl align-middle">🦿</span> <span class="text-base font-black" data-t="iAngkat"></span></button>
+                    </div>
+                </div>
+                <!-- 復健都要能填數值（次數） -->
+                <div id="ex-extra" class="hidden space-y-2">
+                    <p class="text-2xl font-black">🔢 <span data-t="howMany"></span></p>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button type="button" onclick="setExAmount(5)"  class="ex-chip chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-2">5</button>
+                        <button type="button" onclick="setExAmount(10)"  class="ex-chip chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-2">10</button>
+                        <button type="button" onclick="setExAmount(15)" class="ex-chip chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-2">15</button>
+                        <button type="button" onclick="setExAmount(20)" class="ex-chip chip bigbtn rounded-2xl border-4 border-gray-800 font-black text-2xl py-2">20</button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input id="ex-amount" type="number" min="1" class="flex-1 w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
+                        <span class="text-3xl font-black" data-t="times"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- d. 血壓 -->
+            <div id="panel-tensi" class="space-y-2 hidden">
+                <p class="text-2xl font-black">⬆️ <span data-t="bpSys"></span></p>
+                <input id="bp-sys" type="number" class="w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
+                <p class="text-2xl font-black">⬇️ <span data-t="bpDia"></span></p>
+                <input id="bp-dia" type="number" class="w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
+                <p class="text-2xl font-black">💓 <span data-t="bpHr"></span></p>
+                <input id="bp-hr" type="number" class="w-full border-4 border-gray-800 rounded-2xl py-3 px-3 text-4xl font-black text-center" placeholder="0">
+            </div>
+
+            <p id="need-hint" class="hidden text-2xl font-black text-center" style="color: var(--danger)" data-t="incomplete"></p>
+        </section>
+
+        <!-- 存檔（填好才出現，跟著引導框） -->
+        <section id="step3" class="step bg-white p-4 hidden">
+            <button id="btn-save" type="button" onclick="save()" class="bigbtn w-full bg-green-700 text-white rounded-2xl text-4xl font-black py-5" data-t="save"></button>
+        </section>
+
+        <!-- 四、今日紀錄 -->
+        <section id="step4" class="step bg-white p-4 pt-6 space-y-2 hidden">
+            <div class="stepnum">4</div>
+            <h2 class="text-2xl font-black text-center">📖 <span data-t="s4"></span></h2>
+            <div id="rec-list" class="space-y-2"></div>
+        </section>
+    </div>
+
+    <!-- 刪除確認：中性色（紅色保留給緊急狀況） -->
+    <div id="del-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-card bg-white rounded-3xl border-4 border-gray-700 p-5 w-full max-w-sm text-center space-y-4">
+            <p class="text-3xl font-black">🗑️ <span data-t="delAsk"></span></p>
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" onclick="doDelete()" class="bigbtn bg-gray-800 text-white rounded-2xl text-3xl font-black py-3" data-t="delYes"></button>
+                <button type="button" onclick="closeDel()" class="bigbtn bg-gray-200 rounded-2xl text-3xl font-black py-3" data-t="delNo"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 血壓警告（緊急＝紅色＋動態） -->
+    <div id="bp-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-card danger bg-white rounded-3xl border-8 p-5 w-full max-w-sm text-center space-y-3" style="border-color: var(--danger)">
+            <p class="text-6xl bounce-big">⚠️</p>
+            <p class="text-3xl font-black leading-tight" style="color: var(--danger)" data-t="bpTitle"></p>
+            <p class="text-xl font-black" data-t="bpSub"></p>
+            <div id="bp-modal-body" class="space-y-2 text-left"></div>
+            <button type="button" onclick="document.getElementById('bp-modal').classList.add('hidden')" class="bigbtn w-full text-white rounded-2xl text-2xl font-black py-3" style="background: var(--danger)" data-t="okCalled"></button>
+        </div>
+    </div>
+
+    <!-- 一般警示（喝太多/尿太多）：大彈窗＋動態 -->
+    <div id="warn-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-card danger bg-white rounded-3xl border-8 p-5 w-full max-w-sm text-center space-y-3" style="border-color: var(--danger)">
+            <p class="text-6xl bounce-big">🚨</p>
+            <div id="warn-modal-body" class="space-y-2"></div>
+            <p class="text-2xl font-black" data-t="callAdult"></p>
+            <button type="button" onclick="document.getElementById('warn-modal').classList.add('hidden')" class="bigbtn w-full text-white rounded-2xl text-2xl font-black py-3" style="background: var(--danger)" data-t="okCalled"></button>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 bg-gray-900 text-white text-2xl font-black py-4 px-8 rounded-full opacity-0 z-50 pointer-events-none">…</div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycby-3Q--z4t03yOtgtMpkbhYccmxD9dqvmrqQdX4sg4vZNBfjgyuKYuL6HZuHkro7p0o/exec";
+const CARE_USER = '5';   // 本頁固定身分：👤U5（存進同一張 sheet，管理者總表自動併入總和）
+
+/* 項目 → sheet 同名 category 私下轉換表（跟 index.html 完全一致，分頁讀取才不會錯） */
+const ITEM_MAP = {
+    air:    { type:'攝入', category:'飲水量' },
+    obat:   { type:'攝入', category:'服藥飲水' },
+    susu:   { type:'攝入', category:'營養飲品' },
+    food:   { type:'攝入', category:'進食' },
+    pipis:  { type:'排出', category:'尿液' },
+    pup:    { type:'排出', category:'排便' },
+    // 初級
+    botol:  { type:'運動', category:'舉水瓶' },
+    tekan:  { type:'運動', category:'躺式腳底板抬壓' },
+    lutut:  { type:'運動', category:'躺式膝蓋彎伸' },
+    // 中級
+    kaki:   { type:'運動', category:'仰臥抬腿' },
+    popok:  { type:'運動', category:'仰躺大腿內收訓練' },
+    pantat: { type:'運動', category:'橋式／仰躺雙腳屈膝抬臀' },
+    // 高級
+    diri:   { type:'運動', category:'站立' },
+    goyang: { type:'運動', category:'站立搖擺' },
+    angkat: { type:'運動', category:'站立抬腳' }
+};
+/* 尿液用 🚽 與飲水 💧 區隔；進食（湯湯水水）用 🥣 */
+const CAT_EMOJI = {
+    '飲水量':'💧','服藥飲水':'💊','營養飲品':'🥛','進食':'🥣','尿液':'🚽','排便':'💩',
+    '舉水瓶':'🍾','雙手舉水瓶':'🍾','躺式腳底板抬壓':'🦶','腳底板抬壓':'🦶','躺式膝蓋彎伸':'🦵','膝蓋彎伸':'🦵',
+    '仰臥抬腿':'🦵','仰躺大腿內收訓練':'🩲','大腿內收':'🩲','橋式／仰躺雙腳屈膝抬臀':'🍑','橋式抬臀':'🍑',
+    '站立':'🧍','站立搖擺':'🕺','站立抬腳':'🦿'
+};
+
+/* 湯湯水水（羅馬拼音）：buding 固定預設 135cc，其餘由照顧者填寫容量。
+ * 備註一律存「中文 / 拼音」雙語，管理者總表與報表都讀得懂 */
+const FOODS = [
+    { key:'buding',   zh:'布丁', rom:'Buding',   emoji:'🍮', cc:135 },
+    { key:'dangao',   zh:'小蛋糕', rom:'Dangao', emoji:'🍰', cc:null },
+    { key:'douhua',   zh:'豆花', rom:'Douhua',   emoji:'🤍', cc:null },
+    { key:'tangmian', zh:'湯麵', rom:'Tangmian', emoji:'🍜', cc:null },
+    { key:'ganmian',  zh:'乾麵', rom:'Ganmian',  emoji:'🍝', cc:null },
+    { key:'sifan',    zh:'稀飯', rom:'Sifan',    emoji:'🍚', cc:null },
+    { key:'biandang', zh:'便當', rom:'Biandang', emoji:'🍱', cc:null }
+];
+
+/* ===== 雙語字典（繁中 / 印尼文），畫面文字全部走這裡 ===== */
+const T = {
+    title:    { zh:'陽光日誌',       id:'CATATAN MENTARI' },
+    s1:       { zh:'日期・時間',     id:'TANGGAL & JAM' },
+    s2:       { zh:'選一個',         id:'PILIH SATU' },
+    s3:       { zh:'是什麼？',       id:'APA?' },
+    s4:       { zh:'今天的紀錄',     id:'CATATAN HARI INI' },
+    ok:       { zh:'好了 ✓',         id:'OK ✓' },
+    tMakan:   { zh:'吃・喝',         id:'MAKAN MINUM' },
+    tKeluar:  { zh:'尿・便',         id:'PIPIS & PUP' },
+    tLatihan: { zh:'運動',           id:'LATIHAN' },
+    tTensi:   { zh:'血壓',           id:'TENSI' },
+    iAir:     { zh:'開水',           id:'AIR PUTIH' },
+    iObat:    { zh:'藥水',           id:'AIR OBAT' },
+    iSusu:    { zh:'牛奶',           id:'SUSU' },
+    iFood:    { zh:'湯湯水水',       id:'MAKANAN BERAIR' },
+    iPipis:   { zh:'尿尿',           id:'PIPIS' },
+    iPup:     { zh:'大便',           id:'PUP' },
+    // 復健動作
+    iBotol:   { zh:'舉水瓶',         id:'ANGKAT BOTOL' },
+    iTekan:   { zh:'抬腳壓',         id:'TEKAN KAKI' },
+    iLutut:   { zh:'膝彎伸',         id:'TEKUK LUTUT' },
+    iKaki:    { zh:'抬腿',           id:'ANGKAT KAKI' },
+    iPopok:   { zh:'夾腿',           id:'JEPIT POPOK' },
+    iPantat:  { zh:'抬屁股',         id:'ANGKAT PANTAT' },
+    iDiri:    { zh:'站立',           id:'BERDIRI' },
+    iGoyang:  { zh:'搖擺',           id:'GOYANG' },
+    iAngkat:  { zh:'站抬腳',         id:'ANGKAT KAKI BERDIRI' },
+    halfCan:  { zh:'半罐<br>120 cc', id:'½ KALENG<br>120 cc' },
+    fullCan:  { zh:'1 罐<br>240 cc', id:'1 KALENG<br>240 cc' },
+    otherFood:{ zh:'✏️ 寫別的食物…', id:'✏️ Tulis makanan lain…' },
+    foodMeasure:{ zh:'湯湯水水怎麼量？', id:'Cara ukur makanan berair' },
+    howMuch:  { zh:'🥤 多少 cc？',   id:'🥤 BERAPA cc?' },
+    color:    { zh:'顏色？',         id:'WARNA?' },
+    cPink:    { zh:'粉紅',           id:'MERAH<br>MUDA' },
+    cDark:    { zh:'深黃',           id:'KUNING<br>TUA' },
+    cLight:   { zh:'淺黃',           id:'KUNING<br>MUDA' },
+    pupHow:   { zh:'大便怎麼樣？',   id:'PUP-NYA GIMANA?' },
+    pEncer:   { zh:'稀稀 💦',        id:'ENCER 💦' },
+    pKeras:   { zh:'硬硬 🪨',        id:'KERAS 🪨' },
+    pNormal:  { zh:'正常 👍',        id:'NORMAL 👍' },
+    glis:     { zh:'有用甘油球嗎？💉', id:'PAKAI OBAT GLISERIN?' },
+    yes:      { zh:'有 💉',          id:'YA 💉' },
+    no:       { zh:'沒有',           id:'TIDAK' },
+    goalLbl:  { zh:'今日目標',       id:'TARGET' },
+    doneLbl:  { zh:'目前已達',       id:'TERCAPAI' },
+    waterProg:{ zh:'今日飲水進度',   id:'PROGRES MINUM' },
+    umed:     { zh:'利尿藥物？',     id:'OBAT DIURETIK?' },
+    lax:      { zh:'利便藥物？',     id:'OBAT PENCAHAR?' },
+    opt:      { zh:'(可選)',         id:'(opsional)' },
+    mNone:    { zh:'無',             id:'TIDAK' },
+    mAux:     { zh:'利尿藥物<br>（輔助）', id:'DIURETIK<br>(BANTU)' },
+    mFull:    { zh:'利尿藥物',       id:'DIURETIK' },
+    pill:     { zh:'顆',             id:'butir' },
+    appTitle: { zh:'胃口怎麼樣？',   id:'NAFSU MAKANNYA GIMANA?' },
+    aGood:    { zh:'好 😋',          id:'BAIK 😋' },
+    aNormal:  { zh:'普通 😐',        id:'BIASA 😐' },
+    aPoor:    { zh:'差 😞',          id:'KURANG 😞' },
+    howMany:  { zh:'做了幾次？',     id:'BERAPA KALI?' },
+    times:    { zh:'次',             id:'x' },
+    bpSys:    { zh:'上面（大數字）', id:'ATAS (angka besar)' },
+    bpDia:    { zh:'下面（小數字）', id:'BAWAH (angka kecil)' },
+    bpHr:     { zh:'心跳',           id:'JANTUNG' },
+    save:     { zh:'💾 儲存',        id:'💾 SIMPAN' },
+    saved:    { zh:'已儲存 ✓',       id:'TERSIMPAN ✓' },
+    deleted:  { zh:'已刪除 ✓',       id:'DIHAPUS ✓' },
+    failed:   { zh:'失敗！再試一次', id:'GAGAL! COBA LAGI' },
+    syncFail: { zh:'同步失敗',       id:'Sinkronisasi gagal' },
+    incomplete:{ zh:'⛔ 還沒填完！', id:'⛔ BELUM LENGKAP!' },
+    noRec:    { zh:'還沒有紀錄',     id:'Belum ada catatan' },
+    delAsk:   { zh:'要刪除嗎？',     id:'HAPUS?' },
+    delYes:   { zh:'刪除',           id:'YA' },
+    delNo:    { zh:'不要',           id:'TIDAK' },
+    callAdult:{ zh:'快叫大人來！🧑', id:'PANGGIL ORANG DEWASA! 🧑' },
+    bpTitle:  { zh:'快叫大人來！',   id:'PANGGIL ORANG DEWASA!' },
+    bpSub:    { zh:'注意§S§的狀況！', id:'Perhatikan kondisi §S§!' },
+    okCalled: { zh:'好，我叫了',     id:'OK, SUDAH PANGGIL' },
+    normalRange:{ zh:'正常',         id:'Wajar' },
+    warnDrink:{ zh:'🛑 停！喝太多了！', id:'🛑 STOP! Minum TERLALU BANYAK!' },
+    warnPipis:{ zh:'🛑 尿尿太多了！',  id:'🛑 Pipis TERLALU BANYAK!' }
+};
+let LANG = (function(){ const s = localStorage.getItem('anak_lang'); return (s === 'id' || s === 'zh') ? s : 'zh'; })();
+function t(key){ const raw = (T[key] && T[key][LANG]) || ''; return raw.indexOf('§S§') === -1 ? raw : raw.split('§S§').join(careSubj(goals, LANG)); }
+
+let S = { step1:false, type:null, item:null, color:null, status:null, gliserin:null, food:null, appetite:null, umed:null, lax:null, typeConfirmed:false };
+let records = [], goals = {};
+let UI = careUI({});   // 管理設定（顯示/彈窗/數字/記錄模式）；loadDay 後以雲端值刷新
+
+function $(id){ return document.getElementById(id); }
+function toast(msg, err){
+    const el = $('toast'); el.innerText = msg;
+    el.style.background = err ? '#b91c1c' : '#111827';
+    el.classList.remove('opacity-0'); el.classList.add('show');
+    setTimeout(() => { el.classList.add('opacity-0'); el.classList.remove('show'); }, 3000);
+}
+
+/* ===== 24 小時制顯示：00–23（時:分 / HH:mm） ===== */
+function hourIcon(h){ return (h >= 6 && h < 18) ? '☀️' : '🌙'; }  /* 06:00–18:00 太陽／18:00–06:00 月亮 */
+function hourLabel(h){ return `${hourIcon(h)} ${String(h).padStart(2,'0')}:00`; }
+function fmt12(hhmm){
+    if (!hhmm) return '';
+    const h = parseInt(hhmm.slice(0,2), 10);
+    return `${hourIcon(h)} ${hhmm}`;
+}
+function updateDayNight(){ $('daynight').innerText = hourIcon(parseInt($('sel-hour').value, 10)); }
+
+/* ===== 語言切換 ===== */
+function applyLang(){
+    document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = t(el.dataset.t); });
+    $('food-other').placeholder = t('otherFood').replace('✏️ ', '');
+    renderFoodGrid();
+    renderLangSwitch();
+    renderAll();
+}
+function setLang(m){ LANG = m; localStorage.setItem('anak_lang', m); applyLang(); }
+function renderLangSwitch(){
+    $('lang-switch').innerHTML = [['zh','中文'],['id','ID']].map(([m,lbl]) =>
+        `<button type="button" onclick="setLang('${m}')" class="px-3 py-1.5 rounded-full text-sm font-black border-2 ${LANG===m ? 'text-white border-transparent' : 'bg-white text-gray-500 border-gray-300'}" ${LANG===m ? 'style="background:var(--accent)"' : ''}>${lbl}</button>`).join('');
+}
+
+/* ===== 一、日期時間 ===== */
+function initClock(){
+    $('sel-hour').innerHTML = Array.from({length:24}, (_,h) => `<option value="${String(h).padStart(2,'0')}">${hourLabel(h)}</option>`).join('');
+    $('sel-min').innerHTML = Array.from({length:60}, (_,i) => { const s = String(i).padStart(2,'0'); return `<option value="${s}">${s}</option>`; }).join('');
+    $('input-date').value = careTodayStr();
+    setNowTime();
+    $('input-date').addEventListener('change', () => { showDate(); loadDay(); });
+    $('sel-hour').addEventListener('change', updateDayNight);
+    showDate();
+}
+function setNowTime(){
+    const now = new Date();
+    $('sel-hour').value = String(now.getHours()).padStart(2,'0');
+    $('sel-min').value = String(now.getMinutes()).padStart(2,'0');
+    updateDayNight();
+}
+function showDate(){ $('date-display').innerText = ($('input-date').value || '').replace(/-/g,'/'); }
+function curTime(){ return $('sel-hour').value + ':' + $('sel-min').value; }
+function okStep1(){ S.step1 = true; refresh(); focusStep('step2'); }
+
+/* ===== 二、選類別 ===== */
+function pickType(tp){
+    S.type = tp; S.item = null; S.color = null; S.status = null; S.gliserin = null; S.food = null;
+    S.appetite = null; S.umed = null; S.lax = null; S.typeConfirmed = false;
+    $('input-amount').value = ''; $('pipis-amount').value = ''; $('food-other').value = ''; $('ex-amount').value = '';
+    ['bp-sys','bp-dia','bp-hr'].forEach(id => $(id).value = '');
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+    $('type-' + tp).classList.add('selected');
+    paintAnakMed();
+    refresh(); focusStep('step2');
+}
+function confirmStep2(){ S.typeConfirmed = true; refresh(); focusStep('step2b'); }
+/* ===== 三、選細項 ===== */
+function pickItem(k){
+    S.item = k; S.food = null;
+    document.querySelectorAll('.item-btn').forEach(b => b.classList.remove('selected'));
+    $('item-' + k).classList.add('selected');
+    if (k !== 'food') $('food-other').value = '';
+    // 藥物預設沿用「前一次」設定（管理者鎖定唯讀，見 careDailyMed／careSaveDailyMed）
+    if (k === 'pipis' && S.umed === null) { S.umed = careDailyMed(goals).diuretic; paintAnakMed(); }
+    if (k === 'pup'   && S.lax  === null) { S.lax  = careDailyMed(goals).laxPills;  paintAnakMed(); }
+    refresh();
+}
+/* ===== 當日藥物（鎖定，管理者 PIN 解鎖才能改）與胃口（必選） ===== */
+function careMedLocked(){ return sessionStorage.getItem('care_admin_ok') !== '1'; }
+function tryUnlockMed(){
+    if (!careMedLocked()) return;
+    if (careAskPin()) { sessionStorage.setItem('care_admin_ok', '1'); paintAnakMed(); }
+}
+function saveMedToCloud(patch){
+    const json = careSaveDailyMed(goals, patch);
+    fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'setMed', val: json }) })
+        .catch(() => toast(t('failed'), true));
+}
+function pickUmed(v){
+    if (careMedLocked()) { tryUnlockMed(); return; }
+    S.umed = v; paintAnakMed(); refresh();
+    saveMedToCloud({ diuretic: v });
+}
+function pickLax(n){
+    if (careMedLocked()) { tryUnlockMed(); return; }
+    S.lax = n; paintAnakMed(); refresh();
+    saveMedToCloud({ laxPills: n });
+}
+function pickAppetite(v){ S.appetite = v; paintAnakMed(); refresh(); }
+function paintAnakMed(){
+    document.querySelectorAll('.umed-btn').forEach(b => b.classList.toggle('selected', S.umed !== null && (b.dataset.med || '') === S.umed));
+    document.querySelectorAll('.lax-btn').forEach(b => b.classList.toggle('selected', S.lax !== null && parseInt(b.dataset.lax, 10) === S.lax));
+    document.querySelectorAll('.app-btn').forEach(b => b.classList.toggle('selected', !!S.appetite && b.dataset.app === S.appetite));
+    const locked = careMedLocked();
+    [$('umed-grid'), $('lax-grid')].forEach(g => {
+        g.classList.toggle('opacity-60', locked);
+        g.querySelectorAll('button').forEach(b => b.style.pointerEvents = locked ? 'none' : '');
+    });
+    $('umed-lock').classList.toggle('hidden', !locked);
+    $('lax-lock').classList.toggle('hidden', !locked);
+}
+function setAmount(v){ $('input-amount').value = v; refresh(); }
+function setExAmount(v){
+    $('ex-amount').value = v;
+    document.querySelectorAll('.ex-chip').forEach(b => b.classList.toggle('selected', parseInt(b.innerText,10) === v));
+    refresh();
+}
+function calcAnakFood(){
+    const b = parseFloat($('anak-food-before').value) || 0;
+    const a = parseFloat($('anak-food-after').value) || 0;
+    const diff = Math.max(0, Math.round((b - a) * 10) / 10);
+    $('anak-food-diff').innerText = diff + ' g/cc';
+    if (b > 0 || a > 0) {
+        $('input-amount').value = diff > 0 ? diff : '';
+    }
+    refresh();
+}
+function renderFoodGrid(){
+    $('food-grid').innerHTML = FOODS.map(f =>
+        `<button type="button" onclick="pickFood('${f.key}', this)" data-food="${f.key}" class="food-btn bigbtn rounded-2xl border-4 border-amber-600 bg-amber-50 font-black text-xl py-3">
+            <span class="block text-4xl leading-none mb-1">${f.emoji}</span>${LANG==='zh' ? f.zh : f.rom}${f.cc ? `<span class="block text-sm font-bold text-amber-700">${f.cc} cc</span>` : ''}
+        </button>`).join('');
+    // 重新套用已選狀態
+    if (S.food && S.food !== 'LAINNYA') {
+        const btn = document.querySelector(`.food-btn[data-food="${S.food}"]`);
+        if (btn) btn.classList.add('ringed');
+    }
+}
+function pickFood(key, btn){
+    S.food = key;
+    $('food-other').value = '';
+    document.querySelectorAll('.food-btn').forEach(b => b.classList.remove('ringed'));
+    if (btn) btn.classList.add('ringed');
+    const f = FOODS.find(x => x.key === key);
+    $('input-amount').value = (f && f.cc) ? f.cc : '';
+    refresh();
+}
+function onFoodOther(){
+    if ($('food-other').value.trim()) {
+        S.food = 'LAINNYA';
+        document.querySelectorAll('.food-btn').forEach(b => b.classList.remove('ringed'));
+    } else if (S.food === 'LAINNYA') { S.food = null; }
+    refresh();
+}
+function pickColor(btn, v){ S.color = v; document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('ringed')); btn.classList.add('ringed'); refresh(); }
+function pickStatus(btn, v){ S.status = v; document.querySelectorAll('.status-btn').forEach(b=>b.classList.remove('ringed')); btn.classList.add('ringed'); refresh(); }
+function pickGliserin(btn, v){ S.gliserin = v; document.querySelectorAll('.glis-btn').forEach(b=>b.classList.remove('ringed')); btn.classList.add('ringed'); refresh(); }
+
+/* ===== 組 payload（category 名稱與 sheet 相同） ===== */
+function buildPayload(){
+    const date = $('input-date').value, time = curTime();
+    const rid = 'REC_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+    if (S.type === 'tensi') {
+        const sys = $('bp-sys').value, dia = $('bp-dia').value, hr = $('bp-hr').value;
+        if (!sys || !dia || !hr) return null;
+        const category = (time >= '05:00' && time <= '15:00') ? '血壓/心跳(早)' : '血壓/心跳(晚)';
+        return { action:'insert', type:'血壓', category, date, time, amount:`${sys}/${dia} (心跳:${hr})`, note:'👤U' + CARE_USER, recordId: rid, _bp:{sys,dia,hr} };
+    }
+    if (!S.item) return null;
+    const m = ITEM_MAP[S.item];
+    let amount, note = '';
+    if (S.type === 'makan') {
+        amount = parseInt($('input-amount').value, 10);
+        if (!amount || amount < 1) return null;
+        if (S.item === 'food') {
+            if (!S.food) return null;
+            if (S.food === 'LAINNYA') { note = $('food-other').value.trim(); if (!note) return null; }
+            else { const f = FOODS.find(x => x.key === S.food); note = f ? `${f.zh} / ${f.rom}` : ''; if (!note) return null; }
+            if (!S.appetite) return null;   // 胃口必選
+            note += ` [胃口: ${S.appetite}]`;
+        }
+    } else if (S.item === 'pipis') {
+        if (UI.urineMode === 'count') {
+            if (!S.color) return null;   // 次數制：免填 cc，自動 1 筆，仍需顏色
+            amount = 1;
+        } else {
+            amount = parseInt($('pipis-amount').value, 10);
+            if (!amount || amount < 1 || !S.color) return null;
+        }
+        note = S.color + (S.umed ? (S.umed === 'full' ? ' [當日附加: 利尿藥物]' : ' [當日附加: 利尿藥物(輔助)]') : '');
+    } else if (S.item === 'pup') {
+        if (!S.status || S.gliserin === null) return null;
+        amount = 1;
+        note = S.status + (S.gliserin ? ' [浣腸 / Supositoria gliserin]' : '') + (S.lax > 0 ? ` [當日附加: 利便藥物${S.lax}顆]` : '');
+    } else {
+        // 運動：四項復健都要填實際完成次數
+        amount = parseInt($('ex-amount').value, 10);
+        if (!amount || amount < 1) return null;
+    }
+    note = (note ? note + ' ' : '') + '👤U' + CARE_USER;
+    return { action:'insert', type:m.type, category:m.category, date, time, amount, note, recordId: rid };
+}
+
+/* ===== 漸進揭露（一→二→三→存檔→四） ===== */
+function refresh(){
+    toggleSection('step2', S.step1);
+    toggleSection('step2-ok', !!S.type);
+    toggleSection('step2b', S.step1 && S.typeConfirmed);
+    ['makan','keluar','latihan','tensi'].forEach(tp => $('panel-' + tp).classList.toggle('hidden', S.type !== tp));
+    if (S.type === 'makan') {
+        $('quick-susu').classList.toggle('hidden', S.item !== 'susu');
+        $('quick-food').classList.toggle('hidden', S.item !== 'food');
+        $('amount-row').classList.toggle('hidden', !S.item);
+    }
+    if (S.type === 'keluar') {
+        $('pipis-extra').classList.toggle('hidden', S.item !== 'pipis');
+        $('pup-extra').classList.toggle('hidden', S.item !== 'pup');
+        const par = $('pipis-amount-row'); if (par) par.classList.toggle('hidden', UI.urineMode === 'count');   // 次數制免填 cc
+    }
+    if (S.type === 'latihan') {
+        $('ex-extra').classList.toggle('hidden', !S.item);
+    }
+    const ok = !!buildPayload();
+    const step3WasHidden = $('step3').classList.contains('hidden');
+    toggleSection('step3', S.step1 && S.typeConfirmed && ok);
+    $('need-hint').classList.toggle('hidden', !(S.step1 && S.typeConfirmed) || ok);
+    if (ok && step3WasHidden) focusStep('step3');   // 只在剛出現時捲動，打字中不亂跳
+    $('step4').classList.toggle('hidden', records.length === 0);
+    updateGuide();
+}
+/* ===== 藍色閃動引導：依填寫順序逐步，「這一刻要閃哪些元素」可以是多個
+ * （紫色大框標「目前步驟」、藍框標「現在要填/要按」）。
+ * 規則：一路走過各欄位；已完成的「選項群組」把選中的那顆留在閃爍清單裡累積續閃、
+ * 同組其他選項回黑；第一個還沒完成的欄位（整組全閃，或單一輸入框閃）閃完就停止往下走；
+ * 全部完成 → 只剩 #btn-save 閃（利尿/利便藥物欄位跳過，不列入順序）。 ===== */
+function updateGuide(){
+    document.querySelectorAll('.guide-flash').forEach(el => el.classList.remove('guide-flash'));
+    const flashEls = els => els.forEach(el => { if (el && !el.closest('.hidden')) el.classList.add('guide-flash'); });
+
+    if (!S.step1) { flashEls([$('date-display'), $('sel-hour'), $('sel-min')]); return; }
+
+    if (!S.typeConfirmed) {
+        if (!S.type) flashEls(Array.from(document.querySelectorAll('.type-btn')));
+        else flashEls([$('type-' + S.type), $('step2-ok')]);
+        return;
+    }
+
+    const grp = (all, selected, okFn) => {
+        const sel = document.querySelector(selected);
+        return { kind:'g', all: Array.from(document.querySelectorAll(all)), sel, ok: okFn ? okFn() : !!sel };
+    };
+    const inp = id => ({ kind:'i', el: $(id), ok: !!$(id).value });
+
+    let steps = [];
+    if (S.type === 'tensi') {
+        steps = [inp('bp-sys'), inp('bp-dia'), inp('bp-hr')];
+    } else if (S.type === 'makan') {
+        steps.push(grp('#item-grid-makan .item-btn', '#item-grid-makan .item-btn.selected'));
+        // food-grid：自填食物（LAINNYA）沒有按鈕可續閃，但仍算完成，靠 okFn 用 S.food 判斷
+        if (S.item === 'food') steps.push(grp('.food-btn', '.food-btn.ringed', () => !!S.food));
+        // 兒童改3：引導順序 類別 ＞ 胃口 ＞ CC 數 ＞ 儲存（胃口排在容量之前）
+        if (S.item === 'food') steps.push(grp('.app-btn', '.app-btn.selected'));
+        steps.push(inp('input-amount'));
+    } else if (S.type === 'keluar') {
+        steps.push(grp('#item-grid-keluar .item-btn', '#item-grid-keluar .item-btn.selected'));
+        if (S.item === 'pipis') {
+            if (UI.urineMode !== 'count') steps.push(inp('pipis-amount'));
+            steps.push(grp('.color-btn', '.color-btn.ringed'));
+        } else if (S.item === 'pup') {
+            steps.push(grp('.status-btn', '.status-btn.ringed'));
+            steps.push(grp('.glis-btn', '.glis-btn.ringed'));
+        }
+    } else if (S.type === 'latihan') {
+        steps.push(grp('#panel-latihan .item-btn', '#panel-latihan .item-btn.selected'));
+        steps.push(inp('ex-amount'));
+    }
+
+    const acc = [];
+    for (const step of steps) {
+        if (step.kind === 'g') {
+            if (step.ok) { if (step.sel) acc.push(step.sel); continue; }
+            flashEls(acc.concat(step.all));
+            return;
+        } else {
+            if (step.ok) continue;
+            flashEls(acc.concat([step.el]));
+            return;
+        }
+    }
+    flashEls([$('btn-save')]);
+}
+function toggleSection(id, show){
+    const el = $(id);
+    const wasHidden = el.classList.contains('hidden');
+    el.classList.toggle('hidden', !show);
+    if (show && wasHidden) { el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); }
+}
+function focusStep(id){
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('now'));
+    const el = $(id);
+    if (el && !el.classList.contains('hidden')) { el.classList.add('now'); el.scrollIntoView({ behavior:'smooth', block:'center' }); }
+}
+
+/* ===== 存檔 ===== */
+function save(){
+    const p = buildPayload();
+    if (!p) { $('need-hint').classList.remove('hidden'); return; }
+    if (p._bp) {   // 血壓合理區間：超標→大紅彈窗（不擋存檔）
+        const chk = careBpViolations(p.category, p._bp.sys, p._bp.dia, p._bp.hr, UI);
+        if (chk.violations.length && UI.popup.bpAlert) {
+            $('bp-modal-body').innerHTML = chk.violations.map(v =>
+                `<div class="bg-red-100 border-4 border-red-500 rounded-2xl p-3">
+                    <p class="text-2xl font-black text-red-700">${LANG==='zh' ? v.zh : v.id}: ${v.val}</p>
+                    <p class="text-xl font-black">${t('normalRange')}: ${v.lo}–${v.hi}</p>
+                </div>`).join('');
+            $('bp-modal').classList.remove('hidden');
+        }
+        delete p._bp;
+    }
+    $('btn-save').disabled = true; $('btn-save').innerText = '⏳ …';
+    records.unshift({ recordId:p.recordId, type:p.type, category:p.category, date:p.date, time:p.time, amount:String(p.amount), note:p.note });
+    renderAll();
+    fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(p) })
+        .then(r => r.json())
+        .then(() => { toast(t('saved')); resetToStart(); setTimeout(loadDay, 1500); })
+        .catch(() => { records = records.filter(r => r.recordId !== p.recordId); renderAll(); toast(t('failed'), true); })
+        .finally(() => { $('btn-save').disabled = false; $('btn-save').innerHTML = t('save'); });
+}
+/* 儲存後：頁面回復成只出現「步驟 1 ＋ 步驟 4（今日紀錄）」，時間重設為現在 */
+function resetToStart(){
+    S = { step1:false, type:null, item:null, color:null, status:null, gliserin:null, food:null, appetite:null, umed:null, lax:null, typeConfirmed:false };
+    $('input-amount').value = ''; $('pipis-amount').value = ''; $('food-other').value = ''; $('ex-amount').value = '';
+    ['bp-sys','bp-dia','bp-hr'].forEach(id => $(id).value = '');
+    document.querySelectorAll('.type-btn,.item-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.food-btn,.color-btn,.status-btn,.glis-btn').forEach(b => b.classList.remove('ringed'));
+    document.querySelectorAll('.ex-chip').forEach(b => b.classList.remove('selected'));
+    paintAnakMed();
+    setNowTime();
+    refresh(); focusStep('step1');
+}
+
+/* ===== 四、今日全部紀錄＋刪除（外框灰色鈕，紅色留給緊急） ===== */
+let delId = null;
+function askDelete(id){ delId = id; $('del-modal').classList.remove('hidden'); }
+function closeDel(){ delId = null; $('del-modal').classList.add('hidden'); }
+function doDelete(){
+    const id = delId; closeDel(); if (!id) return;
+    records = records.filter(r => r.recordId !== id);
+    renderAll();
+    fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'markError', recordId:id }) })
+        .then(r => r.json()).then(() => { toast(t('deleted')); setTimeout(loadDay, 1200); })
+        .catch(() => { toast(t('failed'), true); loadDay(); });
+}
+function renderAll(){
+    // 目標列：每個項目各自顯示 🎯今日目標｜✅目前已達（U1–U5 總和）。純圖示，不用文字
+    // 💧＝雲端目標；🚽/💩＝演算法（care-tasks.js）；四項復健＝各自雲端目標
+    const sumCat = cats => records.filter(r => cats.includes(r.category)).reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
+    const intake = sumCat(['飲水量','服藥飲水','營養飲品','進食']);
+    const urine = sumCat(['尿液']);
+    const stoolN = records.filter(r => r.category === '排便').length;
+    const med = careMedFromRecords(records);
+    const uGoal = careUrineGoal(intake, med.diuretic, UI);
+    const sGoal = careStoolGoal(med.laxPills);
+    const wGoal = parseFloat(goals['goal_總攝入水量']) || 0;
+    // 兒童版今日目標 vs 目前已達：直接顯著顯示實際數值，不重複多餘 cc 行
+    const over = UI.popup.fluidOver && intake > UI.num.fluidMax;
+    const pct = wGoal > 0 ? Math.min(100, Math.round(intake / wGoal * 100)) : 0;
+    const col = over ? 'var(--danger)' : 'var(--accent)';
+
+    const gNum = $('goal-num');
+    if (gNum) gNum.textContent = wGoal > 0 ? wGoal : '…';
+
+    const dNum = $('done-num');
+    if (dNum) dNum.textContent = intake;
+
+    const dWrap = $('done-text-wrap');
+    if (dWrap) dWrap.style.color = col;
+
+    const dBox = $('done-box');
+    if (dBox) {
+        if (over) {
+            dBox.style.backgroundColor = '#fff1f2';
+            dBox.style.borderColor = 'var(--danger)';
+        } else {
+            dBox.style.backgroundColor = '#f0fdfa';
+            dBox.style.borderColor = '#5eead4';
+        }
+    }
+
+    const gPct = $('goal-pct');
+    if (gPct) {
+        gPct.textContent = (wGoal > 0 ? Math.round(intake / wGoal * 100) : 0) + '%';
+        gPct.style.color = col;
+    }
+
+    const gBar = $('goal-bar');
+    if (gBar) {
+        gBar.style.width = pct + '%';
+        gBar.style.backgroundColor = col;
+    }
+    // 紀錄列：依時段分框（同管理者總表），時間一律 24 小時制＋☀️/🌙
+    const SLOT_EMOJI = { dawn:'🌙', morning:'🌅', midday:'☀️', evening:'🌇', night:'🛏️', late:'💤' };
+    const recRow = r => {
+        const isBP = (r.category || '').includes('血壓');
+        const emoji = isBP ? '❤️' : (CAT_EMOJI[r.category] || '📝');
+        const isExOrStool = ['排便','舉水瓶','雙手舉水瓶','躺式腳底板抬壓','腳底板抬壓','躺式膝蓋彎伸','膝蓋彎伸','仰臥抬腿','仰躺大腿內收訓練','大腿內收','橋式／仰躺雙腳屈膝抬臀','橋式抬臀','站立','站立搖擺','站立抬腳'].includes(r.category);
+        const unit = isBP ? '' : (isExOrStool ? t('times') : ' cc');
+        const note = careNoteDisplay(r.note || '', LANG);
+        return `<div class="flex items-center gap-2 border-[3px] border-gray-400 rounded-2xl p-3 bg-white">
+            <div class="flex-1 min-w-0">
+                <p class="text-2xl font-black">${fmt12(r.time)} ${emoji} ${r.amount}${unit}</p>
+                ${note ? `<p class="text-base font-bold text-gray-600 truncate">${note}</p>` : ''}
+            </div>
+            <button type="button" onclick="askDelete('${r.recordId}')" class="shrink-0 w-16 h-16 rounded-2xl bg-white border-[3px] border-gray-400 text-gray-500 text-4xl font-black bigbtn leading-none">✕</button>
+        </div>`;
+    };
+    const list = $('rec-list');
+    if (records.length === 0) { list.innerHTML = `<p class="text-xl font-black text-gray-500 text-center py-4">${t('noRec')}</p>`; }
+    else {
+        list.innerHTML = [...CARE_SLOTS].reverse().map(s => {   /* 今日紀錄降冪：最新時段在最上 */
+            const recs = records.filter(r => careInSlot(r.time, s)).sort((a,b) => b.time.localeCompare(a.time));
+            if (recs.length === 0) return '';
+            return `<div class="border-4 border-gray-700 rounded-3xl p-2 space-y-2 bg-stone-50">
+                <p class="text-2xl font-black text-gray-800 px-1">${SLOT_EMOJI[s.key] || ''} ${LANG==='zh' ? s.zh : s.id} <span class="text-base text-gray-500">${fmt12(s.start)}–${fmt12(s.end)}</span></p>
+                ${recs.map(recRow).join('')}
+            </div>`;
+        }).join('');
+    }
+    checkWarnings();
+    refresh();
+}
+
+/* ===== 兒童版警示（跟大人版同規則，用小朋友看得懂的話）：
+ * 喝太多(>1500cc)、尿太多(>今日尿液目標=喝的×0.9；利尿藥物(輔助)×1.1；利尿藥物×1.3)
+ * → 動態大紅橫幅＋每天每種跳一次大彈窗 ===== */
+/* ===== 管理設定套用：床圍欄警語 顯示/自訂文字（兒童頁固定雙語，無語言 CSS 閘門） ===== */
+function applyAnakUiStatic(){
+    const br = $('anak-bedrail');
+    if (br) br.classList.toggle('hidden', !UI.show.bedRail);
+    const tz = ((UI.text.bedRail||{}).zh||'').trim(), ti = ((UI.text.bedRail||{}).id||'').trim();
+    const z = $('anak-bedrail-zh'), i = $('anak-bedrail-id');
+    if (z && tz) z.textContent = tz;
+    if (i && ti) i.textContent = ti;
+}
+function checkWarnings(){
+    const intake = records.filter(r => ['飲水量','服藥飲水','營養飲品','進食'].includes(r.category)).reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
+    const urine = records.filter(r => r.category === '尿液').reduce((s,r) => s + (parseFloat(r.amount) || 0), 0);
+    const uMax = careUrineGoal(intake, careMedFromRecords(records).diuretic, UI);
+    const warns = [];
+    if (UI.popup.fluidOver && intake > UI.num.fluidMax) warns.push({ key:'minum', text:t('warnDrink') });
+    if (UI.urineMode !== 'count' && UI.popup.urineOver && urine > 0 && uMax > 0 && urine > uMax) warns.push({ key:'pipis', text:t('warnPipis') });
+    $('warn-box').innerHTML = warns.map(w =>
+        `<div class="alert-banner border-8 bg-red-100 rounded-3xl p-3 text-2xl font-black" style="border-color: var(--danger); color: var(--danger)"><span class="bounce-big">🚨</span> ${w.text}<br><span class="text-xl">${t('callAdult')}</span></div>`).join('');
+    const date = $('input-date').value || careTodayStr();
+    const fresh = warns.filter(w => !localStorage.getItem('anak_warn_' + date + '_' + w.key));
+    if (fresh.length) {
+        $('warn-modal-body').innerHTML = fresh.map(w => `<p class="text-3xl font-black" style="color: var(--danger)">${w.text}</p>`).join('');
+        $('warn-modal').classList.remove('hidden');
+        fresh.forEach(w => localStorage.setItem('anak_warn_' + date + '_' + w.key, '1'));
+    }
+}
+
+/* ===== 同步：快取先渲染，背景刷新（不擋操作） ===== */
+function fetchWithTimeout(url, ms){
+    const ctrl = new AbortController();
+    const tm = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { cache:'no-store', signal: ctrl.signal }).finally(() => clearTimeout(tm));
+}
+function loadDay(){
+    const date = $('input-date').value || careTodayStr();
+    const key = 'anak_cache_' + date;
+    try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c) { records = c.records; goals = c.goals; UI = careUI(goals); applyAnakUiStatic(); applyLang(); renderAll(); } } catch(e) {}
+    $('sync-icon').classList.add('animate-spin-slow');
+    const url = `${GAS_URL}?date=${date}&t=${Date.now()}`;
+    fetchWithTimeout(url, 20000)
+        .catch(() => fetchWithTimeout(url, 20000))
+        .then(r => r.json())
+        .then(data => {
+            records = (data.records || []).filter(r => r.status !== '無效');
+            goals = data.goals || {};
+            UI = careUI(goals); applyAnakUiStatic(); applyLang();
+            try { localStorage.setItem(key, JSON.stringify({ records, goals, ts:Date.now() })); } catch(e) {}
+            renderAll();
+        })
+        .catch(() => toast(t('syncFail'), true))
+        .finally(() => $('sync-icon').classList.remove('animate-spin-slow'));
+}
+
+window.onload = function(){
+    initClock();
+    applyLang();
+    applyAnakUiStatic();   // 先用預設設定套用；loadDay 回來再以雲端值刷新
+    // 手動輸入的欄位（cc/次數/血壓三格/自填食物）也要即時重算，儲存鈕才會出現
+    ['input-amount','pipis-amount','ex-amount','bp-sys','bp-dia','bp-hr'].forEach(id => $(id).addEventListener('input', refresh));
+    $('food-other').addEventListener('input', onFoodOther);
+    refresh();
+    focusStep('step1');
+    loadDay();
+};
+</script>
+</body>
+</html>
