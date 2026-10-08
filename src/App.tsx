@@ -8,6 +8,8 @@ import { DailyLogView } from './views/DailyLogView';
 import { TrendsView } from './views/TrendsView';
 import { ReportView } from './views/ReportView';
 import { SettingsView } from './views/SettingsView';
+import { AnakModeView } from './views/AnakModeView';
+import { AuthGate } from './components/AuthGate';
 import { tabLabels } from './i18n';
 import { ClipboardList, TrendingUp, FileText, Settings as SettingsIcon } from 'lucide-react';
 
@@ -19,6 +21,9 @@ export function App() {
   const [diureticUsed, setDiureticUsed] = useState<boolean>(DEFAULT_SETTINGS.diureticUsed);
   const [todayLogs, setTodayLogs] = useState<CareLogRecord[]>([]);
   const [lastStoolTimestamp, setLastStoolTimestamp] = useState<number | undefined>(undefined);
+
+  // 兒童大字版模式開關
+  const [isAnakMode, setIsAnakMode] = useState<boolean>(false);
 
   // 載入設定與日誌
   const refreshData = useCallback(async () => {
@@ -78,89 +83,108 @@ export function App() {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 pt-5 pb-24 min-h-screen">
-      {/* 頂部 Header */}
-      <Header
-        lang={lang}
-        onLangChange={handleLangChange}
-        caregiver={caregiver}
-        onCaregiverChange={handleCaregiverChange}
-      />
-
-      {/* 今日目標追蹤儀表板 (僅在日誌頁呈現) */}
-      {activeTab === 'log' && (
-        <TargetDashboard
-          lang={lang}
-          targetWater={targetWater}
-          todayLogs={todayLogs}
-          diureticUsed={diureticUsed}
-          onEditTarget={handleEditTarget}
-          lastStoolTimestamp={lastStoolTimestamp}
-        />
-      )}
-
-      {/* 視圖切換 */}
-      <main>
-        {activeTab === 'log' && (
-          <DailyLogView
-            lang={lang}
+    <AuthGate lang={lang}>
+      <div className="max-w-md mx-auto px-4 pt-5 pb-24 min-h-screen">
+        {/* 若開啟兒童大字版 */}
+        {isAnakMode ? (
+          <AnakModeView
+            onBack={() => {
+              setIsAnakMode(false);
+              refreshData();
+            }}
             caregiver={caregiver}
-            todayLogs={todayLogs}
-            onRefresh={refreshData}
           />
+        ) : (
+          <>
+            {/* 頂部 Header */}
+            <Header
+              lang={lang}
+              onLangChange={handleLangChange}
+              caregiver={caregiver}
+              onCaregiverChange={handleCaregiverChange}
+            />
+
+            {/* 今日目標追蹤儀表板 (僅在日誌頁呈現) */}
+            {activeTab === 'log' && (
+              <TargetDashboard
+                lang={lang}
+                targetWater={targetWater}
+                todayLogs={todayLogs}
+                diureticUsed={diureticUsed}
+                onEditTarget={handleEditTarget}
+                lastStoolTimestamp={lastStoolTimestamp}
+              />
+            )}
+
+            {/* 視圖切換 */}
+            <main>
+              {activeTab === 'log' && (
+                <DailyLogView
+                  lang={lang}
+                  caregiver={caregiver}
+                  todayLogs={todayLogs}
+                  onRefresh={refreshData}
+                />
+              )}
+              {activeTab === 'trends' && <TrendsView lang={lang} />}
+              {activeTab === 'report' && <ReportView lang={lang} />}
+              {activeTab === 'settings' && (
+                <SettingsView
+                  lang={lang}
+                  onSettingsChanged={refreshData}
+                  onOpenAnakMode={() => setIsAnakMode(true)}
+                />
+              )}
+            </main>
+
+            {/* 底部導覽列 (保留您認可的 4 個分頁) */}
+            <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t-2 border-stone-200 py-2 px-6 shadow-lg z-40">
+              <div className="max-w-md mx-auto flex justify-between items-center">
+                <button
+                  onClick={() => setActiveTab('log')}
+                  className={`flex flex-col items-center gap-1 font-black text-xs transition-all ${
+                    activeTab === 'log' ? 'text-[#FB8B7A] scale-105' : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  <ClipboardList className="w-5 h-5" />
+                  <span>{tabLabels.log[lang]}</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('trends')}
+                  className={`flex flex-col items-center gap-1 font-black text-xs transition-all ${
+                    activeTab === 'trends' ? 'text-[#FB8B7A] scale-105' : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  <TrendingUp className="w-5 h-5" />
+                  <span>{tabLabels.trends[lang]}</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('report')}
+                  className={`flex flex-col items-center gap-1 font-black text-xs transition-all ${
+                    activeTab === 'report' ? 'text-[#FB8B7A] scale-105' : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  <FileText className="w-5 h-5" />
+                  <span>{tabLabels.report[lang]}</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('settings')}
+                  className={`flex flex-col items-center gap-1 font-black text-xs transition-all ${
+                    activeTab === 'settings' ? 'text-[#FB8B7A] scale-105' : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  <SettingsIcon className="w-5 h-5" />
+                  <span>{tabLabels.settings[lang]}</span>
+                </button>
+              </div>
+            </nav>
+          </>
         )}
-        {activeTab === 'trends' && <TrendsView lang={lang} />}
-        {activeTab === 'report' && <ReportView lang={lang} />}
-        {activeTab === 'settings' && (
-          <SettingsView lang={lang} onSettingsChanged={refreshData} />
-        )}
-      </main>
-
-      {/* 底部導覽列 */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t-2 border-stone-200 py-2 px-6 shadow-lg z-50">
-        <div className="max-w-md mx-auto flex justify-between items-center">
-          <button
-            onClick={() => setActiveTab('log')}
-            className={`flex flex-col items-center gap-1 font-black text-xs transition-all ${
-              activeTab === 'log' ? 'text-[#FB8B7A] scale-105' : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <ClipboardList className="w-5 h-5" />
-            <span>{tabLabels.log[lang]}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('trends')}
-            className={`flex flex-col items-center gap-1 font-black text-xs transition-all ${
-              activeTab === 'trends' ? 'text-[#FB8B7A] scale-105' : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <TrendingUp className="w-5 h-5" />
-            <span>{tabLabels.trends[lang]}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('report')}
-            className={`flex flex-col items-center gap-1 font-black text-xs transition-all ${
-              activeTab === 'report' ? 'text-[#FB8B7A] scale-105' : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <FileText className="w-5 h-5" />
-            <span>{tabLabels.report[lang]}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`flex flex-col items-center gap-1 font-black text-xs transition-all ${
-              activeTab === 'settings' ? 'text-[#FB8B7A] scale-105' : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <SettingsIcon className="w-5 h-5" />
-            <span>{tabLabels.settings[lang]}</span>
-          </button>
-        </div>
-      </nav>
-    </div>
+      </div>
+    </AuthGate>
   );
 }
 

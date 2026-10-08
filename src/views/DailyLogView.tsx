@@ -1,10 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CareType, Language, CareLogRecord } from '../types';
 import { t, typeLabels, intakeLabels, outputLabels } from '../i18n';
 import { db } from '../db';
 import { syncLogsToCloud } from '../db/sync';
 import confetti from 'canvas-confetti';
-import { Clock, Plus, Trash2, Check, RefreshCw, Activity, Droplets, Heart, Dumbbell } from 'lucide-react';
+import {
+  DEFAULT_REHAB_LEVELS,
+  RehabItem
+} from '../clinical/rehabData';
+import { RehabModal } from '../components/RehabModal';
+import { getPromptConfig, CareCustomPromptConfig } from '../clinical/promptConfig';
+import {
+  Plus,
+  Trash2,
+  Check,
+  RefreshCw,
+  Activity,
+  Droplets,
+  Heart,
+  Dumbbell,
+  Info,
+  BookOpen
+} from 'lucide-react';
 
 interface DailyLogViewProps {
   lang: Language;
@@ -38,6 +55,16 @@ export const DailyLogView: React.FC<DailyLogViewProps> = ({
   const [urineColor, setUrineColor] = useState<string>('正常淡黃');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 復健教學彈窗
+  const [modalItem, setModalItem] = useState<RehabItem | null>(null);
+
+  // 照護提示設定
+  const [promptCfg, setPromptCfg] = useState<CareCustomPromptConfig>(getPromptConfig());
+
+  useEffect(() => {
+    setPromptCfg(getPromptConfig());
+  }, []);
 
   // 設置時間為現在
   const handleSetNow = () => {
@@ -126,6 +153,15 @@ export const DailyLogView: React.FC<DailyLogViewProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* 🚨 床圍欄放下 1 公尺警戒橫幅 (完整還原原版安全守則) */}
+      <div className="bg-red-600 text-white rounded-3xl p-3.5 shadow-md flex items-center gap-3 border-2 border-red-700 animate-pulse-gentle">
+        <span className="text-2xl leading-none shrink-0">🚨</span>
+        <div className="text-xs font-black leading-snug">
+          <p>{promptCfg.bedrailZh}</p>
+          <p className="text-[11px] font-bold text-red-100 mt-0.5">{promptCfg.bedrailId}</p>
+        </div>
+      </div>
+
       {/* 快捷一鍵補水區 (床邊極速填報) */}
       <div className="bg-sky-50 border-2 border-sky-300 rounded-3xl p-3 shadow-sm">
         <div className="flex items-center justify-between mb-2">
@@ -188,7 +224,7 @@ export const DailyLogView: React.FC<DailyLogViewProps> = ({
             type="button"
             onClick={() => {
               setSelectedType('運動');
-              setCategory('寶特瓶舉起');
+              setCategory('雙手舉水瓶');
             }}
             className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl font-black text-xs transition-all ${
               selectedType === '運動'
@@ -216,6 +252,27 @@ export const DailyLogView: React.FC<DailyLogViewProps> = ({
             <span>{typeLabels.bp[lang]}</span>
           </button>
         </div>
+
+        {/* 依類別動態引導提示 (導尿管訓練 / 血壓測量提醒) */}
+        {selectedType === '排出' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-amber-900 font-bold text-xs space-y-1">
+            <p className="font-black flex items-center gap-1.5 text-amber-950">
+              <Info className="w-4 h-4 text-amber-600" />
+              <span>{promptCfg.catheterZh}</span>
+            </p>
+            <p className="text-[11px] text-amber-700 font-medium pl-5">{promptCfg.catheterId}</p>
+          </div>
+        )}
+
+        {selectedType === '血壓' && (
+          <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3 text-rose-900 font-bold text-xs space-y-1">
+            <p className="font-black flex items-center gap-1.5 text-rose-950">
+              <Heart className="w-4 h-4 text-rose-600" />
+              <span>💡 血壓測量黃金法則：{promptCfg.bpGuideZh}</span>
+            </p>
+            <p className="text-[11px] text-rose-700 font-medium pl-5">{promptCfg.bpGuideId}</p>
+          </div>
+        )}
 
         {/* 日期與時間選擇 */}
         <div className="grid grid-cols-2 gap-2">
@@ -248,7 +305,7 @@ export const DailyLogView: React.FC<DailyLogViewProps> = ({
           </div>
         </div>
 
-        {/* 依類別動態渲染子項 */}
+        {/* 攝入分項 */}
         {selectedType === '攝入' && (
           <div className="space-y-3">
             <label className="block text-xs font-bold text-gray-500">項目 / Item</label>
@@ -294,6 +351,7 @@ export const DailyLogView: React.FC<DailyLogViewProps> = ({
           </div>
         )}
 
+        {/* 排出分項 */}
         {selectedType === '排出' && (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
@@ -378,44 +436,106 @@ export const DailyLogView: React.FC<DailyLogViewProps> = ({
           </div>
         )}
 
+        {/* 運動分項：完整恢復 LEVEL 1～4 總共 13 項復健運動與「📖 範例」教學彈窗 */}
         {selectedType === '運動' && (
-          <div className="space-y-3">
-            <label className="block text-xs font-bold text-gray-500">復健項目 / Latihan</label>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { key: '寶特瓶舉起', label: '寶特瓶舉起 / Botol' },
-                { key: '腳踩腳踝幫浦', label: '腳踝幫浦 / Pompa Kaki' },
-                { key: '膝蓋彎曲', label: '膝蓋彎曲 / Tekuk Lutut' },
-                { key: '直腿抬高', label: '直腿抬高 / Angkat Kaki' },
-                { key: '站立平衡', label: '站立平衡 / Berdiri' }
-              ].map((ex) => (
-                <button
-                  key={ex.key}
-                  type="button"
-                  onClick={() => setCategory(ex.key)}
-                  className={`p-3 rounded-2xl border-2 font-black text-xs flex items-center justify-center text-center transition-all ${
-                    category === ex.key
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
-                      : 'border-gray-200 text-gray-700'
+          <div className="space-y-3.5">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-emerald-900 font-bold text-xs space-y-1">
+              <p className="font-black flex items-center gap-1.5">
+                <Dumbbell className="w-4 h-4 text-emerald-700" />
+                <span>🕒 復健練習應於三餐飯前及睡前半小時進行，每日至少四次。</span>
+              </p>
+              <p className="text-[11px] text-emerald-700 font-medium">
+                Latihan rehabilitasi dilakukan sebelum makan & sebelum tidur. LEVEL 1–4 循序漸進共 13 項。
+              </p>
+            </div>
+
+            {/* LEVEL 1～4 分級選單 */}
+            <div className="space-y-3">
+              {DEFAULT_REHAB_LEVELS.map((level) => (
+                <div
+                  key={level.key}
+                  className={`border-2 rounded-2xl p-2.5 space-y-2 ${
+                    level.key === 'L1'
+                      ? 'border-sky-200 bg-sky-50/30'
+                      : level.key === 'L2'
+                      ? 'border-emerald-200 bg-emerald-50/30'
+                      : level.key === 'L3'
+                      ? 'border-amber-200 bg-amber-50/30'
+                      : 'border-rose-200 bg-rose-50/30'
                   }`}
                 >
-                  {ex.label}
-                </button>
+                  <div className="flex items-center justify-between text-xs font-black">
+                    <span className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-full bg-stone-800 text-white text-[10px]">
+                        {level.zh}
+                      </span>
+                      <span className="text-gray-800">
+                        {lang === 'zh' ? level.hint.zh : level.hint.id}
+                      </span>
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-bold">
+                      {level.items.length} 項
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    {level.items.map((ex) => (
+                      <div
+                        key={ex.key}
+                        className={`border rounded-xl p-2 flex items-center justify-between transition-all ${
+                          category === ex.zh
+                            ? 'border-emerald-500 bg-white shadow-sm ring-2 ring-emerald-400'
+                            : 'border-gray-200 bg-white/90 hover:bg-white'
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setCategory(ex.zh)}
+                          className="flex items-center gap-2 text-left flex-1 py-1"
+                        >
+                          <span className="text-xl">{ex.icon}</span>
+                          <div>
+                            <p className="text-xs font-black text-gray-800">
+                              {lang === 'zh' ? ex.zh : ex.id}
+                            </p>
+                            <p className="text-[10px] text-gray-500 font-medium">
+                              {lang === 'zh' ? ex.id : ex.zh}
+                            </p>
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setModalItem(ex)}
+                          className="shrink-0 bg-stone-100 hover:bg-[#FB8B7A] hover:text-white text-[#FB8B7A] rounded-full px-2.5 py-1 text-xs font-black active:scale-95 transition-all flex items-center gap-1 shadow-xs border border-stone-200"
+                        >
+                          <BookOpen className="w-3.5 h-3.5" />
+                          <span>範例</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
+
             <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1">完成次數 / Jumlah (次)</label>
+              <label className="block text-xs font-bold text-gray-500 mb-1">
+                完成次數／秒數 / Jumlah (次/detik)
+              </label>
               <input
                 type="number"
                 placeholder="例如 10"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full bg-gray-50 border-2 border-gray-300 rounded-2xl py-2.5 px-3 text-lg font-black text-gray-900"
+                className="w-full bg-gray-50 border-2 border-gray-300 rounded-2xl py-2.5 px-3 text-xl font-black text-gray-900 focus:outline-none focus:border-emerald-500"
+                required
               />
             </div>
           </div>
         )}
 
+        {/* 血壓分項 */}
         {selectedType === '血壓' && (
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
@@ -456,23 +576,20 @@ export const DailyLogView: React.FC<DailyLogViewProps> = ({
                 />
               </div>
             </div>
-            <p className="text-[11px] text-gray-500 font-bold">
-              💡 測量指南：測量前靜止 15 分鐘，目標建議 &lt; 130/80 mmHg。
-            </p>
           </div>
         )}
 
-        {/* 備註 */}
+        {/* 備註欄位 */}
         <div>
           <label className="block text-xs font-bold text-gray-500 mb-1">
-            {t('note', lang)}
+            📝 {t('note', lang)} (可選 / Opsional)
           </label>
           <input
             type="text"
-            placeholder="長輩胃口、排便順暢等情況..."
+            placeholder={lang === 'zh' ? '如：精神良好、左腳微痛...' : 'Catatan kondisi...'}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="w-full bg-gray-50 border-2 border-gray-300 rounded-2xl py-2.5 px-3 text-sm font-bold text-gray-800"
+            className="w-full bg-gray-50 border-2 border-gray-300 rounded-2xl py-2 px-3 text-sm font-bold text-gray-800 focus:outline-none focus:border-[#FB8B7A]"
           />
         </div>
 
@@ -480,86 +597,84 @@ export const DailyLogView: React.FC<DailyLogViewProps> = ({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-[#FB8B7A] hover:bg-[#F4726B] text-white py-3.5 rounded-2xl font-black text-base shadow-md active:scale-98 transition-all flex items-center justify-center gap-2"
+          className="w-full bg-[#FB8B7A] hover:bg-[#F4726B] active:scale-98 text-white rounded-2xl py-3 font-black text-base shadow-md transition-all flex items-center justify-center gap-2"
         >
           <Plus className="w-5 h-5" />
-          <span>{isSubmitting ? t('saving', lang) : t('save', lang)}</span>
+          <span>{isSubmitting ? '儲存中...' : t('save', lang)}</span>
         </button>
       </form>
 
-      {/* 今日記錄時間軸 */}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border-2 border-stone-200">
-        <div className="flex items-center justify-between mb-3 border-b pb-2">
-          <h4 className="font-black text-gray-800 flex items-center gap-1.5 text-sm">
-            <Clock className="w-4 h-4 text-gray-500" />
-            <span>今日詳細記錄 ({todayLogs.length})</span>
-          </h4>
+      {/* 今日記錄列表 */}
+      <div className="space-y-2">
+        <h4 className="text-xs font-black text-gray-600 px-1 flex items-center justify-between">
+          <span>📋 今日填報記錄 ({todayLogs.length} 筆)</span>
           <button
-            onClick={() => syncLogsToCloud().then(() => onRefresh())}
-            className="text-xs text-sky-600 hover:text-sky-800 font-black flex items-center gap-1"
+            type="button"
+            onClick={onRefresh}
+            className="text-[11px] text-[#FB8B7A] flex items-center gap-1 active:scale-90"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>雲端同步</span>
+            <span>重新載入</span>
           </button>
-        </div>
+        </h4>
 
         {todayLogs.length === 0 ? (
-          <p className="text-center text-xs font-bold text-gray-400 py-6">
-            今天尚無記錄，點擊上方按鈕開始填報 📝
-          </p>
+          <div className="bg-white rounded-3xl p-6 text-center text-gray-400 text-xs font-bold border-2 border-dashed border-stone-200">
+            今日尚無記錄，開始為長輩填報吧！
+          </div>
         ) : (
           <div className="space-y-2">
             {todayLogs.map((log) => (
               <div
                 key={log.id}
-                className="flex items-center justify-between p-2.5 bg-gray-50 rounded-2xl border border-gray-200 text-xs font-bold"
+                className="bg-white rounded-2xl p-3 border-2 border-stone-200 shadow-sm flex items-center justify-between"
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-500 font-mono text-[11px]">{log.time}</span>
-                  <span className="px-2 py-0.5 rounded-lg bg-white border border-gray-300 font-black">
-                    {log.category}
-                  </span>
-                  {log.amount && (
-                    <span className="text-sky-700 font-black text-sm">
-                      {log.amount} {log.type === '運動' ? '次' : 'c.c.'}
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-black bg-stone-100 text-stone-700 px-2 py-0.5 rounded-md">
+                      {log.time}
                     </span>
-                  )}
-                  {log.bpSys && (
-                    <span className="text-rose-700 font-black">
-                      {log.bpSys}/{log.bpDia} ({log.bpHr}bpm)
+                    <span className="text-xs font-black text-gray-800">
+                      {log.category}
                     </span>
-                  )}
-                  {log.stoolStatus && (
-                    <span className="text-amber-800 font-black">[{log.stoolStatus}]</span>
-                  )}
-                  {log.urineColor && (
-                    <span className="text-amber-700">({log.urineColor})</span>
+                    {log.amount !== undefined && (
+                      <span className="text-xs font-bold text-[#FB8B7A]">
+                        {log.amount} {log.type === '運動' ? '次' : 'cc'}
+                      </span>
+                    )}
+                    {log.bpSys && (
+                      <span className="text-xs font-bold text-rose-600">
+                        {log.bpSys}/{log.bpDia} (HR:{log.bpHr})
+                      </span>
+                    )}
+                  </div>
+                  {log.note && (
+                    <p className="text-[11px] text-gray-500 font-medium pl-1">
+                      📝 {log.note}
+                    </p>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded-md ${
-                      log.syncStatus === 'synced'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}
-                  >
-                    {log.syncStatus === 'synced' ? '已同步' : '待同步'}
-                  </span>
-                  <button
-                    onClick={() => handleDelete(log.id)}
-                    className="text-gray-400 hover:text-red-500 p-1"
-                    title="刪除"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(log.id)}
+                  className="text-gray-400 hover:text-red-500 p-2 active:scale-90"
+                  title="刪除"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* 復健分解動作彈窗 */}
+      <RehabModal
+        item={modalItem}
+        lang={lang}
+        onClose={() => setModalItem(null)}
+      />
     </div>
   );
 };
